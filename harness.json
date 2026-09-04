@@ -1,0 +1,21 @@
+{
+  "harness": "0.9.0",
+  "profile": "team",
+  "project": "orbiq",
+  "foundation": [
+    "runtime",
+    "data",
+    "boundaries",
+    "identity",
+    "deploy",
+    "tests",
+    "interface"
+  ],
+  "budgets": {
+    "taskPlanLines": 120,
+    "taskRecordLines": 60,
+    "traceBlockLines": 25,
+    "decisionFileLines": 40,
+    "sddDocsTotalLines": 650
+  }
+}
