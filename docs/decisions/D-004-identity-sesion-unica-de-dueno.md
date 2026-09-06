@@ -1,6 +1,6 @@
 # D-004 — Usuarios como tabla desde el día uno, con un solo rol
 
-- Status: accepted
+- Status: superseded
 - Date: 2026-09-04
 - Supersedes: none
 - Tasks: none

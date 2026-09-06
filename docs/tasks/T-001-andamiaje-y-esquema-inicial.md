@@ -5,8 +5,8 @@ status: ready
 profile: team
 harness: 0.9.0
 role: Implementer
-goal: Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las siete entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim.
-decisions: [D-001, D-002, D-003, D-006]
+goal: Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las ocho entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim.
+decisions: [D-001, D-002, D-003, D-006, D-008]
 implements: [AC-X06]
 ---
 
@@ -23,7 +23,9 @@ implements: [AC-X06]
 - Next.js con App Router y TypeScript en modo estricto.
 - Tailwind configurado con los tokens de `design-handoff.md` § Design Tokens.
 - Drizzle + drizzle-kit apuntando a Postgres de Neon, por el string de conexión agrupado.
-- Esquema de las siete entidades de `data-model.md` y **una** migración inicial versionada.
+- Better Auth con adaptador de Drizzle, sin `socialProviders` configurados (`D-008`).
+- Esquema de las ocho entidades de `data-model.md` y **una** migración inicial versionada. Las tres
+  de identidad las genera el CLI de Better Auth; drizzle-kit produce la migración a partir de ahí.
 - `src/domain/` creado y vacío de lógica, con la regla de `D-001` documentada en un README corto.
 - Vitest configurado, con una prueba real: el saldo de un producto recomputado desde movimientos.
 - Playwright configurado, con una prueba que carga la aplicación contra la base real.
@@ -32,7 +34,8 @@ implements: [AC-X06]
 ## Out of Scope
 
 - Cualquier pantalla de producto: sesión, catálogo y venta son T-002, T-003 y T-004.
-- Argon2id y la librería de código de barras — entran en la tarea que los usa (`architecture.md`).
+- Encender Google u otro proveedor: se configura en su momento, no ahora (`D-008`).
+- La librería de código de barras — entra en la tarea que la usa (`architecture.md`).
 - Despliegue en Vercel. Se hace cuando haya una rebanada que mostrar.
 - Datos de ejemplo más allá de lo que las pruebas necesiten.
 
@@ -68,8 +71,9 @@ implements: [AC-X06]
 
 ## Risks
 
-- El paquete de Argon2id puede no correr en el runtime de Vercel. No bloquea esta tarea porque la
-  contraseña entra en T-002, pero si falla allí obliga a revisar `architecture.md` § Security.
+- El CLI de Better Auth genera el esquema de identidad, así que el paso deja de escribirse a mano.
+  Hay que comprobar que la migración resultante quede versionada en el repositorio y no aplicada
+  directamente contra la base, que es lo que `AC-X06` exige.
 - Neon con conexión agrupada más funciones serverless es el punto donde este stack suele fallar
   primero. Se verifica aquí, no en la tarea de la venta.
 - Playwright contra una base real es lo más lento de montar de todo el andamiaje. Es también lo que

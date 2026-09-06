@@ -1,65 +1,72 @@
 ---
 id: T-002
-title: Sesión de dueño con contraseña
+title: Sesión de dueño con correo y contraseña
 status: ready
 profile: team
 harness: 0.9.0
 role: Implementer
-goal: El dueño entra con usuario y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio.
-decisions: [D-001, D-004]
+goal: El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio.
+decisions: [D-001, D-008]
 implements: [FR-009, NFR-007, US-001, US-011, AC-001, AC-002]
 ---
 
 ## Sources
 
-- `docs/project/data-model.md` § user, § session
+- `docs/project/data-model.md` § user, § account, § session
 - `docs/project/architecture.md` § Security
-- `docs/decisions/D-004-identity-sesion-unica-de-dueno.md`
+- `docs/decisions/D-008-identity-credenciales-como-relacion.md`
 
 ## Scope
 
-- Funciones de dominio en `src/domain/`: autenticar, crear sesión, resolver sesión, cerrar sesión.
-- Argon2id para la contraseña, con el paquete verificado contra el runtime de Vercel.
-- Cookie `httpOnly`, `Secure`, `SameSite=Lax` con identificador **aleatorio criptográfico** — no
-  UUIDv7, que es parcialmente adivinable (`data-model.md` § session).
+- Better Auth con `emailAndPassword` activado y **sin** `socialProviders`: Google se enciende
+  después con configuración, no con migración (`D-008`).
+- Envoltura fina en `src/domain/` para resolver la sesión actual, de modo que una pantalla, una ruta
+  HTTP o un job pregunten por ella igual (`D-001`, `AC-X03`).
 - Pantalla de acceso, responsive, con el campo de entrada a 16 px mínimo (`design-handoff.md`).
 - Guardia que protege toda ruta que no sea el acceso.
 - Script del estudio para dar de alta un usuario dueño y para restablecer su contraseña (`US-011`).
 
 ## Out of Scope
 
-- Registro público, recuperación por correo, segundo factor (`D-004`).
-- Roles distintos de `owner` y cualquier verificación de permisos (`D-004`).
-- Expiración por inactividad. La sesión dura por tiempo absoluto.
+- Encender Google. La puerta queda abierta por esquema; cruzarla es su propia tarea (`D-008`).
+- Registro público, recuperación por correo, segundo factor (`D-008`).
+- Roles distintos de `owner` y cualquier verificación de permisos (`D-008`).
+- Sustituir scrypt por Argon2id. Está aceptado y anotado en `architecture.md` § Security.
 
 ## Acceptance Criteria
 
 - [ ] CUANDO alguien abre cualquier ruta sin sesión válida EL SISTEMA DEBE llevarlo al acceso sin
       revelar ningún dato del negocio (`AC-001`).
-- [ ] CUANDO el dueño entra con la contraseña correcta EL SISTEMA DEBE crear una fila en `session` y
+- [ ] CUANDO el dueño entra con la contraseña correcta EL SISTEMA DEBE crear una fila de sesión y
       devolver una cookie cuyo valor no contiene información del usuario (`AC-002`).
 - [ ] CUANDO se entra con contraseña incorrecta EL SISTEMA DEBE rechazar sin distinguir si el usuario
       existe, y no crear sesión.
 - [ ] CUANDO la sesión está vencida EL SISTEMA DEBE tratarla como ausente.
-- [ ] La contraseña nunca se almacena ni se registra en claro, y `password_hash` es Argon2id.
+- [ ] El hash de la contraseña vive en `account` con `provider_id = 'credential'`, no en `user`. Es
+      lo que hace que añadir Google después no sea una migración (`D-008`).
+- [ ] La contraseña no aparece en claro en la base ni en ningún registro de la aplicación.
 - [ ] Una prueba de Playwright entra, recarga la página y sigue dentro (`D-006`).
 
 ## Verification
 
 - Baseline: `npm test && npm run typecheck && npm run lint && node scripts/harness-lint.mjs`
 - Final: `npm test && npm run typecheck && npm run lint && npm run build && npm run test:e2e && node scripts/harness-status.mjs && node scripts/harness-lint.mjs`
-- Task-specific: inspeccionar la cookie en el navegador y confirmar que su valor es opaco, y que
-  lleva `httpOnly` y `Secure`.
+- Task-specific: inspeccionar la cookie en el navegador y confirmar `httpOnly`, `Secure` y que su
+  valor es opaco. Y confirmar en la base que la fila de `account` tiene el hash y `user` no.
 
 ## Assumptions
 
-- **Asunción** — el identificador de acceso es `username`, no correo
-  (`data-model.md` § Open Questions). Si cambia, es una migración.
+- **Asunción** — el primer dueño tiene un correo utilizable. `D-008` lo hizo el identificador de
+  acceso, y `data-model.md` § Open Questions deja la pregunta de producto abierta.
 
 ## Risks
 
-- Si el paquete de Argon2id no corre en Vercel, esta tarea queda `blocked` y hay que volver a
-  `architecture.md` § Security. Es el riesgo que T-001 dejó abierto a propósito.
+- El riesgo del paquete de Argon2id desapareció al aceptar scrypt. A cambio entra otro: el esquema
+  de identidad lo define una dependencia joven, y cambiar de librería costaría una migración. Está
+  anotado en `architecture.md` § Known Constraints.
+- Verificado el 2026-09-06 contra el código, no la documentación: token de sesión aleatorio de ~190
+  bits y cookie `httpOnly`/`SameSite=Lax`/`Secure`. Si una actualización cambia eso, este criterio
+  deja de cumplirse en silencio — conviene fijar la versión.
 
 ## Outcome
 

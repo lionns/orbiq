@@ -8,14 +8,14 @@ Harness `0.9.0` · profile `team`
 
 | Task | State | Goal |
 |---|---|---|
-| [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `ready` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las siete entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
-| [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `ready` | El dueño entra con usuario y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
+| [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `ready` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las ocho entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
+| [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `ready` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `ready` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
 | [T-004](docs/tasks/T-004-venta-con-cuadricula.md) | `ready` | El dueño arma una venta tocando productos en una cuadrícula, ve el total todo el tiempo, y confirma. Confirmar descuenta existencias en una sola transacción y reintentar no cobra dos veces. |
 
 ## Next
 
-**T-001** (`ready`) — Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las siete entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim.
+**T-001** (`ready`) — Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las ocho entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim.
 
 ## Open decisions
 

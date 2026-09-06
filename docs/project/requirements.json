@@ -52,7 +52,7 @@
       "id": "FR-009",
       "title": "Sesión de dueño",
       "description": "El acceso a la aplicación exige usuario y contraseña. La sesión vive en el servidor y dura lo suficiente para no pedir la clave cada mañana. No hay registro público ni recuperación por correo.",
-      "source": "brief.md § In Scope; D-004"
+      "source": "brief.md § In Scope; D-008"
     },
     {
       "id": "FR-010",
@@ -101,8 +101,8 @@
     {
       "id": "NFR-007",
       "title": "Contraseña no reversible",
-      "description": "La contraseña se almacena con Argon2id. La sesión viaja como identificador opaco en cookie httpOnly, nunca como token con contenido en el navegador.",
-      "source": "D-004"
+      "description": "La contraseña se almacena con scrypt, no en claro ni de forma reversible. La sesión viaja como identificador aleatorio opaco en cookie httpOnly, nunca como token con contenido en el navegador.",
+      "source": "D-008"
     }
   ]
 }

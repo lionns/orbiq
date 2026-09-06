@@ -30,7 +30,7 @@ cita, y el stack concreto en `docs/project/architecture.md`.
 - **Sumar una superficie no reescribe la lógica.** Una API pública, una app nativa o una tienda se
   montan sobre lo que ya existe (`D-001`).
 - **Sumar una persona al negocio no rehace el esquema.** Empleados y permisos entran como datos
-  (`D-004`).
+  (`D-008`).
 - **Sumar un negocio no obliga a renumerar lo que hay.** Las bases pueden convivir después
   (`D-002`, `D-005`).
 - **El historial de lo que pasó nunca se reescribe.** Hoy son las existencias; devoluciones,
@@ -76,7 +76,7 @@ cada línea nombra lo que la traería de vuelta.
 - **Variantes, ubicaciones, bodegas y jerarquía de categorías** — entran cuando un negocio real
   venda algo que las necesite. Cada cosa escaneable es hoy un producto.
 - **Usuarios múltiples, roles y permisos** — la tabla de usuarios existe desde el día uno, así que
-  entra como filas y un rol nuevo (`D-004`).
+  entra como filas y un rol nuevo (`D-008`).
 - **API pública y SDK** — entran como envoltorio de las funciones de dominio cuando exista un
   segundo consumidor (`D-001`).
 - **CMS, sitio público y canales de venta** — es la dirección declarada del producto, y no compite
@@ -118,6 +118,6 @@ Las del MVP y su primer cliente.
 - ¿Android o iPhone? Con Android hay escaneo nativo del navegador y la aplicación puede instalarse
   de verdad. Hasta saberlo se construye para ambos (`D-007`).
 - ¿Alguien más atiende el negocio? Un familiar o un empleado rompe el supuesto de sesión única
-  (`D-004`).
+  (`D-008`).
 - ¿El dueño quiere saber cuánto vendió, o solo qué le queda? Decide si existe una pantalla de
   reportes, que hoy no está en alcance.

@@ -5,8 +5,10 @@ estas (`D-003`).
 
 Dos reglas transversales, de `D-002`:
 
-- **Identificadores UUIDv7 generados en la aplicación** — ordenados en el tiempo, no secuenciales.
-  Excepción: `sessions.id` (ver su entidad).
+- **Identificadores UUIDv7 generados en la aplicación** para las entidades de negocio — `category`,
+  `product`, `sale`, `sale_line`, `stock_movement`. Ordenados en el tiempo, no secuenciales.
+- Las tres tablas de identidad — `user`, `account`, `session` — las define Better Auth y usan su
+  propio generador (`D-008`). Sus columnas se pueden renombrar, su forma no.
 - **El libro nunca se reescribe.** Los movimientos no se editan ni se borran; una corrección es un
   movimiento nuevo.
 
@@ -14,25 +16,48 @@ Dos reglas transversales, de `D-002`:
 
 ### user
 
-Existe desde la primera migración aunque hoy solo haya una fila (`D-004`).
+Existe desde la primera migración aunque hoy solo haya una fila (`D-008`). **No guarda credenciales:**
+esas viven en `account`, que es lo que hace que sumar Google sea configuración y no migración.
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| id | uuid v7 | yes | |
-| username | text | yes | Único. Supuesto — ver Open Questions |
-| password_hash | text | yes | Argon2id (`architecture.md` § Security) |
-| role | text | yes | Hoy solo `owner`. Un empleado es una fila más, no una migración (`D-004`) |
+| id | text | yes | |
+| email | text | yes | Único. Es el identificador de acceso (`D-008`) |
+| name | text | yes | |
+| email_verified | boolean | yes | Hoy siempre cierto: el alta la hace el estudio |
+| image | text | no | Lo llena el proveedor externo el día que se active |
+| role | text | yes | Campo propio vía `additionalFields`. Hoy solo `owner`. Un empleado es una fila más |
 | created_at | timestamptz | yes | |
+| updated_at | timestamptz | yes | |
+
+### account
+
+Una credencial. Una persona puede tener varias: hoy solo contraseña, mañana también Google.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| id | text | yes | |
+| user_id | text | yes | → `user.id` |
+| provider_id | text | yes | `credential` para contraseña; `google` cuando se active |
+| account_id | text | yes | El identificador de la persona en ese proveedor |
+| password | text | no | **Aquí vive el hash**, scrypt. Verificado en `api/routes/sign-up.ts`, `providerId: "credential"` |
+| access_token, refresh_token, id_token | text | no | Solo con proveedor externo |
+| scope | text | no | Solo con proveedor externo |
+| created_at | timestamptz | yes | |
+| updated_at | timestamptz | yes | |
 
 ### session
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| id | text | yes | **Aleatorio criptográfico, no UUIDv7**: un id de sesión ordenado en el tiempo es parcialmente adivinable |
-| user_id | uuid v7 | yes | → `user.id` |
+| id | text | yes | |
+| token | text | yes | Lo que va en la cookie. Aleatorio criptográfico, ~190 bits. **Se guarda en claro** — ver `architecture.md` § Known Constraints |
+| user_id | text | yes | → `user.id` |
+| expires_at | timestamptz | yes | Larga por diseño: el dueño no teclea la clave cada mañana (`D-008`) |
+| ip_address | text | no | |
+| user_agent | text | no | |
 | created_at | timestamptz | yes | |
-| expires_at | timestamptz | yes | Larga por diseño: el dueño no teclea la clave cada mañana (`D-004`) |
-| last_seen_at | timestamptz | yes | |
+| updated_at | timestamptz | yes | |
 
 ### category
 
@@ -65,10 +90,10 @@ Cada cosa escaneable es un producto. No hay variantes (`brief.md` § In Scope).
 | --- | --- | --- | --- |
 | id | uuid v7 | yes | **Generado en el cliente antes de enviar.** Su unicidad *es* la idempotencia: reintentar tras un fallo de red no descuenta dos veces (`D-005`) |
 | total | integer | yes | Suma de las líneas al momento de registrar |
-| user_id | uuid v7 | yes | → `user.id`. Quién la registró (`D-004`) |
+| user_id | text | yes | → `user.id`. Quién la registró (`D-008`) |
 | created_at | timestamptz | yes | |
 | voided_at | timestamptz | no | Anular no borra la venta |
-| voided_by | uuid v7 | no | → `user.id` |
+| voided_by | text | no | → `user.id` |
 
 ### sale_line
 
@@ -92,12 +117,12 @@ El libro. Inmutable (`D-002`).
 | type | text | yes | `initial` · `sale` · `sale_void` · `adjustment`. Devoluciones, traslados y compras entran como tipos nuevos, sin tocar filas viejas |
 | sale_id | uuid v7 | no | → `sale.id`. Obligatorio cuando `type` es `sale` o `sale_void` |
 | reason | text | no | **Obligatorio cuando `type` es `adjustment`** (`brief.md` § In Scope) |
-| user_id | uuid v7 | yes | → `user.id` |
+| user_id | text | yes | → `user.id` |
 | occurred_at | timestamptz | yes | |
 
 ## Relationships
 
-- `user` 1—N `session`, `sale`, `stock_movement`.
+- `user` 1—N `account`, `session`, `sale`, `stock_movement`. Las credenciales cuelgan de `account`, nunca del usuario.
 - `category` 1—N `product`. La categoría es opcional.
 - `product` 1—N `sale_line`, `stock_movement`.
 - `sale` 1—N `sale_line`, y 1—N `stock_movement` (los del registro y los de su anulación).
@@ -126,14 +151,16 @@ El libro. Inmutable (`D-002`).
 - **Categorías:** se pueden renombrar; borrar una deja `category_id` en nulo.
 - **Sesiones:** se borran al cerrar sesión y las vencidas se purgan. Son las únicas filas
   desechables del esquema.
+- **Credenciales:** añadir Google a un usuario existente es insertar una fila en `account`. Quitarla
+  no borra al usuario ni su historial.
 - **Migraciones:** versionadas con drizzle-kit desde la tarea uno. Cambiar el modelo es rutina
   (`D-002`).
 
 ## Open Questions
 
-- **Supuesto — el identificador de acceso es `username`, no correo.** `D-004` quita la recuperación
-  por correo y el alta la hace el estudio a mano, así que el correo no aporta nada que el nombre no
-  dé, y el dueño puede no tener uno que revise. Se cambia con una migración si te suena mal.
+- **El identificador de acceso es el correo.** Ya no es supuesto: lo cierra `D-008`. Queda una
+  pregunta de producto — si el dueño del primer negocio no tiene correo que revise, el alta la hace
+  el estudio igual, pero conviene saberlo antes.
 - **Supuesto — el stock puede quedar negativo.** El brief dice que la aplicación *compite contra no
   usarla*: si bloquea una venta porque el conteo dice cero, el dueño cobra igual y deja de abrirla.
   Se registra y se muestra en pantalla, no se impide. Es una decisión de producto, y es tuya.

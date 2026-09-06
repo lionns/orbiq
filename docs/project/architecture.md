@@ -18,13 +18,13 @@ eso vive aquí y no en una decisión.
 | Base de datos | PostgreSQL gestionado en Neon | Relacional gestionado con respaldo automático del proveedor (`D-002`) |
 | Acceso a datos | Drizzle ORM | Consultas con forma de SQL, sin repositorios ni adaptadores (`D-003`) |
 | Migraciones | drizzle-kit, versionadas en el repo | Migrar es rutina desde la tarea uno (`D-002`) |
+| Identidad y sesión | Better Auth, con adaptador de Drizzle | Sesión en base de datos y cookie opaca de fábrica (`D-008`) |
 | Identificadores | UUIDv7 generados en la aplicación | Ordenados en el tiempo, no secuenciales (`D-002`) |
 | Pruebas | Vitest (dominio) + Playwright (rebanada completa) | Suite rápida y recorrido real (`D-006`) |
 | Hospedaje | Vercel, un proyecto por negocio | Un despliegue por negocio (`D-005`) |
 
-Quedan **sin decidir** aquí, y se resuelven en su tarea sobre evidencia: la librería de lectura de
-código de barras que respalda a `BarcodeDetector` donde no exista, y el paquete concreto de Argon2id
-que corra en el runtime de Vercel.
+Queda **sin decidir** aquí, y se resuelve en su tarea sobre evidencia: la librería de lectura de
+código de barras que respalda a `BarcodeDetector` donde no exista.
 
 ## Frontend
 
@@ -66,14 +66,25 @@ que corra en el runtime de Vercel.
 
 ## Security
 
-- Contraseña con Argon2id. Nunca almacenada en claro ni de forma reversible (`D-004`).
-- Sesión de servidor: una fila en la tabla `sessions` y una cookie `httpOnly`, `Secure`,
-  `SameSite=Lax` que solo lleva un identificador opaco. No hay token con contenido en el navegador
-  (`D-004`).
+Lo de abajo se verificó contra el código de Better Auth el 2026-09-06, no contra su documentación,
+que no lo cubre. Las rutas citadas son de su repositorio.
+
+- **Contraseña con scrypt**, el algoritmo por defecto de la librería. La petición de usar Argon2id
+  por defecto fue cerrada como no planeada; el override `emailAndPassword.password.hash` existe si
+  se quiere cambiar, y hacerlo después es rehashear en el siguiente inicio de sesión (`D-008`).
+- **Sesión de servidor**, como exige `D-008`: una fila en la tabla de sesión y una cookie que solo
+  lleva un identificador. No hay token con contenido en el navegador.
+- **El token es aleatorio criptográfico.** `createSession` usa `generateId(32)`, que sale de
+  `crypto.getRandomValues` con muestreo por rechazo para evitar el sesgo del módulo
+  (`better-auth/utils`, `src/random.ts`). Son 32 caracteres sobre alfabeto de 62 — unos 190 bits — y
+  no está ordenado en el tiempo, que es lo que `data-model.md` § session exigía.
+- **Atributos de cookie por defecto:** `httpOnly`, `sameSite: "lax"`, `path: "/"`, `secure` bajo
+  HTTPS y prefijo `__Secure-` (`packages/better-auth/src/cookies/index.ts`).
 - La sesión dura deliberadamente mucho: el dueño no puede tener que teclear la clave cada mañana
-  mientras atiende (`D-004`).
-- Sin registro público y sin recuperación por correo. El alta del negocio y el restablecimiento de
-  contraseña los hace el estudio a mano (`D-004`).
+  mientras atiende (`D-008`).
+- **Sin registro público.** Cuando se active un proveedor externo, `disableSignUp` hace que el
+  callback rechace una cuenta que el estudio no dio de alta. El alta y el restablecimiento los hace
+  el estudio a mano (`D-008`).
 - Los secretos entran por variables de entorno del proyecto. Ninguno vive en el repositorio.
 - La validación de entrada ocurre en el borde de la función de dominio, no en el handler — así sirve
   igual a la pantalla de hoy y a la ruta HTTP de mañana (`D-001`).
@@ -97,5 +108,11 @@ que corra en el runtime de Vercel.
   escaneo es de cliente y no lo sufre; el alta de un producto sí.
 - Dos tableros por cliente — Vercel y Neon. Es el precio de este stack y se paga en el quinto
   negocio, que es exactamente donde `D-005` puso su `Trigger`.
-- El runtime de Vercel no ejecuta binarios arbitrarios: el paquete de Argon2id tiene que ser
-  compatible, y eso se verifica en la tarea que lo introduzca, no se asume aquí.
+- **El token de sesión se almacena en claro en la base.** Verificado en
+  `packages/better-auth/src/db/internal-adapter.ts`: `token: generateId(32)` va directo a la fila y
+  no se hashea antes de guardar. Quien lea la base — un respaldo filtrado, una inyección — obtiene
+  sesiones usables. La librería no expone dónde intervenir. Engancha con `D-002`, que deja los
+  respaldos en manos del proveedor, que es justo donde eso viviría.
+- El esquema de identidad lo define una dependencia joven. Se pueden renombrar tablas y columnas
+  (`modelName`, `fields`) y añadir campos propios (`additionalFields`), pero su forma es suya.
+  Cambiar de librería costaría una migración, no una tarde.
