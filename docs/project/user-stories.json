@@ -1,1 +1,79 @@
-[]
+[
+  {
+    "id": "US-001",
+    "role": "dueño del negocio",
+    "want": "entrar a la aplicación con mi usuario y contraseña y seguir dentro al día siguiente",
+    "so": "no pierdo tiempo tecleando la clave mientras hay alguien esperando en el mostrador",
+    "implements": ["FR-009", "NFR-007"]
+  },
+  {
+    "id": "US-002",
+    "role": "dueño del negocio",
+    "want": "dar de alta un producto con su nombre, precio y código de barras si lo trae",
+    "so": "la aplicación sabe qué vendo y a cuánto",
+    "implements": ["FR-001"]
+  },
+  {
+    "id": "US-003",
+    "role": "dueño del negocio",
+    "want": "apuntar la cámara a un código y ver de inmediato qué producto es y a qué precio",
+    "so": "no tengo que buscarlo en una lista ni acordarme del precio",
+    "implements": ["FR-002", "NFR-001"]
+  },
+  {
+    "id": "US-004",
+    "role": "dueño del negocio",
+    "want": "dar de alta el producto en el momento cuando escaneo un código que no conozco",
+    "so": "no tengo que dejar la venta a medias para ir a otra pantalla",
+    "implements": ["FR-003"]
+  },
+  {
+    "id": "US-005",
+    "role": "dueño del negocio",
+    "want": "armar una venta escaneando o tocando desde una cuadrícula de lo que más vendo, viendo el total todo el tiempo",
+    "so": "cobro más rápido de lo que sumaría de cabeza y no dejo de usar la aplicación",
+    "implements": ["FR-004", "NFR-002", "NFR-003"]
+  },
+  {
+    "id": "US-006",
+    "role": "dueño del negocio",
+    "want": "poder reintentar cuando la señal se cae al confirmar una venta",
+    "so": "no me quedo sin saber si se registró, ni descuento el inventario dos veces",
+    "implements": ["FR-005", "NFR-004"]
+  },
+  {
+    "id": "US-007",
+    "role": "dueño del negocio",
+    "want": "anular una venta que registré por error",
+    "so": "el inventario vuelve a estar bien sin que yo tenga que ajustarlo a mano producto por producto",
+    "implements": ["FR-006"]
+  },
+  {
+    "id": "US-008",
+    "role": "dueño del negocio",
+    "want": "corregir las existencias de un producto explicando por qué",
+    "so": "cuando cuento físicamente y no cuadra, la aplicación queda al día y con la razón anotada",
+    "implements": ["FR-007"]
+  },
+  {
+    "id": "US-009",
+    "role": "dueño del negocio",
+    "want": "ver todos los movimientos de un producto",
+    "so": "puedo explicar por qué dice que tengo esa cantidad, o descubrir dónde se perdió algo",
+    "implements": ["FR-008", "NFR-005"]
+  },
+  {
+    "id": "US-010",
+    "role": "dueño del negocio",
+    "want": "usar la misma aplicación desde el celular en el mostrador y desde el computador al cerrar",
+    "so": "no dependo de tener un aparato concreto a la mano",
+    "implements": ["FR-010", "NFR-003"]
+  },
+  {
+    "id": "US-011",
+    "role": "operador del estudio",
+    "want": "dar de alta el negocio y su usuario dueño, y restablecer la contraseña cuando haga falta",
+    "so": "el dueño puede empezar sin que exista un registro público ni recuperación por correo",
+    "implements": ["FR-009"]
+  }
+]

@@ -1,4 +1,111 @@
 {
-  "global": [],
-  "crossCutting": []
+  "global": [
+    {
+      "id": "AC-001",
+      "criterion": "CUANDO alguien abre cualquier pantalla sin sesión válida EL SISTEMA DEBE llevarlo al acceso y no revelar ningún dato del negocio.",
+      "verifies": ["FR-009"]
+    },
+    {
+      "id": "AC-002",
+      "criterion": "CUANDO el dueño entra con la contraseña correcta EL SISTEMA DEBE crear una fila de sesión y devolver una cookie httpOnly cuyo valor no contiene información del usuario.",
+      "verifies": ["FR-009", "NFR-007"]
+    },
+    {
+      "id": "AC-003",
+      "criterion": "CUANDO se da de alta un producto con existencias iniciales EL SISTEMA DEBE escribir un movimiento de tipo initial por esa cantidad, de modo que el saldo tenga origen en el libro.",
+      "verifies": ["FR-001", "NFR-005"]
+    },
+    {
+      "id": "AC-004",
+      "criterion": "CUANDO se intenta guardar un producto con un código de barras que ya tiene otro producto EL SISTEMA DEBE rechazarlo nombrando el producto existente.",
+      "verifies": ["FR-001"]
+    },
+    {
+      "id": "AC-005",
+      "criterion": "CUANDO se guardan dos productos sin código de barras EL SISTEMA DEBE aceptar ambos.",
+      "verifies": ["FR-001"]
+    },
+    {
+      "id": "AC-006",
+      "criterion": "CUANDO llega un código al objetivo de escaneo, venga de cámara, de lector de teclado o tecleado EL SISTEMA DEBE resolverlo por el mismo camino y producir el mismo resultado.",
+      "verifies": ["FR-002"]
+    },
+    {
+      "id": "AC-007",
+      "criterion": "CUANDO se escanea un código que ningún producto tiene EL SISTEMA DEBE ofrecer darlo de alta con ese código ya puesto, sin perder la venta en curso.",
+      "verifies": ["FR-003"]
+    },
+    {
+      "id": "AC-008",
+      "criterion": "CUANDO se confirma una venta EL SISTEMA DEBE crear la venta, sus líneas y un movimiento negativo por producto dentro de una sola transacción, o no crear nada.",
+      "verifies": ["FR-004"]
+    },
+    {
+      "id": "AC-009",
+      "criterion": "CUANDO se confirma una venta EL SISTEMA DEBE copiar el precio vigente en cada línea, de modo que un cambio de precio posterior no altere el total ya cobrado.",
+      "verifies": ["FR-004"]
+    },
+    {
+      "id": "AC-010",
+      "criterion": "CUANDO se envía dos veces una venta con el mismo identificador EL SISTEMA DEBE devolver la venta ya registrada, sin crear una segunda ni descontar existencias de nuevo.",
+      "verifies": ["FR-005"]
+    },
+    {
+      "id": "AC-011",
+      "criterion": "CUANDO se anula una venta EL SISTEMA DEBE marcarla como anulada y escribir movimientos de tipo sale_void que devuelvan exactamente las cantidades vendidas, sin borrar ni editar los movimientos originales.",
+      "verifies": ["FR-006"]
+    },
+    {
+      "id": "AC-012",
+      "criterion": "CUANDO se intenta anular una venta ya anulada EL SISTEMA DEBE rechazarlo y dejar las existencias intactas.",
+      "verifies": ["FR-006"]
+    },
+    {
+      "id": "AC-013",
+      "criterion": "CUANDO se envía un ajuste de existencias sin motivo EL SISTEMA DEBE rechazarlo y no escribir ningún movimiento.",
+      "verifies": ["FR-007"]
+    },
+    {
+      "id": "AC-014",
+      "criterion": "CUANDO se abre el historial de un producto EL SISTEMA DEBE listar sus movimientos con tipo, cantidad, motivo y fecha, y la suma de sus cantidades DEBE coincidir con las existencias mostradas.",
+      "verifies": ["FR-008", "NFR-005"]
+    },
+    {
+      "id": "AC-015",
+      "criterion": "CUANDO el servidor no está disponible al confirmar una venta EL SISTEMA DEBE decirlo de forma inequívoca y ofrecer reintentar, sin aparentar que la guardó.",
+      "verifies": ["NFR-004", "FR-005"]
+    }
+  ],
+  "crossCutting": [
+    {
+      "id": "AC-X01",
+      "criterion": "Toda pantalla es operable en un ancho de 360 px con una sola mano, y el mismo código sirve a tablet y computador sin una interfaz aparte.",
+      "verifies": ["FR-010", "NFR-003"]
+    },
+    {
+      "id": "AC-X02",
+      "criterion": "Toda pantalla es operable solo con teclado, porque un lector de código de barras es un teclado.",
+      "verifies": ["FR-002", "FR-010"]
+    },
+    {
+      "id": "AC-X03",
+      "criterion": "Ninguna regla de negocio vive dentro de un handler de ruta o de un Server Action: la entrada llama a una función de dominio que se puede probar sin navegador ni servidor.",
+      "verifies": ["NFR-006"]
+    },
+    {
+      "id": "AC-X04",
+      "criterion": "Ninguna operación actualiza ni borra una fila de stock_movement. Corregir es insertar.",
+      "verifies": ["NFR-005"]
+    },
+    {
+      "id": "AC-X05",
+      "criterion": "Cada rebanada entregada trae al menos una prueba de Playwright que la recorre por pantalla contra base real, y las rebanadas anteriores siguen verdes.",
+      "verifies": ["NFR-006"]
+    },
+    {
+      "id": "AC-X06",
+      "criterion": "Todo cambio de esquema llega como migración versionada en el repositorio. Ninguna se aplica a mano contra una base con datos.",
+      "verifies": ["NFR-005"]
+    }
+  ]
 }

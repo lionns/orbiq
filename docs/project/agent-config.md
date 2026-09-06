@@ -8,19 +8,32 @@ Model assignment is project-specific configuration. Role definitions live in `do
 
 ## Active Configuration: Testing
 
+Hoy un solo agente ocupa los siete roles. Registrarlo así no es una aspiración: es lo que de hecho
+ocurre, y lo que hace visible el riesgo de más abajo.
+
 | Role | Agent | Model | Notes |
 |---|---|---|---|
-| Planner | <!-- e.g. Claude Code --> | <!-- e.g. claude-sonnet-4-6 --> | |
-| Frontend Implementer | <!-- e.g. Codex --> | <!-- model --> | |
-| Backend Implementer | <!-- e.g. Codex --> | <!-- model --> | |
-| Tester | <!-- e.g. Ollama --> | <!-- e.g. qwen2.5-coder --> | |
-| Reviewer | <!-- e.g. Claude Code --> | <!-- e.g. claude-sonnet-4-6 --> | |
-| Release Engineer | <!-- e.g. Ollama --> | <!-- e.g. qwen2.5-coder --> | |
-| UX/Motion Designer | <!-- e.g. Ollama --> | <!-- e.g. qwen2.5-coder --> | |
+| Planner | Claude Code | claude-opus-5 | |
+| Frontend Implementer | Claude Code | claude-opus-5 | |
+| Backend Implementer | Claude Code | claude-opus-5 | |
+| Tester | Claude Code | claude-opus-5 | Escribe las pruebas de `D-006` |
+| Reviewer | Claude Code | claude-opus-5 | **Revisa su propio código.** Ver Known Risks |
+| Release Engineer | Claude Code | claude-opus-5 | Corre los comandos de `quality-gates.md` |
+| UX/Motion Designer | Claude Code | claude-opus-5 | Trabaja contra `design-handoff.md` |
+
+Validación humana (perfil `team`): Juan Sebastián León Velásquez. No es un rol de agente y no se
+delega — es la única firma que cierra una tarea (`quality-gates.md` § Manual Validation).
 
 ---
 
 ## Target Configuration: Production
+
+**Sin decidir.** Falta evidencia: no hay todavía una sola tarea cerrada de la que sacar dónde falla
+este reparto.
+
+El criterio para decidirlo, cuando haya: separar los roles que exigen juicio y contexto — Planner,
+Reviewer, UX — de los mecánicos, que ejecutan comandos ya escritos — Tester, Release Engineer. Lo
+que decide el reparto no es el costo por token: es si el Reviewer puede ser el mismo que implementó.
 
 | Role | Agent | Model | Notes |
 |---|---|---|---|
@@ -36,13 +49,24 @@ Model assignment is project-specific configuration. Role definitions live in `do
 
 ## Rationale for Assignments
 
-<!-- Explain why each role got its model. Note any swaps from a default assignment and why. -->
+- **Un solo modelo hoy** porque el proyecto arranca de cero y el costo de coordinar familias de
+  agentes distintas supera lo que aporta, con cero tareas cerradas.
+- **La validación no se delega.** El perfil `team` exige un validador humano nombrado, y el criterio
+  de éxito del brief se mide con el pulgar en un celular, no leyendo un diff
+  (`brief.md` § Success Measures).
 
 ---
 
 ## Known Risks
 
-<!-- Document model limitations that affect review quality, design judgment, or mechanical execution. -->
+- **El Reviewer es el Implementer.** Un agente que revisa su propio código no encuentra lo que no vio
+  al escribirlo. Es el riesgo dominante de esta configuración, y hoy lo compensan tres cosas fuera
+  del modelo: el gate de aceptación final, la prueba de extremo a extremo de `D-006` — que un
+  hallazgo omitido no puede hacer pasar — y la validación humana.
+- **El mismo modelo escribe la prueba y el código que la pasa.** Una prueba puede nacer estrechada a
+  la implementación. Por eso `quality-gates.md` exige además una comprobación que ejercite el cambio
+  *junto a lo que ya existe*, que no se puede aprobar estrechándola.
+- **Un solo proveedor.** Si el modelo no está disponible, no hay reparto alternativo escrito.
 
 ---
 

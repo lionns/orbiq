@@ -1,4 +1,108 @@
 {
-  "functional": [],
-  "nonFunctional": []
+  "functional": [
+    {
+      "id": "FR-001",
+      "title": "Catálogo de productos",
+      "description": "El dueño da de alta y edita productos con nombre, precio, categoría plana opcional, existencias y código de barras opcional. Cada cosa escaneable es un producto; no hay variantes.",
+      "source": "brief.md § In Scope"
+    },
+    {
+      "id": "FR-002",
+      "title": "Objetivo de escaneo único",
+      "description": "Un solo componente acepta código de barras venga de cámara, de un lector de teclado o tecleado a mano, y resuelve el producto. Detección nativa del navegador donde exista, respaldo en el cliente donde no.",
+      "source": "brief.md § In Scope; D-007"
+    },
+    {
+      "id": "FR-003",
+      "title": "Alta desde código desconocido",
+      "description": "Cuando el código escaneado no corresponde a ningún producto, el dueño puede darlo de alta en ese mismo momento sin abandonar el flujo.",
+      "source": "brief.md § In Scope"
+    },
+    {
+      "id": "FR-004",
+      "title": "Registro de venta",
+      "description": "El dueño arma una venta escaneando o tocando desde una cuadrícula de frecuentes en la misma pantalla, con el total siempre visible, y la confirma. Confirmar descuenta existencias en una sola operación.",
+      "source": "brief.md § In Scope"
+    },
+    {
+      "id": "FR-005",
+      "title": "Idempotencia de la venta",
+      "description": "La venta lleva un identificador generado en el cliente. Reintentar el envío tras un fallo de red no crea una segunda venta ni descuenta existencias dos veces.",
+      "source": "brief.md § Constraints; D-005"
+    },
+    {
+      "id": "FR-006",
+      "title": "Anulación de venta",
+      "description": "El dueño anula una venta registrada por error. La venta no se borra: queda marcada como anulada y se escriben movimientos compensatorios que devuelven las existencias.",
+      "source": "brief.md § In Scope; D-002"
+    },
+    {
+      "id": "FR-007",
+      "title": "Ajuste manual de existencias",
+      "description": "El dueño corrige las existencias de un producto indicando un motivo. El motivo es obligatorio y queda en el movimiento.",
+      "source": "brief.md § In Scope"
+    },
+    {
+      "id": "FR-008",
+      "title": "Historial de movimientos por producto",
+      "description": "El dueño ve, para un producto, todos los movimientos que llevaron a sus existencias actuales, con su tipo, cantidad, motivo y fecha.",
+      "source": "brief.md § In Scope; D-002"
+    },
+    {
+      "id": "FR-009",
+      "title": "Sesión de dueño",
+      "description": "El acceso a la aplicación exige usuario y contraseña. La sesión vive en el servidor y dura lo suficiente para no pedir la clave cada mañana. No hay registro público ni recuperación por correo.",
+      "source": "brief.md § In Scope; D-004"
+    },
+    {
+      "id": "FR-010",
+      "title": "Interfaz responsive única",
+      "description": "Una sola aplicación web operable en celular, tablet y computador. No son interfaces distintas: es la misma que se ensancha.",
+      "source": "brief.md § In Scope; D-007"
+    }
+  ],
+  "nonFunctional": [
+    {
+      "id": "NFR-001",
+      "title": "Escaneo por debajo de tres segundos",
+      "description": "Desde que se apunta a un código conocido hasta que el producto está en pantalla pasan menos de tres segundos.",
+      "source": "brief.md § Success Measures"
+    },
+    {
+      "id": "NFR-002",
+      "title": "Venta por debajo de veinte segundos",
+      "description": "Una venta de tres artículos, uno de ellos sin código de barras, se registra completa en menos de veinte segundos.",
+      "source": "brief.md § Success Measures"
+    },
+    {
+      "id": "NFR-003",
+      "title": "Pulgar primero",
+      "description": "Se diseña para el caso más restrictivo — pantalla pequeña, una mano, de pie — y se ensancha desde ahí. Todos los objetivos táctiles del flujo de venta son alcanzables con el pulgar.",
+      "source": "brief.md § Constraints; D-007"
+    },
+    {
+      "id": "NFR-004",
+      "title": "Fallo explícito sin conexión",
+      "description": "La aplicación exige conexión. Cuando no la hay, lo dice de forma inequívoca en vez de aparentar que guardó. No hay cola diferida.",
+      "source": "D-005"
+    },
+    {
+      "id": "NFR-005",
+      "title": "Existencias reconstruibles",
+      "description": "El saldo de existencias de cualquier producto se puede recomputar desde el libro de movimientos y coincide con el valor materializado.",
+      "source": "D-002"
+    },
+    {
+      "id": "NFR-006",
+      "title": "Cada rebanada con prueba de extremo a extremo",
+      "description": "Ninguna rebanada llega a done sin al menos una prueba que recorra pantalla, servidor y base con datos reales.",
+      "source": "D-006"
+    },
+    {
+      "id": "NFR-007",
+      "title": "Contraseña no reversible",
+      "description": "La contraseña se almacena con Argon2id. La sesión viaja como identificador opaco en cookie httpOnly, nunca como token con contenido en el navegador.",
+      "source": "D-004"
+    }
+  ]
 }

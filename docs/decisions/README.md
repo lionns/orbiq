@@ -7,4 +7,10 @@ rather than editing. Template in `../sdd/TEMPLATES.md`.
 
 | ID | Date | Title | Status | Supersedes |
 |---|---|---|---|---|
-| — | — | No decisions recorded yet | — | — |
+| [D-001](D-001-runtime-una-sola-aplicacion.md) | 2026-09-04 | Una aplicación desplegable, con la lógica en funciones de dominio | `accepted` | none |
+| [D-002](D-002-data-libro-inmutable.md) | 2026-09-04 | Base relacional gestionada, existencias como libro inmutable | `accepted` | none |
+| [D-003](D-003-boundaries-sin-abstraccion-prematura.md) | 2026-09-04 | Las abstracciones se extraen de casos, no se diseñan por adelantado | `accepted` | none |
+| [D-004](D-004-identity-sesion-unica-de-dueno.md) | 2026-09-04 | Usuarios como tabla desde el día uno, con un solo rol | `accepted` | none |
+| [D-005](D-005-deploy-un-despliegue-por-negocio.md) | 2026-09-04 | Un despliegue por negocio, con el camino a multi-tenant abierto | `accepted` | none |
+| [D-006](D-006-tests-la-rebanada-es-la-prueba.md) | 2026-09-04 | Cada rebanada llega con una prueba que la atraviesa | `accepted` | none |
+| [D-007](D-007-interface-web-responsive-en-pestana.md) | 2026-09-04 | Web responsive, pulgar primero, en pestaña del navegador | `accepted` | none |
