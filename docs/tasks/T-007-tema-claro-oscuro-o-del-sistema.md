@@ -96,6 +96,11 @@ implements: [FR-010, AC-X01, AC-X02]
   fallo que solo aparece en el dispositivo de otra persona. Hay una prueba que emula justo ese caso.
 - Se comprobó que el selector funciona **con JavaScript apagado** en vez de afirmarlo, que es lo
   que veníamos diciendo de todos los formularios de la aplicación.
+- Hallazgo propio, corregido después de cerrar la tarea: `SelectorDeTema` importaba la acción de
+  servidor desde `src/app/`, invirtiendo las capas — la presentación atada a una ruta concreta.
+  Ahora la acción llega por parámetro, y `eslint.config.mjs` impide que vuelva a pasar, igual que
+  con `src/domain/`. Salió al preguntarnos si estos componentes se podrían mirar en un Storybook:
+  era el único de los siete que no.
 - Detalle conocido: tras elegir, el desplegable se queda abierto. React no controla el `open` de un
   `<details>`, así que el nodo sobrevive al repintado. Se deja: muestra cuál quedó activo, que es
   buena señal, y cerrarlo exigiría JavaScript para algo que no lo necesita.

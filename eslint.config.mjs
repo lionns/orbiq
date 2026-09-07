@@ -24,6 +24,26 @@ const config = [
       ],
     },
   },
+  {
+    // `src/ui/` es presentación: no puede depender de una ruta concreta. Si un componente necesita
+    // una acción de servidor, la recibe por parámetro — así también se puede mirar solo, fuera de
+    // la aplicación.
+    files: ["src/ui/**/*.tsx", "src/ui/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/app/*", "../app/*", "next/headers", "next/navigation"],
+              message:
+                "src/ui/ no depende de src/app/. Pasa la acción o el dato por parámetro (T-006, T-007).",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 export default config;

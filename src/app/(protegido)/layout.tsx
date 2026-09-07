@@ -5,6 +5,7 @@ import { COOKIE_TEMA, leerTema } from "@/domain/tema";
 import { sesionActual } from "@/domain/session";
 import { Boton } from "@/ui/boton";
 import { SelectorDeTema } from "@/ui/selector-tema";
+import { elegirTema } from "@/app/acciones-tema";
 import { salir } from "../acceso/acciones";
 
 /**
@@ -32,7 +33,7 @@ export default async function LayoutProtegido({ children }: { children: React.Re
           {sesion.nombre}
         </span>
         <span className="flex items-center gap-1">
-          <SelectorDeTema actual={tema} />
+          <SelectorDeTema actual={tema} accion={elegirTema} />
           <form action={salir}>
             <Boton type="submit">Salir</Boton>
           </form>

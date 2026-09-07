@@ -19,3 +19,11 @@
     tres corridas · once pares de contraste medidos en los dos temas, todos por encima del mínimo
   - assumptions: ninguna
   - blockers: ninguno. Queda `review` a la espera de la firma del validador humano
+
+- 2026-09-07 — role: Implementer
+  - did: quitó la dependencia invertida de `src/ui/` hacia `src/app/` — la acción de servidor pasa
+    por parámetro — y la fijó con una regla de ESLint que se probó que muerde
+  - files: `src/ui/selector-tema.tsx`, `src/app/(protegido)/layout.tsx`, `src/app/acceso/page.tsx`,
+    `eslint.config.mjs`
+  - checks: `npm test` 48/48 · `lint` clean · `build` ok · `test:e2e` 42/42
+  - blockers: ninguno

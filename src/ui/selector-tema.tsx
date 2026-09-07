@@ -1,4 +1,3 @@
-import { elegirTema } from "@/app/acciones-tema";
 import { ETIQUETA_TEMA, TEMAS, type Tema } from "@/domain/tema";
 import { Boton } from "./boton";
 
@@ -8,8 +7,17 @@ import { Boton } from "./boton";
  * Van dentro de un `<details>` porque en la cabecera a 360 px no caben tres botones al lado de la
  * navegación. Y son botones dentro de un formulario, no un `<select>` con envío automático: así
  * funciona sin JavaScript, como el resto de la aplicación.
+ *
+ * La acción llega por parámetro y no por importación: `src/ui/` no puede depender de `src/app/`, o
+ * la presentación acaba atada a una ruta concreta y deja de poder mirarse sola.
  */
-export function SelectorDeTema({ actual }: { actual: Tema }) {
+export function SelectorDeTema({
+  actual,
+  accion,
+}: {
+  actual: Tema;
+  accion: (datos: FormData) => void | Promise<void>;
+}) {
   return (
     <details className="relative">
       <summary
@@ -19,7 +27,7 @@ export function SelectorDeTema({ actual }: { actual: Tema }) {
         Tema
       </summary>
       <form
-        action={elegirTema}
+        action={accion}
         // Absoluto: abrirlo no puede empujar la navegación ni la lista de abajo.
         className="absolute right-0 z-10 mt-1 flex flex-col gap-1 rounded-[var(--radius-card)] border border-[color:var(--color-border-strong)] bg-[color:var(--color-bg)] p-2"
       >
