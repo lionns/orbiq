@@ -141,5 +141,15 @@
     "implements": [
       "FR-014"
     ]
+  },
+  {
+    "id": "US-016",
+    "role": "dueño del negocio",
+    "want": "buscar un producto por nombre sin salir de la pantalla de venta",
+    "so": "cobro algo que no está en la cuadrícula sin perder la venta que llevo",
+    "implements": [
+      "FR-015",
+      "NFR-002"
+    ]
   }
 ]

@@ -28,6 +28,9 @@ export default async function LayoutProtegido({ children }: { children: React.Re
           <Link href="/catalogo" className="text-text-muted underline">
             Catálogo
           </Link>
+          <Link href="/ventas" className="text-text-muted underline">
+            Ventas
+          </Link>
         </span>
         <span className="sr-only" data-testid="sesion-nombre">
           {sesion.nombre}

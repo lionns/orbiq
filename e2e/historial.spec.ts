@@ -88,7 +88,7 @@ test("el catálogo lleva al historial, y el historial cuenta lo que pasó", asyn
   await expect(historial).toContainText("+10");
   await expect(historial).toContainText("Venta");
   await expect(historial).toContainText("-3");
-  await expect(historial).toContainText("De una venta");
+  await expect(historial).toContainText("Ver la venta");
   await expect(page.getByTestId("historial").locator("li").first()).toContainText("Venta");
 
   await expect(page.getByText("2 movimientos · suman 7")).toBeVisible();

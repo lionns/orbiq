@@ -168,12 +168,14 @@ function FilaDelHistorial({ evento: e }: { evento: EventoDelProducto }) {
       </span>
       {pie}
       {e.motivo ? <span className="mt-1 block">{e.motivo}</span> : null}
-      {/* Se dice que viene de una venta, sin enlace todavía: la pantalla de ventas es `T-013`, y un
-          enlace roto en el demo es peor que no tenerlo. */}
       {e.ventaId ? (
-        <span className="mt-1 block text-text-muted" data-testid="de-una-venta">
-          De una venta
-        </span>
+        <Link
+          href={`/ventas/${e.ventaId}`}
+          className="mt-1 block text-text-muted underline"
+          data-testid="de-una-venta"
+        >
+          Ver la venta
+        </Link>
       ) : null}
     </li>
   );

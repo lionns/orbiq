@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 
 /** La transacción de Drizzle no es la misma forma que `db`, pero para escribir es intercambiable. */
@@ -36,14 +36,19 @@ export type ResultadoVenta = {
  * sin administrar favoritos (decidido con el estudio el 2026-09-06).
  */
 export async function cuadricula(): Promise<CasillaDeVenta[]> {
-  const vendidoReciente = sql<number>`coalesce((
-    select sum(${schema.saleLine.quantity})
-    from ${schema.saleLine}
-    join ${schema.sale} on ${schema.sale.id} = ${schema.saleLine.saleId}
-    where ${schema.saleLine.productId} = ${schema.product.id}
-      and ${schema.sale.voidedAt} is null
-      and ${schema.sale.createdAt} > now() - ${`${VENTANA_DIAS} days`}::interval
-  ), 0)`;
+  /**
+   * Uniones de verdad y no una subconsulta correlacionada escrita a mano.
+   *
+   * Drizzle **no cualifica** los nombres de columna dentro de una plantilla `sql` en un `select`:
+   * emitía `where "product_id" = "id"`, y ahí `"id"` se ata a `sale_line.id`, no a `product.id`.
+   * La comparación no acertaba nunca y la cuadrícula ordenaba todo por cero. En un `update` sí
+   * cualifica, que es por lo que el saldo del libro siempre estuvo bien.
+   */
+  const vendidoReciente = sql<number>`coalesce(sum(
+    case when ${schema.sale.voidedAt} is null
+          and ${schema.sale.createdAt} > now() - ${`${VENTANA_DIAS} days`}::interval
+         then ${schema.saleLine.quantity} else 0 end
+  ), 0)::int`;
 
   return db
     .select({
@@ -53,7 +58,10 @@ export async function cuadricula(): Promise<CasillaDeVenta[]> {
       existencias: schema.product.stock,
     })
     .from(schema.product)
+    .leftJoin(schema.saleLine, eq(schema.saleLine.productId, schema.product.id))
+    .leftJoin(schema.sale, eq(schema.sale.id, schema.saleLine.saleId))
     .where(eq(schema.product.isActive, true))
+    .groupBy(schema.product.id)
     .orderBy(desc(vendidoReciente), asc(schema.product.name))
     .limit(CASILLAS);
 }
@@ -150,4 +158,157 @@ function esVentaRepetida(error: unknown): boolean {
   const causa = error instanceof Error && "cause" in error ? error.cause : error;
   const detalle = causa as { code?: string; constraint?: string } | null;
   return detalle?.code === "23505" && detalle?.constraint === "sale_pkey";
+}
+
+/* ------------------------------------------------------------------ historial de ventas (T-014) */
+
+export type VentaDelDia = {
+  id: string;
+  total: number;
+  cuando: Date;
+  anulada: boolean;
+  articulos: number;
+};
+
+export type DiaDeVentas = {
+  /** `YYYY-MM-DD` en la zona del servidor. Con un despliegue por negocio, es el día del negocio. */
+  dia: string;
+  /** Suma solo de las no anuladas: una venta anulada no es plata que entró (`AC-019`). */
+  total: number;
+  ventas: VentaDelDia[];
+};
+
+export type RangoDeFechas = { desde: string | null; hasta: string | null };
+
+export async function ventasPorDia(rango: RangoDeFechas): Promise<DiaDeVentas[]> {
+  const condiciones = [];
+  if (rango.desde) condiciones.push(gte(schema.sale.createdAt, new Date(`${rango.desde}T00:00:00`)));
+  if (rango.hasta) condiciones.push(lte(schema.sale.createdAt, new Date(`${rango.hasta}T23:59:59.999`)));
+
+  const filas = await db
+    .select({
+      id: schema.sale.id,
+      total: schema.sale.total,
+      cuando: schema.sale.createdAt,
+      anuladaEn: schema.sale.voidedAt,
+      dia: sql<string>`to_char(${schema.sale.createdAt}, 'YYYY-MM-DD')`,
+      // Por unión y no por subconsulta correlacionada: ver el comentario de `cuadricula`.
+      articulos: sql<number>`coalesce(sum(${schema.saleLine.quantity}), 0)::int`,
+    })
+    .from(schema.sale)
+    .leftJoin(schema.saleLine, eq(schema.saleLine.saleId, schema.sale.id))
+    .where(condiciones.length > 0 ? and(...condiciones) : undefined)
+    .groupBy(schema.sale.id)
+    .orderBy(desc(schema.sale.createdAt));
+
+  const porDia = new Map<string, DiaDeVentas>();
+  for (const f of filas) {
+    const dia = porDia.get(f.dia) ?? { dia: f.dia, total: 0, ventas: [] };
+    const anulada = f.anuladaEn !== null;
+    dia.ventas.push({ id: f.id, total: f.total, cuando: f.cuando, anulada, articulos: f.articulos });
+    if (!anulada) dia.total += f.total;
+    porDia.set(f.dia, dia);
+  }
+  return [...porDia.values()];
+}
+
+export type LineaDeLaVenta = {
+  productoId: string;
+  nombre: string;
+  cantidad: number;
+  /** Lo que se cobró, no lo que cuesta hoy (`AC-009`, `AC-020`). */
+  precioCobrado: number;
+};
+
+export type DetalleDeVenta = {
+  id: string;
+  total: number;
+  cuando: Date;
+  anulada: boolean;
+  anuladaEn: Date | null;
+  quien: string;
+  lineas: LineaDeLaVenta[];
+};
+
+export async function detalleDeVenta(ventaId: string): Promise<DetalleDeVenta | null> {
+  const [venta] = await db
+    .select({
+      id: schema.sale.id,
+      total: schema.sale.total,
+      cuando: schema.sale.createdAt,
+      anuladaEn: schema.sale.voidedAt,
+      quien: schema.user.name,
+    })
+    .from(schema.sale)
+    .innerJoin(schema.user, eq(schema.user.id, schema.sale.userId))
+    .where(eq(schema.sale.id, ventaId))
+    .limit(1);
+  if (!venta) return null;
+
+  const lineas = await db
+    .select({
+      productoId: schema.saleLine.productId,
+      nombre: schema.product.name,
+      cantidad: schema.saleLine.quantity,
+      precioCobrado: schema.saleLine.unitPrice,
+    })
+    .from(schema.saleLine)
+    .innerJoin(schema.product, eq(schema.product.id, schema.saleLine.productId))
+    .where(eq(schema.saleLine.saleId, ventaId))
+    .orderBy(asc(schema.product.name));
+
+  return {
+    id: venta.id,
+    total: venta.total,
+    cuando: venta.cuando,
+    anulada: venta.anuladaEn !== null,
+    anuladaEn: venta.anuladaEn,
+    quien: venta.quien,
+    lineas,
+  };
+}
+
+export type ResultadoAnulacion = { ok: true } | { ok: false; mensaje: string };
+
+/**
+ * Anular no deshace: compensa. Se escriben movimientos `sale_void` que devuelven exactamente lo
+ * vendido y los originales se quedan donde estaban — el registro de que se vendió y se anuló es
+ * parte de la historia (`D-002`, `AC-011`).
+ */
+export async function anularVenta(ventaId: string, usuarioId: string): Promise<ResultadoAnulacion> {
+  return db.transaction(async (tx) => {
+    const [venta] = await tx
+      .select({ anuladaEn: schema.sale.voidedAt })
+      .from(schema.sale)
+      .where(eq(schema.sale.id, ventaId))
+      .limit(1);
+    if (!venta) return { ok: false as const, mensaje: "Esa venta no existe." };
+    // AC-012: anular dos veces devolvería las existencias dos veces.
+    if (venta.anuladaEn !== null) return { ok: false as const, mensaje: "Esa venta ya está anulada." };
+
+    const lineas = await tx
+      .select({ productoId: schema.saleLine.productId, cantidad: schema.saleLine.quantity })
+      .from(schema.saleLine)
+      .where(eq(schema.saleLine.saleId, ventaId));
+    if (lineas.length === 0) return { ok: false as const, mensaje: "Esa venta no tiene líneas." };
+
+    await tx
+      .update(schema.sale)
+      .set({ voidedAt: new Date(), voidedBy: usuarioId })
+      .where(eq(schema.sale.id, ventaId));
+
+    await tx.insert(schema.stockMovement).values(
+      lineas.map((l) => ({
+        productId: l.productoId,
+        // Positivo: devuelve lo que la venta se llevó.
+        quantity: l.cantidad,
+        type: "sale_void" as const,
+        saleId: ventaId,
+        userId: usuarioId,
+      })),
+    );
+    await recalcularSaldos(tx, lineas.map((l) => l.productoId));
+
+    return { ok: true as const };
+  });
 }

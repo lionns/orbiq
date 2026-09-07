@@ -1,0 +1,221 @@
+// Primero que nada: los módulos se evalúan en el orden en que se importan, y `../src/db` exige
+// DATABASE_URL al cargarse.
+import "dotenv/config";
+import { expect, test, type Page } from "@playwright/test";
+import { eq, like, sql } from "drizzle-orm";
+import { db, schema } from "../src/db";
+import { nuevoId } from "../src/domain/ids";
+import { registrarVenta } from "../src/domain/venta";
+import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+
+/**
+ * T-014 · US-013, US-007. El historial de ventas y la anulación, contra la base real.
+ */
+let dueno: DuenoDePrueba;
+const MARCA = `t14-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
+test.beforeAll(async () => {
+  dueno = await crearDueno("ventas");
+});
+
+test.afterAll(async () => {
+  const mios = sql`select id from ${schema.product} where ${schema.product.name} like ${`%${MARCA}%`}`;
+  const ventas = sql`select id from ${schema.sale} where ${schema.sale.userId} = ${dueno.id}`;
+  await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
+  await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${ventas})`);
+  await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
+  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
+  await borrarDueno(dueno);
+});
+
+async function sembrar(nombre: string, precio: number, iniciales: number) {
+  const [p] = await db
+    .insert(schema.product)
+    .values({ name: `${nombre} ${MARCA}`, price: precio, stock: iniciales })
+    .returning({ id: schema.product.id, nombre: schema.product.name });
+  await db.insert(schema.stockMovement).values({
+    productId: p!.id,
+    quantity: iniciales,
+    type: "initial",
+    userId: dueno.id,
+  });
+  return p!;
+}
+
+const stockDe = async (id: string) =>
+  (await db.select({ s: schema.product.stock }).from(schema.product).where(eq(schema.product.id, id)))[0]!.s;
+
+const movimientosDe = (id: string) =>
+  db.select().from(schema.stockMovement).where(eq(schema.stockMovement.productId, id));
+
+const hoy = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * El total del día suma **todas** las ventas del negocio, no las de una prueba: la base es una sola.
+ * Así que lo que se comprueba es la invariante —el total del día es la suma de las no anuladas que
+ * se listan— y no un número absoluto, que dependería de lo que hayan hecho las otras pruebas.
+ */
+async function totalDelDia(page: Page): Promise<{ mostrado: number; sumaDeLasVentas: number }> {
+  return page.evaluate((dia) => {
+    const numero = (t: string) => Number(t.replace(/[^\d-]/g, ""));
+    const seccion = document.querySelector(`[data-testid="dia-${dia}"]`)!;
+    const filas = [...seccion.querySelectorAll("li a")];
+    const sumaDeLasVentas = filas
+      .filter((f) => !f.textContent!.includes("anulada"))
+      .reduce((t, f) => t + numero(f.querySelector("span:last-child span")!.textContent ?? "0"), 0);
+    return {
+      mostrado: numero(document.querySelector(`[data-testid="total-${dia}"]`)!.textContent ?? "0"),
+      sumaDeLasVentas,
+    };
+  }, hoy());
+}
+
+async function abrirAnular(page: Page) {
+  const seccion = page.getByTestId("abrir-anular");
+  await seccion.locator("summary").click();
+  await expect(seccion).toHaveAttribute("open", "");
+}
+
+test("las ventas se agrupan por día con su total, y se entra al detalle", async ({ page }) => {
+  const p = await sembrar("Arroz", 3500, 20);
+  const q = await sembrar("Pan", 500, 20);
+  const v1 = nuevoId();
+  await registrarVenta(v1, [{ productoId: p.id, cantidad: 2 }], dueno.id);
+  await registrarVenta(nuevoId(), [{ productoId: q.id, cantidad: 3 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/ventas?desde=${hoy()}&hasta=${hoy()}`);
+
+  await expect(page.getByTestId(`venta-${v1}`)).toContainText("2 artículos");
+  // AC-019: el total del día es exactamente la suma de sus ventas no anuladas.
+  const total = await totalDelDia(page);
+  expect(total.mostrado).toBe(total.sumaDeLasVentas);
+
+  // AC-020: el detalle dice lo que se cobró.
+  await page.getByTestId(`venta-${v1}`).click();
+  await expect(page).toHaveURL(new RegExp(`/ventas/${v1}$`));
+  await expect(page.getByTestId("lineas")).toContainText("2 × $ 3.500");
+  await expect(page.getByTestId("total-venta")).toContainText("7.000");
+});
+
+test("subir el precio después no cambia lo que dice la venta", async ({ page }) => {
+  const p = await sembrar("Aceite", 9000, 10);
+  const v = nuevoId();
+  await registrarVenta(v, [{ productoId: p.id, cantidad: 1 }], dueno.id);
+  await db.update(schema.product).set({ price: 20000 }).where(eq(schema.product.id, p.id));
+
+  await entrarComo(page, dueno);
+  await page.goto(`/ventas/${v}`);
+  await expect(page.getByTestId("lineas")).toContainText("9.000");
+  await expect(page.getByTestId("lineas")).not.toContainText("20.000");
+});
+
+test("anular devuelve las existencias sin borrar los movimientos originales", async ({ page }) => {
+  const p = await sembrar("Leche", 4300, 15);
+  const v = nuevoId();
+  await registrarVenta(v, [{ productoId: p.id, cantidad: 4 }], dueno.id);
+  expect(await stockDe(p.id)).toBe(11);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/ventas/${v}`);
+  await abrirAnular(page);
+  await page.getByTestId("anular").click();
+  await expect(page.getByTestId("anulada")).toBeVisible();
+
+  // AC-011: movimiento compensatorio por exactamente lo vendido, y el original intacto.
+  const movs = await movimientosDe(p.id);
+  const venta = movs.filter((m) => m.type === "sale");
+  const anulacion = movs.filter((m) => m.type === "sale_void");
+  expect(venta).toHaveLength(1);
+  expect(venta[0]!.quantity).toBe(-4);
+  expect(anulacion).toHaveLength(1);
+  expect(anulacion[0]!.quantity).toBe(4);
+  expect(anulacion[0]!.saleId).toBe(v);
+
+  // El saldo se recalcula desde el libro.
+  expect(await stockDe(p.id)).toBe(15);
+});
+
+test("una venta anulada se ve como anulada y no suma al total del día", async ({ page }) => {
+  const p = await sembrar("Café", 11000, 10);
+  const buena = nuevoId();
+  const mala = nuevoId();
+  await registrarVenta(buena, [{ productoId: p.id, cantidad: 1 }], dueno.id);
+  await registrarVenta(mala, [{ productoId: p.id, cantidad: 2 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/ventas/${mala}`);
+  await abrirAnular(page);
+  await page.getByTestId("anular").click();
+  await expect(page.getByTestId("anulada")).toBeVisible();
+
+  // AC-019 / AC-024. Se comprueba la invariante y no una resta: la base es una sola y otras
+  // pruebas registran ventas del mismo día en paralelo, así que «bajó exactamente 22.000» estaría
+  // condenado a fallar sin que nada estuviera mal.
+  await page.goto(`/ventas?desde=${hoy()}&hasta=${hoy()}`);
+  await expect(page.getByTestId(`venta-${mala}`)).toContainText("anulada");
+  await expect(page.getByTestId(`venta-${buena}`)).not.toContainText("anulada");
+  const total = await totalDelDia(page);
+  expect(total.mostrado).toBe(total.sumaDeLasVentas);
+});
+
+test("anular dos veces se rechaza y no devuelve las existencias otra vez", async ({ page }) => {
+  const p = await sembrar("Atún", 6900, 8);
+  const v = nuevoId();
+  await registrarVenta(v, [{ productoId: p.id, cantidad: 3 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/ventas/${v}`);
+  await abrirAnular(page);
+  await page.getByTestId("anular").click();
+  await expect(page.getByTestId("anulada")).toBeVisible();
+  expect(await stockDe(p.id)).toBe(8);
+
+  // AC-012. Ya no hay botón en la pantalla, así que se ataca la acción por donde sí se alcanza.
+  const { anularVenta } = await import("../src/domain/venta");
+  const otra = await anularVenta(v, dueno.id);
+  expect(otra.ok).toBe(false);
+  expect(await stockDe(p.id)).toBe(8);
+  expect((await movimientosDe(p.id)).filter((m) => m.type === "sale_void")).toHaveLength(1);
+});
+
+test("desde el historial de un producto se llega a la venta", async ({ page }) => {
+  const p = await sembrar("Panela", 4500, 12);
+  const v = nuevoId();
+  await registrarVenta(v, [{ productoId: p.id, cantidad: 1 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${p.id}`);
+  await page.getByTestId("de-una-venta").click();
+  await expect(page).toHaveURL(new RegExp(`/ventas/${v}$`));
+});
+
+test("el rango de fechas vive en la dirección y sobrevive a una recarga", async ({ page }) => {
+  const p = await sembrar("Azúcar", 5200, 10);
+  await registrarVenta(nuevoId(), [{ productoId: p.id, cantidad: 1 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  await page.goto("/ventas?desde=2020-01-01&hasta=2020-01-02");
+  await expect(page.getByTestId("ventas-vacio")).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByTestId("ventas-vacio")).toBeVisible();
+
+  // Una fecha inventada se ignora en vez de tumbar la pantalla.
+  await page.goto("/ventas?desde=ayer&hasta=");
+  await expect(page.getByTestId("dias")).toBeVisible();
+});
+
+test("anular no vive en el tercio superior, y la pantalla se opera a 360 px", async ({ page }) => {
+  const p = await sembrar("Jabón", 3400, 6);
+  const v = nuevoId();
+  await registrarVenta(v, [{ productoId: p.id, cantidad: 1 }], dueno.id);
+
+  await page.setViewportSize({ width: 360, height: 740 });
+  await entrarComo(page, dueno);
+  await page.goto(`/ventas/${v}`);
+
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+  const seccion = await page.getByTestId("abrir-anular").boundingBox();
+  expect(seccion!.y).toBeGreaterThan(740 / 3);
+});

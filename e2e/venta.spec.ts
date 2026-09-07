@@ -193,21 +193,25 @@ test("vender más de lo que hay se permite y el saldo queda negativo", async ({ 
 test("en la cuadrícula, el cero y el negativo se ven en rojo", async ({ page }) => {
   // Ninguna prueba miraba esto y las dos pantallas no coincidían: el catálogo alerta solo en
   // negativo y la venta también en cero. Ahora la diferencia está fijada, no heredada.
+  /**
+   * Las cantidades son grandes a propósito. Desde `T-014` la cuadrícula ordena de verdad por lo más
+   * vendido y muestra 24 casillas; un producto sin ventas se queda fuera cuando la base tiene datos.
+   * Se llega al cero y al negativo **vendiendo**, que además es como se llega en la vida real.
+   */
   const [agotado, negativo, normal] = await sembrar([
-    { nombre: "Agotado", precio: 1000, existencias: 0 },
-    { nombre: "Debe", precio: 1000, existencias: 0 },
-    { nombre: "Normal", precio: 1000, existencias: 5 },
+    { nombre: "Agotado", precio: 1000, existencias: 30 },
+    { nombre: "Debe", precio: 1000, existencias: 30 },
+    { nombre: "Normal", precio: 1000, existencias: 100 },
   ]);
-  await db.insert(schema.stockMovement).values({
-    productId: negativo!.id,
-    quantity: -4,
-    type: "adjustment",
-    reason: "prueba de saldo negativo",
-    userId: dueno.id,
-  });
-  await db.update(schema.product).set({ stock: -4 }).where(eq(schema.product.id, negativo!.id));
+  await registrarVenta(nuevoId(), [{ productoId: agotado!.id, cantidad: 30 }], dueno.id);
+  await registrarVenta(nuevoId(), [{ productoId: negativo!.id, cantidad: 34 }], dueno.id);
+  await registrarVenta(nuevoId(), [{ productoId: normal!.id, cantidad: 30 }], dueno.id);
 
   await entrarComo(page, dueno);
+  // Si alguna casilla no estuviera, el fallo sería el mismo que el de la alerta: se comprueba antes.
+  for (const p of [agotado, negativo, normal]) {
+    await expect(page.getByTestId(`casilla-${p!.id}`)).toHaveCount(1);
+  }
   await expect(page.getByTestId(`casilla-${agotado!.id}`).locator("[data-alerta]")).toHaveCount(1);
   await expect(page.getByTestId(`casilla-${negativo!.id}`).locator("[data-alerta]")).toHaveCount(1);
   await expect(page.getByTestId(`casilla-${normal!.id}`).locator("[data-alerta]")).toHaveCount(0);
@@ -251,4 +255,29 @@ test("a 360 px el total se ve siempre y nada del flujo de venta vive arriba", as
   const menos = await page.getByRole("button", { name: /^Quitar uno de/ }).boundingBox();
   expect(menos!.y).toBeGreaterThan(740 / 3);
   expect(menos!.height).toBeGreaterThanOrEqual(48);
+});
+
+test("la cuadrícula ordena por lo más vendido, no por cualquier cosa", async ({ page }) => {
+  /**
+   * Esto no funcionó nunca hasta `T-014`. Drizzle no cualifica los nombres de columna dentro de una
+   * plantilla `sql` en un `select`, así que la subconsulta comparaba `sale_line.product_id` con
+   * `sale_line.id` —nunca acertaba— y la cuadrícula ordenaba todo por cero y luego por nombre.
+   * Con datos sembrados en orden alfabético el resultado parecía razonable, que es lo que hizo que
+   * pasara desapercibido.
+   */
+  const [zeta, alfa] = await sembrar([
+    { nombre: "Zzz poco vendido", precio: 1000, existencias: 50 },
+    { nombre: "Aaa muy vendido", precio: 1000, existencias: 50 },
+  ]);
+  // El de nombre alfabéticamente posterior se vende más: si el orden fuera por nombre, perdería.
+  await registrarVenta(nuevoId(), [{ productoId: zeta!.id, cantidad: 9 }], dueno.id);
+  await registrarVenta(nuevoId(), [{ productoId: alfa!.id, cantidad: 1 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  const casillas = await page.getByTestId(/^casilla-/).all();
+  const nombres = await Promise.all(casillas.map((c) => c.innerText()));
+  const posicion = (parte: string) => nombres.findIndex((n) => n.includes(parte));
+
+  expect(posicion("Zzz poco vendido")).toBeGreaterThanOrEqual(0);
+  expect(posicion("Zzz poco vendido")).toBeLessThan(posicion("Aaa muy vendido"));
 });

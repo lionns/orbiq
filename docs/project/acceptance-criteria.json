@@ -159,6 +159,22 @@
       "verifies": [
         "FR-014"
       ]
+    },
+    {
+      "id": "AC-023",
+      "criterion": "CUANDO se busca un producto durante la venta EL SISTEMA DEBE mostrar los resultados sin recargar la pantalla y sin perder la venta en curso.",
+      "verifies": [
+        "FR-015",
+        "NFR-002"
+      ]
+    },
+    {
+      "id": "AC-024",
+      "criterion": "CUANDO se anula una venta EL SISTEMA DEBE dejar de contarla en el total del día y devolver las existencias, sin borrar ni editar los movimientos originales.",
+      "verifies": [
+        "FR-006",
+        "FR-012"
+      ]
     }
   ],
   "crossCutting": [

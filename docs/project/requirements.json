@@ -83,6 +83,12 @@
       "title": "Desactivar un producto",
       "description": "El dueño retira un producto de la venta y del catálogo sin borrarlo. Los movimientos y las ventas lo siguen nombrando, y se puede volver a activar.",
       "source": "pedido por el estudio el 2026-09-07; data-model.md § Data Lifecycle"
+    },
+    {
+      "id": "FR-015",
+      "title": "Buscar un producto durante la venta",
+      "description": "El dueño encuentra un producto por nombre o código sin salir de la pantalla de venta, y lo añade a la venta en curso desde el resultado. La cuadrícula muestra los frecuentes; la búsqueda alcanza al resto del catálogo.",
+      "source": "pedido por el estudio el 2026-09-07"
     }
   ],
   "nonFunctional": [

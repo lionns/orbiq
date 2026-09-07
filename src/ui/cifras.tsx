@@ -4,8 +4,16 @@ import { formatearPrecio } from "@/domain/moneda";
  * `tabular-nums` no es adorno: sin él los dígitos cambian de ancho y una columna de precios baila
  * al recargar. El dueño compara precios de un vistazo, no los lee.
  */
-export function Precio({ valor, className = "" }: { valor: number; className?: string }) {
-  return <span className={`tabular-nums ${className}`}>{formatearPrecio(valor)}</span>;
+export function Precio({
+  valor,
+  className = "",
+  ...resto
+}: { valor: number; className?: string } & { "data-testid"?: string }) {
+  return (
+    <span className={`tabular-nums ${className}`} {...resto}>
+      {formatearPrecio(valor)}
+    </span>
+  );
 }
 
 /**
@@ -24,12 +32,13 @@ export function Existencias({
   cantidad,
   alertarEnCero = false,
   className = "",
+  ...resto
 }: {
   cantidad: number;
   /** En la venta, cero ya merece aviso: se está por vender algo que el conteo dice que no hay. */
   alertarEnCero?: boolean;
   className?: string;
-}) {
+} & { "data-testid"?: string }) {
   const alerta = alertarEnCero ? cantidad <= 0 : cantidad < 0;
   return (
     <span
@@ -37,6 +46,7 @@ export function Existencias({
       className={`tabular-nums ${
         alerta ? "text-danger" : "text-text-muted"
       } ${className}`}
+      {...resto}
     >
       {cantidad} en existencia
     </span>
