@@ -130,6 +130,35 @@
         "FR-011",
         "FR-010"
       ]
+    },
+    {
+      "id": "AC-019",
+      "criterion": "CUANDO se abre el historial de ventas EL SISTEMA DEBE agrupar las ventas por día con el total del día, y una venta anulada DEBE verse como anulada y no sumar al total.",
+      "verifies": [
+        "FR-012"
+      ]
+    },
+    {
+      "id": "AC-020",
+      "criterion": "CUANDO se abre una venta EL SISTEMA DEBE mostrar sus líneas con la cantidad y el precio que se cobró, aunque el precio del producto haya cambiado después.",
+      "verifies": [
+        "FR-012",
+        "FR-013"
+      ]
+    },
+    {
+      "id": "AC-021",
+      "criterion": "CUANDO se cambia el precio de un producto EL SISTEMA DEBE registrar el precio anterior, el nuevo, quién lo cambió y cuándo, sin tocar lo que ya se cobró.",
+      "verifies": [
+        "FR-013"
+      ]
+    },
+    {
+      "id": "AC-022",
+      "criterion": "CUANDO se desactiva un producto EL SISTEMA DEBE sacarlo de la cuadrícula de venta y del catálogo activo, y DEBE seguir apareciendo con su nombre en los movimientos y las ventas anteriores.",
+      "verifies": [
+        "FR-014"
+      ]
     }
   ],
   "crossCutting": [

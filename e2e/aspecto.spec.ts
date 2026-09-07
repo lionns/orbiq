@@ -51,7 +51,9 @@ async function revisar(page: Page): Promise<Hallazgo[]> {
 
     const hallazgos: { que: string; motivo: string }[] = [];
     const controles = document.querySelectorAll<HTMLElement>(
-      'button, input:not([type="hidden"]), select, a[class*="rounded-button"], [data-testid="lista-catalogo"] li',
+      // `[data-tarjeta]` marca las tarjetas a propósito: si el contrato dependiera de la etiqueta,
+      // mover el estilo de un `<li>` al `<a>` de dentro lo dejaría midiendo un elemento sin estilo.
+      'button, input:not([type="hidden"]), select, a[class*="rounded-button"], [data-tarjeta]',
     );
 
     controles.forEach((el) => {

@@ -65,6 +65,24 @@
       "title": "Recorrer el catálogo",
       "description": "El dueño acota el catálogo por categoría, por estado de existencias y por rango de precio, y lo recorre por partes sin perder lo que ya vio. El estado va en la dirección, así que el enlace se puede guardar y compartir.",
       "source": "pedido por el estudio el 2026-09-06"
+    },
+    {
+      "id": "FR-012",
+      "title": "Historial de ventas",
+      "description": "El dueño ve las ventas agrupadas por día con su total, abre una para ver sus líneas y precios, busca por rango de fechas y puede anular desde ahí.",
+      "source": "pedido por el estudio el 2026-09-07"
+    },
+    {
+      "id": "FR-013",
+      "title": "Rastro de los cambios de precio",
+      "description": "Cada cambio de precio de un producto queda registrado con el precio anterior, el nuevo, quién lo hizo y cuándo. El precio es lo único de un producto que afecta a la plata.",
+      "source": "pedido por el estudio el 2026-09-07"
+    },
+    {
+      "id": "FR-014",
+      "title": "Desactivar un producto",
+      "description": "El dueño retira un producto de la venta y del catálogo sin borrarlo. Los movimientos y las ventas lo siguen nombrando, y se puede volver a activar.",
+      "source": "pedido por el estudio el 2026-09-07; data-model.md § Data Lifecycle"
     }
   ],
   "nonFunctional": [

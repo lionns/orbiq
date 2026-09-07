@@ -113,5 +113,33 @@
     "implements": [
       "FR-011"
     ]
+  },
+  {
+    "id": "US-013",
+    "role": "dueño del negocio",
+    "want": "ver las ventas de un día con su total, abrir una y ver qué llevaba",
+    "so": "puedo cuadrar la caja y explicarle a un cliente qué le cobré",
+    "implements": [
+      "FR-012"
+    ]
+  },
+  {
+    "id": "US-014",
+    "role": "dueño del negocio",
+    "want": "corregir el precio de un producto y que quede constancia de cuál era antes",
+    "so": "puedo explicar por qué el mismo producto costó distinto la semana pasada",
+    "implements": [
+      "FR-013",
+      "FR-001"
+    ]
+  },
+  {
+    "id": "US-015",
+    "role": "dueño del negocio",
+    "want": "retirar un producto que ya no vendo sin perder su historia",
+    "so": "la cuadrícula no se llena de cosas que no tengo, pero las ventas viejas se siguen entendiendo",
+    "implements": [
+      "FR-014"
+    ]
   }
 ]

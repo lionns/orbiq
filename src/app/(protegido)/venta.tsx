@@ -76,6 +76,7 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                     )
                   }
                   data-testid={`casilla-${c.id}`}
+                  data-tarjeta
                   // `active:` es retroalimentación inmediata: si el dueño duda si lo añadió, lo
                   // toca dos veces y vende de más (design-handoff.md § Interaction States).
                   // `h-full`: el `<li>` se estira al alto de su fila, pero el botón no lo sigue si

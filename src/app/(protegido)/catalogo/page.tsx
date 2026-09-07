@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { categoriasExistentes, listarCatalogo } from "@/domain/catalogo";
 import {
   comoDireccion,
@@ -32,11 +33,7 @@ export default async function Catalogo({
       <Filtros filtros={filtros} categorias={categorias} acotado={acotado} />
 
       <p className="mt-4 text-text-muted" data-testid="conteo">
-        {total === 0
-          ? "Ningún producto"
-          : total === 1
-            ? "1 producto"
-            : `${total} productos`}
+        {total === 0 ? "Ningún producto" : total === 1 ? "1 producto" : `${total} productos`}
         {productos.length < total ? ` · mostrando ${productos.length}` : ""}
       </p>
 
@@ -45,21 +42,26 @@ export default async function Catalogo({
       ) : (
         <ul className="mt-4 flex flex-col gap-2" data-testid="lista-catalogo">
           {productos.map((p) => (
-            <li
-              key={p.id}
-              className="flex items-baseline justify-between gap-4 rounded-card border border-border bg-surface p-4"
-            >
-              <span className="min-w-0">
-                <span className="block truncate font-medium">{p.nombre}</span>
-                <span className="block text-text-muted">
-                  {p.categoria ?? "Sin categoría"}
-                  {p.codigoDeBarras ? ` · ${p.codigoDeBarras}` : ""}
+            <li key={p.id}>
+              {/* Toda la tarjeta es el enlace: en un celular, un blanco de 48 px de alto se acierta
+                  y uno de nombre no. */}
+              <Link
+                href={`/catalogo/${p.id}`}
+                data-tarjeta
+                className="flex items-baseline justify-between gap-4 rounded-card border border-border bg-surface p-4"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-medium">{p.nombre}</span>
+                  <span className="block text-text-muted">
+                    {p.categoria ?? "Sin categoría"}
+                    {p.codigoDeBarras ? ` · ${p.codigoDeBarras}` : ""}
+                  </span>
                 </span>
-              </span>
-              <span className="shrink-0 text-right">
-                <Precio valor={p.precio} className="block font-medium" />
-                <Existencias cantidad={p.existencias} className="block" />
-              </span>
+                <span className="shrink-0 text-right">
+                  <Precio valor={p.precio} className="block font-medium" />
+                  <Existencias cantidad={p.existencias} className="block" />
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
@@ -79,7 +81,11 @@ export default async function Catalogo({
 
       {/* Regla del pulgar: la acción vive abajo, no en el tercio superior. */}
       <BarraInferior className="p-4">
-        <BotonEnlace href="/catalogo/nuevo" variante="principal" className="mx-auto w-full max-w-2xl">
+        <BotonEnlace
+          href="/catalogo/nuevo"
+          variante="principal"
+          className="mx-auto w-full max-w-2xl"
+        >
           Nuevo producto
         </BotonEnlace>
       </BarraInferior>
