@@ -199,6 +199,10 @@ sostiene una propiedad que ya está escrita arriba.
   Se registra y se muestra en pantalla, no se impide. Es una decisión de producto, y es tuya.
 - **Moneda y precisión del precio.** Un despliegue por negocio significa una moneda por base
   (`D-005`), así que es configuración y no columna. Falta nombrar cuál para el primer cliente.
+  Mientras tanto, `src/domain/moneda.ts` **no elige ninguna**: cero decimales, sin símbolo y sin
+  factor de conversión, así que lo que se teclea es lo que se guarda. El día que se nombre la
+  moneda se cambia ese archivo y nada más. Si tiene centavos, los precios ya guardados habría que
+  multiplicarlos — es la única parte de esta pregunta que cuesta una migración.
 - **La cuadrícula de frecuentes se deriva, no se guarda.** Sale de las ventas recientes. Falta
   definir con qué ventana y cuántos productos — es lo primero que el dueño ve al abrir.
 - **Alta inicial del catálogo.** `brief.md` § Open Questions ya pregunta cuántos productos hay. Si
