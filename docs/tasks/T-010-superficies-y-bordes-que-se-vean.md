@@ -40,6 +40,7 @@ implements: [FR-010, AC-X01, AC-X02]
 - [x] Ningún botón ni tarjeta queda con fondo transparente sobre el fondo de la página.
 - [x] Una prueba recorre las cuatro pantallas en los dos temas y falla si un control deja de
       distinguirse de su fondo.
+- [x] Las casillas de la cuadrícula de venta miden todas lo mismo, y cada botón llena su celda.
 - [x] Los once pares ya medidos en `T-007` siguen cumpliendo.
 
 ## Verification
@@ -71,7 +72,8 @@ implements: [FR-010, AC-X01, AC-X02]
 - Baseline result: la auditoría de las cuatro pantallas en los dos temas midió correcto todo lo que
   `T-008` tocó — ningún color se había movido.
 - Final result: `npm test` 48/48 · `typecheck` clean · `lint` clean · `build` ok · `test:e2e`
-  **46/46**. Los 24 pares de los dos temas medidos, sin fallos.
+  **47/47**. Los 24 pares de los dos temas medidos, sin fallos, y las casillas de la cuadrícula
+  todas de 158×122 a 360 px.
 - Decisions recorded: ninguna nueva. `design-handoff.md` § Design Tokens recoge la regla que faltaba:
   un control se distingue por relleno, no solo por borde.
 - Follow-up: ninguno abierto.
@@ -94,6 +96,13 @@ implements: [FR-010, AC-X01, AC-X02]
 - Lección propia, sin adornos: en `T-008` afirmé que el refactor no cambiaba nada apoyándome en seis
   propiedades de tres elementos de **una** pantalla. La afirmación era más ancha que la evidencia.
   Lo que faltaba no era más cuidado, era esta prueba.
+- **Segundo reporte del estudio, mismo día: la cuadrícula de venta no era simétrica.** Eran dos
+  defectos distintos que se veían como uno. Dentro de una fila, el `<li>` se estira al alto de la
+  fila y el `<button>` no lo seguía, así que junto a un nombre de dos líneas el vecino quedaba 24 px
+  más corto. Y entre filas, una fila cuyos nombres cabían en una línea encogía entera y la
+  cuadrícula quedaba dentada. Se arregla con `auto-rows-fr` en la lista y `h-full` en el botón.
+  El contrato visual crece con una prueba que compara el tamaño de todas las casillas; comprobada al
+  revés, señala las cuatro casillas cortas por su nombre.
 
 ## Validation
 

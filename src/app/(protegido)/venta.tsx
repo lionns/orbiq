@@ -63,7 +63,9 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
             Todavía no hay productos. Da de alta el primero en el catálogo para empezar a vender.
           </p>
         ) : (
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          // `auto-rows-fr` iguala el alto de todas las filas; sin él, una fila cuyos nombres caben
+          // en una línea encoge y la cuadrícula queda dentada.
+          <ul className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {casillas.map((c) => (
               <li key={c.id}>
                 <button
@@ -76,7 +78,9 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                   data-testid={`casilla-${c.id}`}
                   // `active:` es retroalimentación inmediata: si el dueño duda si lo añadió, lo
                   // toca dos veces y vende de más (design-handoff.md § Interaction States).
-                  className="flex min-h-24 w-full flex-col justify-between rounded-card border border-border-strong bg-surface p-3 text-left active:bg-bg"
+                  // `h-full`: el `<li>` se estira al alto de su fila, pero el botón no lo sigue si
+                  // no se le dice. Sin esto, en una fila con un nombre largo el vecino queda corto.
+                  className="flex h-full min-h-24 w-full flex-col justify-between rounded-card border border-border-strong bg-surface p-3 text-left active:bg-bg"
                 >
                   <span className="line-clamp-2 font-medium">{c.nombre}</span>
                   <span>

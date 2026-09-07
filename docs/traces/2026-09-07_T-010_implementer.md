@@ -18,3 +18,10 @@
   - checks: `npm test` 48/48 · `lint` clean · `build` ok · `test:e2e` 46/46 · 24 pares medidos en
     los dos temas sin fallos
   - blockers: ninguno
+
+- 2026-09-07 — role: Implementer
+  - did: segundo reporte, la cuadrícula sin simetría. Medida antes de tocar: el botón no llenaba su
+    celda y las filas no medían igual. `auto-rows-fr` + `h-full`, y una prueba de tamaño que se
+    comprobó al revés
+  - checks: `test:e2e` 47/47 · casillas todas de 158×122 a 360 px
+  - blockers: ninguno

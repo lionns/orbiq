@@ -114,3 +114,40 @@ for (const tema of ["claro", "oscuro"] as const) {
     expect(todo, JSON.stringify(todo, null, 1)).toEqual([]);
   });
 }
+
+/**
+ * La cuadrícula de venta tiene que ser una rejilla, no un mosaico. Dos formas de romperse, y las dos
+ * pasaban todas las demás pruebas porque el comportamiento era correcto:
+ *
+ * - el `<li>` se estira al alto de su fila y el `<button>` de dentro no lo sigue;
+ * - una fila cuyos nombres caben en una línea encoge, y la cuadrícula queda dentada.
+ */
+test("las casillas de la cuadrícula de venta son todas del mismo tamaño", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await entrarComo(page, dueno);
+
+  const casillas = await page.evaluate(() =>
+    [...document.querySelectorAll("section ul > li")].map((li) => {
+      const b = li.querySelector("button")!;
+      const rl = li.getBoundingClientRect();
+      const rb = b.getBoundingClientRect();
+      return {
+        nombre: (b.textContent ?? "").trim().slice(0, 20),
+        celda: [Math.round(rl.width), Math.round(rl.height)],
+        boton: [Math.round(rb.width), Math.round(rb.height)],
+      };
+    }),
+  );
+
+  expect(casillas.length).toBeGreaterThan(3);
+
+  // El botón llena su celda: si no, en una fila con un nombre largo el vecino queda corto.
+  const cortos = casillas.filter(
+    (c) => c.boton[0] !== c.celda[0] || c.boton[1] !== c.celda[1],
+  );
+  expect(cortos, `botones que no llenan su celda: ${JSON.stringify(cortos)}`).toEqual([]);
+
+  // Y todas las casillas miden lo mismo, fila con fila.
+  const tamanos = [...new Set(casillas.map((c) => c.celda.join("x")))];
+  expect(tamanos, `tamaños distintos en la cuadrícula: ${JSON.stringify(casillas)}`).toHaveLength(1);
+});
