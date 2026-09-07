@@ -197,12 +197,11 @@ sostiene una propiedad que ya está escrita arriba.
 - **Supuesto — el stock puede quedar negativo.** El brief dice que la aplicación *compite contra no
   usarla*: si bloquea una venta porque el conteo dice cero, el dueño cobra igual y deja de abrirla.
   Se registra y se muestra en pantalla, no se impide. Es una decisión de producto, y es tuya.
-- **Moneda y precisión del precio.** Un despliegue por negocio significa una moneda por base
-  (`D-005`), así que es configuración y no columna. Falta nombrar cuál para el primer cliente.
-  Mientras tanto, `src/domain/moneda.ts` **no elige ninguna**: cero decimales, sin símbolo y sin
-  factor de conversión, así que lo que se teclea es lo que se guarda. El día que se nombre la
-  moneda se cambia ese archivo y nada más. Si tiene centavos, los precios ya guardados habría que
-  multiplicarlos — es la única parte de esta pregunta que cuesta una migración.
+- ~~**Moneda y precisión del precio.**~~ **Cerrada el 2026-09-06: peso colombiano.** El COP no
+  tiene centavos en circulación, así que su unidad mínima es el peso y `product.price` guarda
+  exactamente lo que se teclea. Vive en `src/domain/moneda.ts`, no en el esquema: un despliegue por
+  negocio significa una moneda por base (`D-005`). Cambiar a una moneda **con** centavos seguiría
+  costando una migración — habría que multiplicar los precios ya guardados.
 - **La cuadrícula de frecuentes se deriva, no se guarda.** Sale de las ventas recientes. Falta
   definir con qué ventana y cuántos productos — es lo primero que el dueño ve al abrir.
 - **Alta inicial del catálogo.** `brief.md` § Open Questions ya pregunta cuántos productos hay. Si

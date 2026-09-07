@@ -100,6 +100,9 @@ que no lo cubre. Las rutas citadas son de su repositorio.
 - **`AC-X03` dejó de ser una promesa escrita.** `eslint.config.mjs` prohíbe importar el framework
   desde `src/domain/`, así que romper la regla falla `npm run lint` en vez de esperar a un review.
 
+**Moneda:** peso colombiano, sin centavos, en `src/domain/moneda.ts`. No es una columna ni una
+decisión de arquitectura: un despliegue por negocio es una moneda por base (`D-005`).
+
 ## Deployment
 
 - Un proyecto de Vercel y una base de Neon por negocio (`D-005`).

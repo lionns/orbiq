@@ -1,7 +1,7 @@
 ---
 id: T-003
 title: Catálogo — alta y listado de productos
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -97,9 +97,8 @@ implements: [FR-001, US-002, AC-003, AC-004, AC-005]
 
 ## Validation
 
-- Validated by: 
-- Date: 
-- Pendiente de tu firma, igual que `T-001` y `T-002`.
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-06
 
 ## Trace
 

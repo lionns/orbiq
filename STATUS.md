@@ -9,13 +9,13 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-004](docs/tasks/T-004-venta-con-cuadricula.md) | `ready` | El dueño arma una venta tocando productos en una cuadrícula, ve el total todo el tiempo, y confirma. Confirmar descuenta existencias en una sola transacción y reintentar no cobra dos veces. |
-| [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `review` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
-| [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `review` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
-| [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `review` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
+| [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
+| [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
+| [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
 
 ## Next
 
-**T-001** (`review`) — Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim.
+**T-004** (`ready`) — El dueño arma una venta tocando productos en una cuadrícula, ve el total todo el tiempo, y confirma. Confirmar descuenta existencias en una sola transacción y reintentar no cobra dos veces.
 
 ## Open decisions
 
@@ -23,6 +23,8 @@ None. All decisions are accepted or superseded.
 
 ## Journal — last 5
 
-Empty.
+- 2026-09-06 | T-003 | done | catálogo con alta que escribe el libro y saldo recomputado | 11 files | test 24/24, e2e 18/18 | D-002,D-003
+- 2026-09-06 | T-002 | done | sesión de dueño con correo y contraseña, guardia donde se leen los datos | 14 files | test 11/11, e2e 10/10 | D-001,D-008
+- 2026-09-06 | T-001 | done | andamiaje y esquema de nueve tablas aplicado contra Neon | 30 files | test 7/7, e2e 2/2, db:verify 5/5 | D-001,D-002,D-003,D-006,D-008
 
 Full history: [`JOURNAL.md`](JOURNAL.md) · decisions: [`docs/decisions/`](docs/decisions/README.md)

@@ -1,7 +1,7 @@
 ---
 id: T-002
 title: Sesión de dueño con correo y contraseña
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -106,9 +106,8 @@ implements: [FR-009, NFR-007, US-001, US-011, AC-001, AC-002]
 
 ## Validation
 
-- Validated by: 
-- Date: 
-- Pendiente de tu firma, igual que `T-001`.
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-06
 
 ## Trace
 

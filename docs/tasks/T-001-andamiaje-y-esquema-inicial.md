@@ -1,7 +1,7 @@
 ---
 id: T-001
 title: Andamiaje de la aplicación y esquema inicial
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -114,10 +114,10 @@ implements: [AC-X06]
 
 ## Validation
 
-- Validated by: 
-- Date: 
-- Pendiente de tu firma. `quality-gates.md` te nombra validador y no me corresponde firmar por ti.
-  Lo verificable ya está corrido: `npm run db:verify` ejerce las cinco reglas contra la base real.
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-06
+- Validado en conjunto: los comandos de `quality-gates.md` corrieron en verde delante del
+  validador y `npm run db:verify` ejerce las reglas contra la base real.
 
 ## Trace
 

@@ -11,6 +11,7 @@ const completo = {
 describe("parsearPrecio", () => {
   it("acepta los separadores de miles que salen solos al teclear", () => {
     expect(parsearPrecio("12500")).toBe(12500);
+    expect(parsearPrecio("$12.500")).toBe(12500);
     expect(parsearPrecio("12.500")).toBe(12500);
     expect(parsearPrecio("12 500")).toBe(12500);
     expect(parsearPrecio("12,500")).toBe(12500);
@@ -29,14 +30,21 @@ describe("parsearPrecio", () => {
 });
 
 describe("formatearPrecio", () => {
-  it("agrupa los miles y no inventa un símbolo de moneda", () => {
-    expect(formatearPrecio(12500)).toBe("12.500");
-    expect(formatearPrecio(0)).toBe("0");
+  // El espacio es duro (U+00A0): lo pone `Intl` siguiendo la convención de es-CO.
+  const PESOS = (n: string) => `$\u00a0${n}`;
+
+  it("da pesos colombianos, con el símbolo y los miles agrupados", () => {
+    expect(formatearPrecio(12500)).toBe(PESOS("12.500"));
+    expect(formatearPrecio(0)).toBe(PESOS("0"));
   });
 
   it("agrupa también los de cuatro cifras, que el español dejaría sueltos", () => {
     // Una lista donde 3500 va sin punto y 12.500 con él se lee peor de un vistazo.
-    expect(formatearPrecio(3500)).toBe("3.500");
+    expect(formatearPrecio(3500)).toBe(PESOS("3.500"));
+  });
+
+  it("el peso no tiene centavos: nunca aparece una fracción", () => {
+    expect(formatearPrecio(3500)).not.toContain(",");
   });
 });
 
