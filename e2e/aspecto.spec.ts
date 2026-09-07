@@ -53,7 +53,10 @@ async function revisar(page: Page): Promise<Hallazgo[]> {
     const controles = document.querySelectorAll<HTMLElement>(
       // `[data-tarjeta]` marca las tarjetas a propósito: si el contrato dependiera de la etiqueta,
       // mover el estilo de un `<li>` al `<a>` de dentro lo dejaría midiendo un elemento sin estilo.
-      'button, input:not([type="hidden"]), select, a[class*="rounded-button"], [data-tarjeta]',
+      // Casillas y radios quedan fuera: su marco lo dibuja el navegador, no nuestro CSS, así que
+      // medirles borde y relleno da un falso positivo. Lo que sí controlamos ahí es `accent-color`.
+      'button, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select,' +
+        ' a[class*="rounded-button"], [data-tarjeta]',
     );
 
     controles.forEach((el) => {

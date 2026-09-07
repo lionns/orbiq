@@ -20,6 +20,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   const mios = sql`select id from ${schema.product} where ${schema.product.name} like ${`%${MARCA}%`}`;
+  await db.delete(schema.productEvent).where(sql`${schema.productEvent.productId} in (${mios})`);
   const ventas = sql`select id from ${schema.sale} where ${schema.sale.userId} = ${dueno.id}`;
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
   await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${ventas})`);
@@ -158,4 +159,114 @@ test("la pantalla del historial se opera a 360 px", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
   const boton = await page.getByTestId("guardar-ajuste").boundingBox();
   expect(boton!.height).toBeGreaterThanOrEqual(48);
+});
+
+/**
+ * T-012 · US-014, US-015. Editar y retirar, y que las dos cosas queden donde el dueño ya mira.
+ */
+const eventosDe = (id: string) =>
+  db.select().from(schema.productEvent).where(eq(schema.productEvent.productId, id));
+
+async function editarPrecio(page: Page, nuevo: string) {
+  await page.getByLabel("Precio").fill(nuevo);
+  await page.getByTestId("guardar-edicion").click();
+  await expect(page.getByTestId("edicion-hecha")).toBeVisible();
+}
+
+test("cambiar el precio queda registrado y no toca lo que ya se cobró", async ({ page }) => {
+  const p = await sembrar("Atún", 6000, 10);
+  const ventaId = nuevoId();
+  await registrarVenta(ventaId, [{ productoId: p.id, cantidad: 2 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${p.id}`);
+  await editarPrecio(page, "8500");
+
+  // AC-021: precio anterior, nuevo, quién y cuándo.
+  const eventos = await eventosDe(p.id);
+  expect(eventos).toHaveLength(1);
+  expect(eventos[0]!.type).toBe("price_change");
+  expect(eventos[0]!.previousPrice).toBe(6000);
+  expect(eventos[0]!.newPrice).toBe(8500);
+
+  // AC-009: la venta de antes sigue diciendo lo que se cobró.
+  const [linea] = await db
+    .select()
+    .from(schema.saleLine)
+    .where(eq(schema.saleLine.saleId, ventaId));
+  expect(linea!.unitPrice).toBe(6000);
+
+  // Y aparece en la misma línea de tiempo que los movimientos.
+  await page.reload();
+  const evento = page.getByTestId("evento-precio");
+  await expect(evento).toContainText("6.000");
+  await expect(evento).toContainText("8.500");
+});
+
+test("guardar sin cambiar el precio no ensucia el historial", async ({ page }) => {
+  const p = await sembrar("Panela", 4500, 6);
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${p.id}`);
+
+  await page.getByLabel("Nombre").fill(`${p.nombre} corregido`);
+  await page.getByTestId("guardar-edicion").click();
+  await expect(page.getByTestId("edicion-hecha")).toBeVisible();
+
+  expect(await eventosDe(p.id)).toHaveLength(0);
+  await expect(page.getByTestId("evento-precio")).toHaveCount(0);
+});
+
+test("retirar un producto lo saca de la venta y del catálogo, sin perder su historia", async ({
+  page,
+}) => {
+  const p = await sembrar("Jabón", 3400, 7);
+  const ventaId = nuevoId();
+  await registrarVenta(ventaId, [{ productoId: p.id, cantidad: 1 }], dueno.id);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${p.id}`);
+  await page.getByTestId("cambiar-estado").click();
+  await expect(page.getByTestId("evento-activacion")).toContainText("Retirado de la venta");
+
+  // AC-022: fuera de la cuadrícula y del catálogo activo…
+  await page.goto("/");
+  await expect(page.getByTestId(`casilla-${p.id}`)).toHaveCount(0);
+  await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}`);
+  await expect(page.getByTestId("catalogo-vacio")).toBeVisible();
+
+  // …pero se puede pedir a propósito, y su historia sigue entera.
+  await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}&desactivados=1`);
+  await expect(page.getByTestId("lista-catalogo")).toContainText("retirado");
+  await page.goto(`/catalogo/${p.id}`);
+  await expect(page.getByTestId("historial")).toContainText("Venta");
+  await expect(page.getByTestId("historial")).toContainText("Existencias iniciales");
+});
+
+test("devolver a la venta lo reactiva, y las dos cosas quedan en el historial", async ({ page }) => {
+  const p = await sembrar("Café", 11000, 3);
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${p.id}`);
+
+  await page.getByTestId("cambiar-estado").click();
+  await expect(page.getByTestId("cambiar-estado")).toHaveText("Devolver a la venta");
+  await page.getByTestId("cambiar-estado").click();
+  await expect(page.getByTestId("cambiar-estado")).toHaveText("Retirar de la venta");
+
+  await expect(page.getByTestId("evento-activacion")).toHaveCount(2);
+  await page.goto("/");
+  await expect(page.getByTestId(`casilla-${p.id}`)).toHaveCount(1);
+});
+
+test("al editar, un código de barras de otro producto se rechaza nombrándolo", async ({ page }) => {
+  const codigo = `79${Date.now()}${Math.floor(Math.random() * 100)}`.slice(0, 13);
+  const dueno1 = await sembrar("Leche", 4300, 5);
+  await db.update(schema.product).set({ barcode: codigo }).where(eq(schema.product.id, dueno1.id));
+  const otro = await sembrar("Impostora", 4300, 5);
+
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${otro.id}`);
+  await page.getByLabel("Código de barras").fill(codigo);
+  await page.getByTestId("guardar-edicion").click();
+
+  await expect(page.getByText(`Ese código ya es de «${dueno1.nombre}».`)).toBeVisible();
 });

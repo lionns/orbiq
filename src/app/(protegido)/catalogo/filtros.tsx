@@ -93,6 +93,19 @@ export function Filtros({
             </div>
           </fieldset>
 
+          <label className="flex min-h-12 items-center gap-2">
+            <input
+              type="checkbox"
+              name="desactivados"
+              value="1"
+              defaultChecked={filtros.incluirDesactivados}
+              // `accent-accent` pinta la marca con nuestro acento en vez del azul del navegador,
+              // que en tema oscuro canta.
+              className="size-5 accent-accent"
+            />
+            <span>Incluir los retirados de la venta</span>
+          </label>
+
           <div className="flex gap-2">
             <Boton type="submit" variante="principal" className="flex-1">
               Aplicar

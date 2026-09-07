@@ -1,7 +1,7 @@
-import { and, asc, count, eq, gte, ilike, lt, lte, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, gte, ilike, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { FiltrosCatalogo } from "./filtros";
-import type { AltaDeProducto } from "./producto";
+import type { AltaDeProducto, EdicionDeProducto } from "./producto";
 
 /**
  * El catálogo contra la base. Consulta con Drizzle directamente: sin puertos ni repositorios
@@ -14,6 +14,7 @@ export type ProductoDelCatalogo = {
   existencias: number;
   categoria: string | null;
   codigoDeBarras: string | null;
+  activo: boolean;
 };
 
 export type ResultadoAlta =
@@ -30,7 +31,10 @@ export type PaginaDelCatalogo = {
 
 /** Un solo sitio donde se traducen los filtros a SQL: la lista y el conteo no pueden discrepar. */
 function condiciones(f: FiltrosCatalogo): SQL {
-  const partes: (SQL | undefined)[] = [eq(schema.product.isActive, true)];
+  const partes: (SQL | undefined)[] = [];
+  // Un producto desactivado sigue existiendo y se puede pedir a propósito; por defecto no aparece
+  // (`AC-022`).
+  if (!f.incluirDesactivados) partes.push(eq(schema.product.isActive, true));
 
   // El dueño busca por lo que ve en el empaque: el nombre o el código impreso.
   if (f.busqueda) {
@@ -53,6 +57,7 @@ function condiciones(f: FiltrosCatalogo): SQL {
   return and(...partes)!;
 }
 
+
 export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatalogo> {
   const donde = condiciones(f);
 
@@ -68,6 +73,7 @@ export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatal
         existencias: schema.product.stock,
         categoria: schema.category.name,
         codigoDeBarras: schema.product.barcode,
+        activo: schema.product.isActive,
       })
       .from(schema.product)
       .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
@@ -117,22 +123,7 @@ export async function crearProducto(
       }
     }
 
-    let categoriaId: string | null = null;
-    if (alta.categoria) {
-      const [existente] = await tx
-        .select({ id: schema.category.id })
-        .from(schema.category)
-        .where(eq(schema.category.name, alta.categoria))
-        .limit(1);
-      categoriaId =
-        existente?.id ??
-        (
-          await tx
-            .insert(schema.category)
-            .values({ name: alta.categoria })
-            .returning({ id: schema.category.id })
-        )[0]!.id;
-    }
+    const categoriaId = alta.categoria ? await idDeCategoria(tx, alta.categoria) : null;
 
     let producto;
     try {
@@ -193,3 +184,124 @@ function saldoDelLibro(productoId: string) {
   return sql`(select sum(${schema.stockMovement.quantity}) from ${schema.stockMovement}
     where ${schema.stockMovement.productId} = ${productoId})`;
 }
+
+export type ResultadoEdicion = { ok: true } | { ok: false; campo: string; mensaje: string };
+
+/**
+ * Editar un producto. El precio es el único campo cuyo cambio deja rastro: es lo único que afecta a
+ * la plata, y lo que ya se cobró está a salvo porque `sale_line` guarda su copia (`AC-009`,
+ * decidido con el estudio el 2026-09-07).
+ */
+export async function editarProducto(
+  productoId: string,
+  edicion: EdicionDeProducto,
+  usuarioId: string,
+): Promise<ResultadoEdicion> {
+  return db.transaction(async (tx) => {
+    const [actual] = await tx
+      .select({ precio: schema.product.price })
+      .from(schema.product)
+      .where(eq(schema.product.id, productoId))
+      .limit(1);
+    if (!actual) return { ok: false as const, campo: "nombre", mensaje: "Ese producto ya no existe." };
+
+    if (edicion.codigoDeBarras) {
+      const [chocando] = await tx
+        .select({ nombre: schema.product.name })
+        .from(schema.product)
+        .where(
+          and(
+            eq(schema.product.barcode, edicion.codigoDeBarras),
+            ne(schema.product.id, productoId),
+          ),
+        )
+        .limit(1);
+      // Igual que en el alta: nombrar al otro, no decir «repetido» y dejar buscarlo a mano.
+      if (chocando) {
+        return {
+          ok: false as const,
+          campo: "codigoDeBarras",
+          mensaje: `Ese código ya es de «${chocando.nombre}».`,
+        };
+      }
+    }
+
+    const categoriaId = edicion.categoria
+      ? await idDeCategoria(tx, edicion.categoria)
+      : null;
+
+    await tx
+      .update(schema.product)
+      .set({
+        name: edicion.nombre,
+        price: edicion.precio,
+        categoryId: categoriaId,
+        barcode: edicion.codigoDeBarras,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.product.id, productoId));
+
+    // Solo si cambió de verdad: un guardado que no toca el precio no ensucia el historial.
+    if (edicion.precio !== actual.precio) {
+      await tx.insert(schema.productEvent).values({
+        productId: productoId,
+        type: "price_change",
+        previousPrice: actual.precio,
+        newPrice: edicion.precio,
+        userId: usuarioId,
+      });
+    }
+
+    return { ok: true as const };
+  });
+}
+
+/**
+ * Retirar un producto de la venta, o devolverlo. Nunca se borra: los movimientos y las ventas lo
+ * nombran para siempre (`data-model.md` § Data Lifecycle, `AC-022`).
+ */
+export async function cambiarActivacion(
+  productoId: string,
+  activo: boolean,
+  usuarioId: string,
+): Promise<ResultadoEdicion> {
+  return db.transaction(async (tx) => {
+    const [actual] = await tx
+      .select({ activo: schema.product.isActive })
+      .from(schema.product)
+      .where(eq(schema.product.id, productoId))
+      .limit(1);
+    if (!actual) return { ok: false as const, campo: "activo", mensaje: "Ese producto ya no existe." };
+    if (actual.activo === activo) return { ok: true as const };
+
+    await tx
+      .update(schema.product)
+      .set({ isActive: activo, updatedAt: new Date() })
+      .where(eq(schema.product.id, productoId));
+    await tx.insert(schema.productEvent).values({
+      productId: productoId,
+      type: activo ? "reactivated" : "deactivated",
+      userId: usuarioId,
+    });
+
+    return { ok: true as const };
+  });
+}
+
+/** Buscar la categoría por nombre o crearla. La misma regla que en el alta (`T-003`). */
+async function idDeCategoria(tx: Escritor, nombre: string): Promise<string> {
+  const [existente] = await tx
+    .select({ id: schema.category.id })
+    .from(schema.category)
+    .where(eq(schema.category.name, nombre))
+    .limit(1);
+  if (existente) return existente.id;
+  const creada = await tx
+    .insert(schema.category)
+    .values({ name: nombre })
+    .returning({ id: schema.category.id });
+  return creada[0]!.id;
+}
+
+/** La transacción de Drizzle no es la misma forma que `db`, pero para escribir es intercambiable. */
+type Escritor = Parameters<Parameters<typeof db.transaction>[0]>[0];

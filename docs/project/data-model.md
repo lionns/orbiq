@@ -137,6 +137,24 @@ El libro. Inmutable (`D-002`).
 | user_id | text | yes | → `user.id` |
 | occurred_at | timestamptz | yes | |
 
+### product_event
+
+La segunda bitácora: lo que le pasa a un producto que **no** son existencias (`T-012`). Inmutable,
+como el libro.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| id | uuid v7 | yes | |
+| product_id | uuid v7 | yes | → `product.id` |
+| type | enum `product_event_type` | yes | `price_change` · `deactivated` · `reactivated` |
+| previous_price, new_price | integer | no | **Obligatorios y distintos** cuando `type` es `price_change`; nulos en el resto |
+| user_id | text | yes | → `user.id` |
+| occurred_at | timestamptz | yes | |
+
+Se acota a propósito a lo que no son existencias, para que no acabe siendo un cajón de sastre. Los
+cambios de nombre, categoría o código **no** se registran: el estudio eligió el precio porque es lo
+único que afecta a la plata, y `sale_line` ya guarda su copia de lo que se cobró (`AC-009`).
+
 ## Indexes
 
 Postgres no indexa las claves foráneas solo. Estos cinco no son afinación anticipada: cada uno
@@ -149,6 +167,7 @@ sostiene una propiedad que ya está escrita arriba.
 | `sale_line (sale_id)` | Leer una venta con sus líneas |
 | `sale_line (product_id)` | Lo vendido de un producto |
 | `account (user_id, provider_id)` | La búsqueda exacta que hace el ingreso (`D-008`) |
+| `product_event (product_id, occurred_at)` | La ficha del producto los lee junto a sus movimientos, en una sola línea de tiempo |
 
 `product.barcode` tiene su índice único **parcial** — la unicidad y el índice son la misma cosa
 (`AC-004`, `AC-005`).
@@ -180,7 +199,9 @@ sostiene una propiedad que ya está escrita arriba.
   lo que viene después (`D-002`).
 - **Ventas:** nunca se borran. Anular escribe `voided_at` y **movimientos compensatorios** de tipo
   `sale_void` que devuelven las existencias. El registro de que se vendió y se anuló queda.
-- **Productos:** no se borran; `is_active` en falso. Los movimientos los referencian para siempre.
+- **Productos:** no se borran; `is_active` en falso, y el cambio queda como `product_event`.
+  Confirmado con el estudio el 2026-09-07. Los movimientos y las ventas los referencian para
+  siempre, así que borrarlos dejaría historia sin sentido.
 - **Categorías:** se pueden renombrar; borrar una deja `category_id` en nulo.
 - **Sesiones:** se borran al cerrar sesión y las vencidas se purgan. Son las únicas filas
   desechables del esquema.

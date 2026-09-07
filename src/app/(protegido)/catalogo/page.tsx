@@ -55,6 +55,7 @@ export default async function Catalogo({
                   <span className="block text-text-muted">
                     {p.categoria ?? "Sin categoría"}
                     {p.codigoDeBarras ? ` · ${p.codigoDeBarras}` : ""}
+                    {p.activo ? "" : " · retirado"}
                   </span>
                 </span>
                 <span className="shrink-0 text-right">

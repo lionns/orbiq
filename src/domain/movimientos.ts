@@ -16,9 +16,33 @@ export type Movimiento = {
   cuando: Date;
 };
 
+export type EventoDelProducto =
+  | ({ clase: "movimiento" } & Movimiento)
+  | {
+      clase: "precio";
+      id: string;
+      anterior: number;
+      nuevo: number;
+      quien: string;
+      cuando: Date;
+    }
+  | { clase: "activacion"; id: string; activo: boolean; quien: string; cuando: Date };
+
 export type LibroDelProducto = {
-  producto: { id: string; nombre: string; precio: number; activo: boolean };
+  producto: {
+    id: string;
+    nombre: string;
+    precio: number;
+    activo: boolean;
+    categoria: string | null;
+    codigoDeBarras: string | null;
+  };
   movimientos: Movimiento[];
+  /**
+   * Movimientos y eventos en una sola línea de tiempo. El dueño no distingue «esto es del libro de
+   * existencias y esto de la otra bitácora»: pregunta qué le pasó a este producto (`T-012`).
+   */
+  linea: EventoDelProducto[];
   /** El saldo recomputado sumando el libro entero. Es la verdad (`D-002`). */
   saldoDelLibro: number;
   /** La copia rápida que vive en `product.stock`. */
@@ -35,8 +59,11 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
       precio: schema.product.price,
       activo: schema.product.isActive,
       stock: schema.product.stock,
+      categoria: schema.category.name,
+      codigoDeBarras: schema.product.barcode,
     })
     .from(schema.product)
+    .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
     .where(eq(schema.product.id, productoId))
     .limit(1);
   if (!producto) return null;
@@ -62,12 +89,51 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
   // reimplementa la suma aquí.
   const cantidades = filas.map((f) => ({ quantity: f.cantidad }));
 
+  const eventos = await db
+    .select({
+      id: schema.productEvent.id,
+      tipo: schema.productEvent.type,
+      anterior: schema.productEvent.previousPrice,
+      nuevo: schema.productEvent.newPrice,
+      quien: schema.user.name,
+      cuando: schema.productEvent.occurredAt,
+    })
+    .from(schema.productEvent)
+    .innerJoin(schema.user, eq(schema.user.id, schema.productEvent.userId))
+    .where(eq(schema.productEvent.productId, productoId));
+
+  const linea: EventoDelProducto[] = [
+    ...filas.map((m) => ({ clase: "movimiento" as const, ...m })),
+    ...eventos.map((e) =>
+      e.tipo === "price_change"
+        ? {
+            clase: "precio" as const,
+            id: e.id,
+            // La restricción de la base garantiza que en un cambio de precio los dos existen.
+            anterior: e.anterior!,
+            nuevo: e.nuevo!,
+            quien: e.quien,
+            cuando: e.cuando,
+          }
+        : {
+            clase: "activacion" as const,
+            id: e.id,
+            activo: e.tipo === "reactivated",
+            quien: e.quien,
+            cuando: e.cuando,
+          },
+    ),
+  ].sort((a, b) => b.cuando.getTime() - a.cuando.getTime());
+
   return {
+    linea,
     producto: {
       id: producto.id,
       nombre: producto.nombre,
       precio: producto.precio,
       activo: producto.activo,
+      categoria: producto.categoria,
+      codigoDeBarras: producto.codigoDeBarras,
     },
     movimientos: filas,
     saldoDelLibro: saldoDesdeLibro(cantidades),

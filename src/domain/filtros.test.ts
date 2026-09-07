@@ -17,6 +17,7 @@ describe("leerFiltros", () => {
       existencias: "todos",
       desde: null,
       hasta: null,
+      incluirDesactivados: false,
       ver: TANDA,
     });
     expect(hayFiltros(f)).toBe(false);
@@ -34,6 +35,14 @@ describe("leerFiltros", () => {
 
   it("acepta el precio con los separadores que salen al teclear", () => {
     expect(leerFiltros({ desde: "12.500" }).desde).toBe(12500);
+  });
+
+  it("los retirados solo salen si se piden a propósito", () => {
+    expect(leerFiltros({}).incluirDesactivados).toBe(false);
+    expect(leerFiltros({ desactivados: "1" }).incluirDesactivados).toBe(true);
+    // Cualquier otra cosa no cuenta como pedirlos.
+    expect(leerFiltros({ desactivados: "true" }).incluirDesactivados).toBe(false);
+    expect(hayFiltros(leerFiltros({ desactivados: "1" }))).toBe(true);
   });
 
   it("un estado que no existe se ignora en vez de fallar", () => {
@@ -79,7 +88,7 @@ describe("comoDireccion", () => {
 
   it("lo que se escribe se vuelve a leer igual", () => {
     // Es la propiedad que hace que el enlace se pueda compartir (AC-018).
-    const original = leerFiltros({ q: "café", categoria: "Bebidas", existencias: "negativos", desde: "1.000", hasta: "20.000", ver: "48" });
+    const original = leerFiltros({ q: "café", categoria: "Bebidas", existencias: "negativos", desde: "1.000", hasta: "20.000", desactivados: "1", ver: "48" });
     const params = Object.fromEntries(
       new URLSearchParams(comoDireccion(original).split("?")[1] ?? ""),
     );

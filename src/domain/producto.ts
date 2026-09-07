@@ -26,6 +26,18 @@ export type EntradaCruda = {
 
 const NOMBRE_MAXIMO = 120;
 
+/** Lo que se puede editar de un producto. Las existencias no: esas entran por el libro (`D-002`). */
+export type EdicionDeProducto = Omit<AltaDeProducto, "existenciasIniciales">;
+
+export function validarEdicion(entrada: EntradaCruda): Validacion<EdicionDeProducto> {
+  // Las mismas reglas que el alta, sin el campo que aquí no existe. Escribirlas dos veces sería
+  // garantizar que un día se contradigan.
+  const r = validarAlta({ ...entrada, existenciasIniciales: undefined });
+  if (!r.ok) return r;
+  const { existenciasIniciales: _, ...resto } = r.valor;
+  return { ok: true, valor: resto };
+}
+
 export function validarAlta(entrada: EntradaCruda): Validacion<AltaDeProducto> {
   const errores: Record<string, string> = {};
 

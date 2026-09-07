@@ -147,6 +147,51 @@ export const saleLine = pgTable(
 
 export const movementType = pgEnum("movement_type", ["initial", "sale", "sale_void", "adjustment"]);
 
+export const productEventType = pgEnum("product_event_type", [
+  "price_change",
+  "deactivated",
+  "reactivated",
+]);
+
+/**
+ * La segunda bitácora: lo que le pasa a un producto que **no** son existencias (`T-012`).
+ *
+ * Se acota a eso a propósito, para que no acabe siendo un cajón de sastre. Los cambios de nombre,
+ * categoría o código no se registran: el estudio eligió el precio porque es lo único que afecta a
+ * la plata, y `sale_line` ya guarda su copia de lo que se cobró en cada venta (`AC-009`).
+ *
+ * Inmutable, como el libro de existencias: no se edita ni se borra (`D-002`).
+ */
+export const productEvent = pgTable(
+  "product_event",
+  {
+    id: text("id").primaryKey().$defaultFn(uuidv7),
+    productId: text("product_id")
+      .notNull()
+      .references(() => product.id),
+    type: productEventType("type").notNull(),
+    /** Solo en `price_change`, en la unidad mínima de la moneda. */
+    previousPrice: integer("previous_price"),
+    newPrice: integer("new_price"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // La misma línea de tiempo que el libro, y se lee igual de seguido.
+    index("product_event_product_occurred_idx").on(t.productId, t.occurredAt),
+    // Un cambio de precio sin los dos precios no dice nada; y al revés, un desactivado con precios
+    // sería ruido. La regla vive en la base, no solo en la pantalla.
+    check(
+      "product_event_price_change_needs_prices",
+      sql`(${t.type} <> 'price_change' and ${t.previousPrice} is null and ${t.newPrice} is null)
+        or (${t.type} = 'price_change' and ${t.previousPrice} is not null and ${t.newPrice} is not null
+            and ${t.previousPrice} <> ${t.newPrice})`,
+    ),
+  ],
+);
+
 /** El libro. Inmutable: no se edita ni se borra, corregir es insertar (D-002, AC-X04). */
 export const stockMovement = pgTable(
   "stock_movement",

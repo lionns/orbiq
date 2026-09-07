@@ -17,6 +17,8 @@ export type FiltrosCatalogo = {
   existencias: EstadoExistencias;
   desde: number | null;
   hasta: number | null;
+  /** Los desactivados existen y se pueden pedir; por defecto no salen (`AC-022`). */
+  incluirDesactivados: boolean;
   ver: number;
 };
 
@@ -55,14 +57,18 @@ export function leerFiltros(params: ParametrosCrudos): FiltrosCatalogo {
     existencias,
     desde,
     hasta,
+    incluirDesactivados: primero(params.desactivados) === "1",
     ver,
   };
 }
 
 /** Verdadero cuando algo acota de verdad. La paginación no cuenta: no es un filtro. */
 export function hayFiltros(f: FiltrosCatalogo): boolean {
-  return Boolean(f.busqueda || f.categoria || f.desde !== null || f.hasta !== null) ||
-    f.existencias !== "todos";
+  return (
+    Boolean(f.busqueda || f.categoria || f.desde !== null || f.hasta !== null) ||
+    f.existencias !== "todos" ||
+    f.incluirDesactivados
+  );
 }
 
 /**
@@ -77,6 +83,7 @@ export function comoDireccion(f: FiltrosCatalogo, cambios: Partial<FiltrosCatalo
   if (final.existencias !== "todos") p.set("existencias", final.existencias);
   if (final.desde !== null) p.set("desde", String(final.desde));
   if (final.hasta !== null) p.set("hasta", String(final.hasta));
+  if (final.incluirDesactivados) p.set("desactivados", "1");
   if (final.ver !== TANDA) p.set("ver", String(final.ver));
   const texto = p.toString();
   return texto ? `/catalogo?${texto}` : "/catalogo";
