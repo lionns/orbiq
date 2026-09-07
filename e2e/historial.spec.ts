@@ -52,7 +52,20 @@ const movimientosDe = (id: string) =>
 const stockDe = async (id: string) =>
   (await db.select({ s: schema.product.stock }).from(schema.product).where(eq(schema.product.id, id)))[0]!.s;
 
+/**
+ * Abre una sección plegable solo si está cerrada. La de corregir el conteo ya viene abierta cuando
+ * el saldo no cuadra —es lo que hace falta en ese momento— así que clicarla la cerraría.
+ */
+async function abrir(page: Page, testid: string) {
+  const seccion = page.getByTestId(testid);
+  if (!(await seccion.evaluate((el) => (el as HTMLDetailsElement).open))) {
+    await seccion.getByRole("group").or(seccion.locator("summary")).first().click();
+  }
+  await expect(seccion).toHaveAttribute("open", "");
+}
+
 async function ajustar(page: Page, conteo: string, motivo: string) {
+  await abrir(page, "abrir-ajuste");
   await page.getByTestId("conteo").fill(conteo);
   await page.getByTestId("motivo").fill(motivo);
   await page.getByTestId("guardar-ajuste").click();
@@ -157,6 +170,7 @@ test("la pantalla del historial se opera a 360 px", async ({ page }) => {
   await page.goto(`/catalogo/${p.id}`);
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+  await abrir(page, "abrir-ajuste");
   const boton = await page.getByTestId("guardar-ajuste").boundingBox();
   expect(boton!.height).toBeGreaterThanOrEqual(48);
 });
@@ -168,6 +182,7 @@ const eventosDe = (id: string) =>
   db.select().from(schema.productEvent).where(eq(schema.productEvent.productId, id));
 
 async function editarPrecio(page: Page, nuevo: string) {
+  await abrir(page, "abrir-edicion");
   await page.getByLabel("Precio").fill(nuevo);
   await page.getByTestId("guardar-edicion").click();
   await expect(page.getByTestId("edicion-hecha")).toBeVisible();
@@ -208,6 +223,7 @@ test("guardar sin cambiar el precio no ensucia el historial", async ({ page }) =
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${p.id}`);
 
+  await abrir(page, "abrir-edicion");
   await page.getByLabel("Nombre").fill(`${p.nombre} corregido`);
   await page.getByTestId("guardar-edicion").click();
   await expect(page.getByTestId("edicion-hecha")).toBeVisible();
@@ -225,6 +241,7 @@ test("retirar un producto lo saca de la venta y del catálogo, sin perder su his
 
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${p.id}`);
+  await abrir(page, "abrir-estado");
   await page.getByTestId("cambiar-estado").click();
   await expect(page.getByTestId("evento-activacion")).toContainText("Retirado de la venta");
 
@@ -247,9 +264,12 @@ test("devolver a la venta lo reactiva, y las dos cosas quedan en el historial", 
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${p.id}`);
 
+  await abrir(page, "abrir-estado");
   await page.getByTestId("cambiar-estado").click();
+  await abrir(page, "abrir-estado");
   await expect(page.getByTestId("cambiar-estado")).toHaveText("Devolver a la venta");
   await page.getByTestId("cambiar-estado").click();
+  await abrir(page, "abrir-estado");
   await expect(page.getByTestId("cambiar-estado")).toHaveText("Retirar de la venta");
 
   await expect(page.getByTestId("evento-activacion")).toHaveCount(2);
@@ -265,8 +285,62 @@ test("al editar, un código de barras de otro producto se rechaza nombrándolo",
 
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${otro.id}`);
+  await abrir(page, "abrir-edicion");
   await page.getByLabel("Código de barras").fill(codigo);
   await page.getByTestId("guardar-edicion").click();
 
   await expect(page.getByText(`Ese código ya es de «${dueno1.nombre}».`)).toBeVisible();
+});
+
+/**
+ * T-013. El reporte del estudio fue «no es entendible que al hacer click se edita un producto».
+ * Lo que se fija aquí no es cómo se ve, sino qué se ofrece primero: la ficha informa, y lo que
+ * cambia el producto está detrás de una intención con su nombre a la vista.
+ */
+test("la ficha se abre informando, no pidiendo", async ({ page }) => {
+  const p = await sembrar("Azúcar", 5200, 9);
+  await page.setViewportSize({ width: 360, height: 740 });
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${p.id}`);
+
+  // Nada desplegado y ningún campo a la vista al aterrizar.
+  await expect(page.locator("details[open]")).toHaveCount(0);
+  for (const campo of await page.locator("input").all()) {
+    await expect(campo).not.toBeVisible();
+  }
+
+  // Y el historial, que es a lo que se entra, está por encima del pliegue.
+  const historial = await page.getByTestId("historial").boundingBox();
+  expect(historial!.y).toBeLessThan(740);
+
+  // Las tres acciones existen y dicen lo que hacen sin abrirlas.
+  await expect(page.getByTestId("abrir-ajuste")).toContainText("Corregir el conteo");
+  await expect(page.getByTestId("abrir-edicion")).toContainText("Editar los datos");
+  await expect(page.getByTestId("abrir-estado")).toContainText("Retirar de la venta");
+});
+
+test("cuando el conteo no cuadra, corregirlo ya viene abierto", async ({ page }) => {
+  // Es la excepción a la regla anterior, y es deliberada: si la pantalla avisa de un problema,
+  // esconder su remedio detrás de un toque más es hacerse el interesante.
+  const p = await sembrar("Gaseosa", 3000, 4);
+  await db.update(schema.product).set({ stock: 40 }).where(eq(schema.product.id, p.id));
+
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo/${p.id}`);
+  await expect(page.getByTestId("no-cuadra")).toBeVisible();
+  await expect(page.getByTestId("abrir-ajuste")).toHaveAttribute("open", "");
+  await expect(page.getByTestId("abrir-edicion")).not.toHaveAttribute("open", "");
+});
+
+test("la tarjeta del catálogo indica que lleva a alguna parte", async ({ page }) => {
+  const p = await sembrar("Papel", 8900, 3);
+  await page.setViewportSize({ width: 360, height: 740 });
+  await entrarComo(page, dueno);
+  await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}`);
+
+  const tarjeta = page.getByTestId("lista-catalogo").locator("[data-tarjeta]").first();
+  // Un enlace de verdad, con su marca visual y un blanco que se acierta con el pulgar.
+  await expect(tarjeta).toHaveText(/›/);
+  const caja = await tarjeta.boundingBox();
+  expect(caja!.height).toBeGreaterThanOrEqual(48);
 });

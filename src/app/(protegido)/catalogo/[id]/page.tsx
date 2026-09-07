@@ -9,6 +9,7 @@ import {
 import { formatearPrecio } from "@/domain/moneda";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
+import { SeccionPlegable } from "@/ui/seccion-plegable";
 import { Existencias, Precio } from "@/ui/cifras";
 import { cambiarEstado } from "./acciones";
 import { FormularioAjuste } from "./ajuste";
@@ -54,36 +55,7 @@ export default async function HistorialDeProducto({
         </div>
       ) : null}
 
-      <section className="mt-8" aria-labelledby="editar">
-        <h2 id="editar" className="text-lg font-medium">
-          Datos del producto
-        </h2>
-        <FormularioEdicion
-          productoId={libro.producto.id}
-          producto={libro.producto}
-          categorias={categorias}
-        />
-        {/* Desactivar no borra: los movimientos y las ventas lo siguen nombrando (`AC-022`). */}
-        <form action={cambiarEstado.bind(null, libro.producto.id, !libro.producto.activo)} className="mt-4">
-          <Boton type="submit" data-testid="cambiar-estado" className="w-full">
-            {libro.producto.activo ? "Retirar de la venta" : "Devolver a la venta"}
-          </Boton>
-        </form>
-        <p className="mt-2 text-text-muted">
-          {libro.producto.activo
-            ? "Retirarlo lo saca de la cuadrícula y del catálogo. Su historial se conserva."
-            : "Está retirado: no aparece en la cuadrícula ni en el catálogo."}
-        </p>
-      </section>
-
-      <section className="mt-10" aria-labelledby="corregir">
-        <h2 id="corregir" className="text-lg font-medium">
-          Corregir el conteo
-        </h2>
-        <FormularioAjuste productoId={libro.producto.id} />
-      </section>
-
-      <section className="mt-10" aria-labelledby="historial">
+      <section className="mt-8" aria-labelledby="historial">
         <h2 id="historial" className="text-lg font-medium">
           Historial
         </h2>
@@ -100,6 +72,52 @@ export default async function HistorialDeProducto({
             ))}
           </ol>
         ) : null}
+      </section>
+
+      {/* Las acciones existen, pero detrás de una intención. Se entra a esta pantalla a mirar. */}
+      <section className="mt-10 flex flex-col gap-3" aria-labelledby="acciones">
+        <h2 id="acciones" className="text-lg font-medium">
+          Acciones
+        </h2>
+
+        <SeccionPlegable
+          titulo="Corregir el conteo"
+          descripcion="Cuenta lo que hay en el estante y di por qué no cuadra."
+          data-testid="abrir-ajuste"
+          abierta={!libro.cuadra}
+        >
+          <FormularioAjuste productoId={libro.producto.id} />
+        </SeccionPlegable>
+
+        <SeccionPlegable
+          titulo="Editar los datos"
+          descripcion="Nombre, precio, categoría y código de barras."
+          data-testid="abrir-edicion"
+        >
+          <FormularioEdicion
+            productoId={libro.producto.id}
+            producto={libro.producto}
+            categorias={categorias}
+          />
+        </SeccionPlegable>
+
+        {/* Separado de editar a propósito: retirar no es corregir un dato, es sacar algo de
+            circulación. Es reversible y queda registrado, así que no pide confirmación. */}
+        <SeccionPlegable
+          titulo={libro.producto.activo ? "Retirar de la venta" : "Devolver a la venta"}
+          descripcion={
+            libro.producto.activo
+              ? "Deja de aparecer en la cuadrícula y en el catálogo. Su historial se conserva."
+              : "Está retirado. Volverá a aparecer en la cuadrícula y en el catálogo."
+          }
+          data-testid="abrir-estado"
+        >
+          <form action={cambiarEstado.bind(null, libro.producto.id, !libro.producto.activo)}>
+            <Boton type="submit" data-testid="cambiar-estado" className="w-full">
+              {libro.producto.activo ? "Retirar de la venta" : "Devolver a la venta"}
+            </Boton>
+          </form>
+        </SeccionPlegable>
       </section>
     </main>
   );

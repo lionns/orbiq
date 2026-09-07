@@ -58,9 +58,16 @@ export default async function Catalogo({
                     {p.activo ? "" : " · retirado"}
                   </span>
                 </span>
-                <span className="shrink-0 text-right">
-                  <Precio valor={p.precio} className="block font-medium" />
-                  <Existencias cantidad={p.existencias} className="block" />
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="text-right">
+                    <Precio valor={p.precio} className="block font-medium" />
+                    <Existencias cantidad={p.existencias} className="block" />
+                  </span>
+                  {/* Sin esto la tarjeta parece una fila de lista y nadie adivina que abre algo.
+                      `aria-hidden` porque el enlace ya se anuncia como enlace. */}
+                  <span aria-hidden className="text-text-muted">
+                    ›
+                  </span>
                 </span>
               </Link>
             </li>
