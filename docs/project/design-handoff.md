@@ -20,9 +20,9 @@ Neutros más un acento. El acento es el único color saturado del flujo de venta
 | Token | Valor | Uso |
 | --- | --- | --- |
 | `bg` | `#FFFFFF` | Fondo |
-| `surface` | `#F5F5F4` | Tarjetas, cuadrícula de frecuentes |
+| `surface` | `#E9E7E4` | Relleno de tarjetas, campos y botones secundarios. 1.23:1 sobre `bg` — se distingue como panel |
 | `border` | `#D6D3D1` | Separadores decorativos. 1.49:1 — **no vale para el borde de un control** |
-| `border-strong` | `#8E8781` | Borde de campos y botones. 3.54:1 sobre `bg`, cumple el mínimo de 3:1 |
+| `border-strong` | `#7C756F` | Borde de campos y botones. 4.53:1 sobre `bg` y **3.67:1 sobre `surface`** |
 | `text` | `#1C1917` | Texto principal — 17.49:1 sobre `bg` |
 | `text-muted` | `#57534E` | Secundario — 7.63:1 sobre `bg` |
 | `accent` | `#0F766E` | Acción de confirmar. 5.47:1 sobre blanco |
@@ -39,9 +39,9 @@ color.
 | Token | Valor | Uso |
 | --- | --- | --- |
 | `bg` | `#1C1917` | Fondo. No es negro puro: en OLED el negro absoluto emborrona el texto al desplazar |
-| `surface` | `#292524` | Tarjetas, cuadrícula de frecuentes |
+| `surface` | `#332F2B` | Relleno de tarjetas, campos y botones secundarios. 1.32:1 sobre `bg` |
 | `border` | `#44403C` | Separadores decorativos. 1.70:1 — **no vale para el borde de un control** |
-| `border-strong` | `#78716C` | Borde de campos y botones. 3.65:1 sobre `bg`, 3.16:1 sobre `surface` |
+| `border-strong` | `#8E8781` | Borde de campos y botones. 4.94:1 sobre `bg` y **3.75:1 sobre `surface`** |
 | `text` | `#FAFAF9` | Texto principal — 16.74:1 sobre `bg` |
 | `text-muted` | `#A8A29E` | Secundario — 6.93:1 sobre `bg`, 6.01:1 sobre `surface` |
 | `accent` | `#14B8A6` | Acción de confirmar. 7.03:1 sobre `bg` |
@@ -57,6 +57,25 @@ prueba que fija los dos.
 Tres estados y no dos: claro, oscuro y **no elegir**. Sin elegir manda `prefers-color-scheme`. El
 CSS lo resuelve con `:root:not([data-theme="light"])` dentro de la consulta de medio; sin ese
 `:not`, quien pide claro con el dispositivo en oscuro se quedaría oscuro.
+
+#### Un control se distingue por relleno, no solo por borde
+
+Corregido el 2026-09-07 (`T-010`), a raíz de un reporte del estudio: «hay botones que no tienen
+bordes o fondo diferente al del cuerpo completo de la página».
+
+`surface` estaba a **1.09:1** del fondo en claro y **1.15:1** en oscuro. Era un fondo distinto que
+no se distinguía, y varios controles ni siquiera lo usaban: se apoyaban en un contorno de 1 px, que
+no se lee como botón. **Un botón secundario, un campo y una tarjeta llevan relleno además de
+borde.** Al pulsarlos caen al fondo de la página, que es la inversión más barata y no necesita un
+token nuevo.
+
+`surface` y `border-strong` están **acoplados**: subir uno sin el otro deja el borde por debajo de
+3:1 sobre la superficie. Los valores salieron de buscar sobre una rejilla el par que cumple las
+tres condiciones a la vez, no de elegir un color que se viera bien.
+
+`e2e/aspecto.spec.ts` recorre las cuatro pantallas en los dos temas y falla si un control deja de
+distinguirse de lo que tiene detrás, o si pierde el radio de esquina. Se comprobó que falla con los
+valores viejos antes de darla por buena.
 
 Ningún estado se comunica solo por color: existencias bajas llevan además un texto (`AC-X02`,
 Accessibility Notes).

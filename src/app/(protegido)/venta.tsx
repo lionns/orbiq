@@ -76,7 +76,7 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                   data-testid={`casilla-${c.id}`}
                   // `active:` es retroalimentación inmediata: si el dueño duda si lo añadió, lo
                   // toca dos veces y vende de más (design-handoff.md § Interaction States).
-                  className="flex min-h-24 w-full flex-col justify-between rounded-card border border-border-strong p-3 text-left active:bg-surface"
+                  className="flex min-h-24 w-full flex-col justify-between rounded-card border border-border-strong bg-surface p-3 text-left active:bg-bg"
                 >
                   <span className="line-clamp-2 font-medium">{c.nombre}</span>
                   <span>

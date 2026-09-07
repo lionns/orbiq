@@ -47,7 +47,7 @@ export default async function Catalogo({
           {productos.map((p) => (
             <li
               key={p.id}
-              className="flex items-baseline justify-between gap-4 rounded-card border border-border p-4"
+              className="flex items-baseline justify-between gap-4 rounded-card border border-border bg-surface p-4"
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium">{p.nombre}</span>

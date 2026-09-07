@@ -131,7 +131,7 @@ const TOKENS = {
     apagado: "rgb(87, 83, 78)",
     acento: "rgb(15, 118, 110)",
     textoDelAcento: "rgb(255, 255, 255)",
-    bordeFuerte: "rgb(142, 135, 129)",
+    bordeFuerte: "rgb(124, 117, 111)",
   },
   oscuro: {
     fondo: "rgb(28, 25, 23)",
@@ -140,7 +140,7 @@ const TOKENS = {
     acento: "rgb(20, 184, 166)",
     // Oscuro, no blanco: blanco sobre el acento da 2.49:1 (`T-007` § Review).
     textoDelAcento: "rgb(28, 25, 23)",
-    bordeFuerte: "rgb(120, 113, 108)",
+    bordeFuerte: "rgb(142, 135, 129)",
   },
 } as const;
 

@@ -24,9 +24,13 @@ export const VARIANTES = {
   /** La acción principal de la pantalla. Solo una por pantalla. */
   principal:
     "bg-accent text-accent-text disabled:opacity-50",
-  /** Todo lo demás. El borde es el fuerte: el decorativo no llega a 3:1 y no sirve para un control. */
+  /**
+   * Todo lo demás. Lleva relleno además de borde: un contorno de 1 px sobre el mismo fondo de la
+   * página no se lee como botón, y en oscuro menos todavía. Al pulsarlo cae al fondo de la página,
+   * que es la inversión más barata y no necesita un token nuevo.
+   */
   secundario:
-    "border border-border-strong active:bg-surface disabled:opacity-50",
+    "border border-border-strong bg-surface active:bg-bg disabled:opacity-50",
 } as const;
 
 export type Variante = keyof typeof VARIANTES;

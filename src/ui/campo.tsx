@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 /** El borde fuerte, no el decorativo: el otro se queda en 1,49:1 y no vale para un control. */
 export const CLASE_CONTROL =
-  "min-h-12 w-full rounded-button border border-border-strong px-4";
+  "min-h-12 w-full rounded-button border border-border-strong bg-surface px-4";
 
 /**
  * Un control con su etiqueta, su ayuda y su error.
