@@ -81,13 +81,24 @@ que no lo cubre. Las rutas citadas son de su repositorio.
 - **Atributos de cookie por defecto:** `httpOnly`, `sameSite: "lax"`, `path: "/"`, `secure` bajo
   HTTPS y prefijo `__Secure-` (`packages/better-auth/src/cookies/index.ts`).
 - La sesión dura deliberadamente mucho: el dueño no puede tener que teclear la clave cada mañana
-  mientras atiende (`D-008`).
+  mientras atiende (`D-008`). Fijada en **30 días con renovación diaria** — el valor de fábrica son
+  7 días, que en una tienda significa volver a teclear la clave cada semana. Los atributos
+  resueltos se comprueban en `e2e/sesion.spec.ts`, no se dan por buenos.
+- **Un rechazo de acceso no distingue si el correo existe.** El mensaje es único, y la librería
+  calcula el hash igual cuando el usuario no existe para no dejar una diferencia de tiempo
+  (`api/routes/sign-in.ts`).
 - **Sin registro público.** Cuando se active un proveedor externo, `disableSignUp` hace que el
   callback rechace una cuenta que el estudio no dio de alta. El alta y el restablecimiento los hace
   el estudio a mano (`D-008`).
 - Los secretos entran por variables de entorno del proyecto. Ninguno vive en el repositorio.
 - La validación de entrada ocurre en el borde de la función de dominio, no en el handler — así sirve
   igual a la pantalla de hoy y a la ruta HTTP de mañana (`D-001`).
+- **La guardia vive donde se leen los datos**, en el layout del grupo `(protegido)`, no en un
+  middleware que solo mira si hay cookie: una cookie vencida o inventada no debe llegar a una
+  consulta. Toda pantalla del negocio cuelga de ahí, así que dejar una sin proteger exige sacarla
+  del grupo a propósito (`AC-001`).
+- **`AC-X03` dejó de ser una promesa escrita.** `eslint.config.mjs` prohíbe importar el framework
+  desde `src/domain/`, así que romper la regla falla `npm run lint` en vez de esperar a un review.
 
 ## Deployment
 

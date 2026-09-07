@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:verify": "tsx scripts/verificar-esquema.mts"
+    "db:verify": "tsx scripts/verificar-esquema.mts",
+    "alta-dueno": "tsx scripts/alta-dueno.mts"
   },
   "type": "module",
   "dependencies": {

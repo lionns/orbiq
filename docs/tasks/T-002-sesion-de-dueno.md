@@ -1,7 +1,7 @@
 ---
 id: T-002
 title: Sesión de dueño con correo y contraseña
-status: ready
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -35,24 +35,26 @@ implements: [FR-009, NFR-007, US-001, US-011, AC-001, AC-002]
 
 ## Acceptance Criteria
 
-- [ ] CUANDO alguien abre cualquier ruta sin sesión válida EL SISTEMA DEBE llevarlo al acceso sin
+- [x] CUANDO alguien abre cualquier ruta sin sesión válida EL SISTEMA DEBE llevarlo al acceso sin
       revelar ningún dato del negocio (`AC-001`).
-- [ ] CUANDO el dueño entra con la contraseña correcta EL SISTEMA DEBE crear una fila de sesión y
+- [x] CUANDO el dueño entra con la contraseña correcta EL SISTEMA DEBE crear una fila de sesión y
       devolver una cookie cuyo valor no contiene información del usuario (`AC-002`).
-- [ ] CUANDO se entra con contraseña incorrecta EL SISTEMA DEBE rechazar sin distinguir si el usuario
+- [x] CUANDO se entra con contraseña incorrecta EL SISTEMA DEBE rechazar sin distinguir si el usuario
       existe, y no crear sesión.
-- [ ] CUANDO la sesión está vencida EL SISTEMA DEBE tratarla como ausente.
-- [ ] El hash de la contraseña vive en `account` con `provider_id = 'credential'`, no en `user`. Es
+- [x] CUANDO la sesión está vencida EL SISTEMA DEBE tratarla como ausente.
+- [x] El hash de la contraseña vive en `account` con `provider_id = 'credential'`, no en `user`. Es
       lo que hace que añadir Google después no sea una migración (`D-008`).
-- [ ] La contraseña no aparece en claro en la base ni en ningún registro de la aplicación.
-- [ ] Una prueba de Playwright entra, recarga la página y sigue dentro (`D-006`).
+- [x] La contraseña no aparece en claro en la base ni en ningún registro de la aplicación.
+- [x] Una prueba de Playwright entra, recarga la página y sigue dentro (`D-006`).
 
 ## Verification
 
 - Baseline: `npm test && npm run typecheck && npm run lint && node scripts/harness-lint.mjs`
 - Final: `npm test && npm run typecheck && npm run lint && npm run build && npm run test:e2e && node scripts/harness-status.mjs && node scripts/harness-lint.mjs`
-- Task-specific: inspeccionar la cookie en el navegador y confirmar `httpOnly`, `Secure` y que su
-  valor es opaco. Y confirmar en la base que la fila de `account` tiene el hash y `user` no.
+- Task-specific: los atributos de la cookie se comprueban en `e2e/sesion.spec.ts` — en local
+  `httpOnly`, `Lax`, `path: /`, 30 días y sin `Secure`; y con un `baseURL` https, `Secure` y el
+  prefijo `__Secure-`. El valor opaco se comprueba contra la fila de sesión. En la base: `account`
+  tiene el hash con `provider_id = 'credential'` y `user` no tiene columna de contraseña.
 
 ## Assumptions
 
@@ -70,22 +72,44 @@ implements: [FR-009, NFR-007, US-001, US-011, AC-001, AC-002]
 
 ## Outcome
 
-- Changes:
-- Files:
-- Baseline result:
-- Final result:
-- Decisions recorded:
-- Follow-up:
+- Changes: Better Auth con su ruta `/api/auth`, sesión de 30 días con renovación diaria y
+  `nextCookies` de último; `sesionActual` en el dominio; pantalla de acceso; grupo `(protegido)` con
+  la guardia en su layout; script de alta y restablecimiento para el estudio; `AC-X03` pasa a ser
+  una regla de ESLint.
+- Files: `src/lib/auth.ts`, `src/app/api/auth/[...all]/route.ts`, `src/domain/session.ts`,
+  `src/domain/session.test.ts`, `src/app/acceso/*`, `src/app/(protegido)/layout.tsx`,
+  `scripts/alta-dueno.mts`, `e2e/apoyo.ts`, `e2e/sesion.spec.ts`, `e2e/andamiaje.spec.ts`,
+  `eslint.config.mjs`, `tsconfig.json`, `package.json`, `docs/project/architecture.md`
+- Baseline result: `npm test` 7/7 · `typecheck` clean · `lint` clean · `harness-lint` clean.
+- Final result: `npm test` 11/11 · `typecheck` clean · `lint` clean · `build` ok · `test:e2e` 10/10
+  contra Neon · `db:verify` 5/5. Barrido de las 39 columnas de texto de la base buscando la
+  contraseña en claro: cero.
+- Decisions recorded: ninguna nueva. `architecture.md` § Security recoge tres cosas que se
+  decidieron al escribir: la sesión de 30 días (el valor de fábrica son 7, que en una tienda es
+  teclear la clave cada semana), que la guardia vive donde se leen los datos y no en un middleware,
+  y que `AC-X03` ahora la sostiene ESLint.
+- Follow-up: ninguno abierto.
 
 ## Review
 
-- 
+- Revisado por el Implementer, que es el mismo agente — riesgo de `agent-config.md` § Known Risks.
+  La compensación es la de siempre: lo que se afirma se ejerce. Las propiedades de seguridad no se
+  leyeron de la documentación de Better Auth sino de su código, y las que se pueden ejecutar quedan
+  como pruebas que fallan si una actualización las cambia.
+- Hallazgo propio, corregido: `npm run typecheck` no miraba los `.mts`. `include` traía `**/*.ts`,
+  que no cubre esa extensión, así que `scripts/` llevaba dos archivos sin comprobar — y uno tenía un
+  error real de tipos. El comando afirmaba más de lo que hacía.
+- Hallazgo propio, corregido: la primera versión del script de alta mostraba la contraseña en
+  pantalla mientras se tecleaba y se colgaba en la segunda pregunta.
+- Nota de diseño: `sesionActual` importa `auth` de forma diferida. Cargarlo abre el pool contra
+  Neon, y `npm test` corre el dominio sin base ni variables de entorno (`D-006`).
 
 ## Validation
 
 - Validated by: 
 - Date: 
+- Pendiente de tu firma, igual que `T-001`.
 
 ## Trace
 
-- 
+- `docs/traces/2026-09-06_T-002_implementer.md` 
