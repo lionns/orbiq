@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { COOKIE_TEMA, leerTema } from "@/domain/tema";
 import { sesionActual } from "@/domain/session";
 import { Boton } from "@/ui/boton";
+import { SelectorDeTema } from "@/ui/selector-tema";
 import { salir } from "../acceso/acciones";
 
 /**
@@ -13,6 +15,7 @@ import { salir } from "../acceso/acciones";
 export default async function LayoutProtegido({ children }: { children: React.ReactNode }) {
   const sesion = await sesionActual(await headers());
   if (!sesion) redirect("/acceso");
+  const tema = leerTema((await cookies()).get(COOKIE_TEMA)?.value);
 
   return (
     <div className="min-h-dvh">
@@ -28,9 +31,12 @@ export default async function LayoutProtegido({ children }: { children: React.Re
         <span className="sr-only" data-testid="sesion-nombre">
           {sesion.nombre}
         </span>
-        <form action={salir}>
-          <Boton type="submit">Salir</Boton>
-        </form>
+        <span className="flex items-center gap-1">
+          <SelectorDeTema actual={tema} />
+          <form action={salir}>
+            <Boton type="submit">Salir</Boton>
+          </form>
+        </span>
       </header>
       {children}
     </div>

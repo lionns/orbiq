@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
-/* Tokens de design-handoff.md § Design Tokens. Cada ratio de contraste está medido, no estimado. */
+/* Tokens de design-handoff.md § Design Tokens. Cada ratio de contraste está medido, no estimado.
+   Este bloque es el tema claro y también la base: el oscuro solo redefine los colores, nunca los
+   tamaños ni los radios. */
 @theme {
   --color-bg: #ffffff;
   --color-surface: #f5f5f4;
@@ -19,8 +21,38 @@
   --radius-button: 12px;
 }
 
-html {
-  color-scheme: light;
+/* Tema oscuro. Los ratios son contra `--color-bg: #1c1917` y están medidos uno por uno.
+
+   Dos reglas y no una porque hay tres estados, no dos: elegir claro, elegir oscuro, y no elegir.
+   Sin `:not([data-theme="light"])`, quien pide claro con el sistema en oscuro se quedaría oscuro. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #1c1917;
+    --color-surface: #292524;
+    --color-border: #44403c; /* 1.70:1 — solo separadores, nunca borde de un control */
+    --color-border-strong: #78716c; /* 3.65:1 sobre el fondo, 3.16:1 sobre la superficie */
+    --color-text: #fafaf9; /* 16.74:1 */
+    --color-text-muted: #a8a29e; /* 6.93:1 */
+    --color-accent: #14b8a6; /* 7.03:1 */
+    /* Oscuro, no blanco: blanco sobre este acento da 2.49:1 y no se lee. Es el par que más
+       fácilmente se hereda mal del tema claro. */
+    --color-accent-text: #1c1917; /* 7.03:1 sobre el acento */
+    --color-danger: #f87171; /* 6.32:1 */
+    --color-warning: #fbbf24; /* 10.48:1 */
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #1c1917;
+  --color-surface: #292524;
+  --color-border: #44403c;
+  --color-border-strong: #78716c;
+  --color-text: #fafaf9;
+  --color-text-muted: #a8a29e;
+  --color-accent: #14b8a6;
+  --color-accent-text: #1c1917;
+  --color-danger: #f87171;
+  --color-warning: #fbbf24;
 }
 
 body {

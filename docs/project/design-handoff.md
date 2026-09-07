@@ -30,6 +30,34 @@ Neutros más un acento. El acento es el único color saturado del flujo de venta
 | `danger` | `#B91C1C` | Anular, existencias negativas. 6.47:1 sobre blanco |
 | `warning` | `#A16207` | Se está acabando. 4.92:1 sobre blanco |
 
+#### Tema oscuro
+
+Añadido el 2026-09-07 (`T-007`). Los ratios son contra `bg: #1C1917` y están medidos uno por uno,
+igual que los del claro. Los tamaños, la escala y los radios no cambian: el tema solo redefine
+color.
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `bg` | `#1C1917` | Fondo. No es negro puro: en OLED el negro absoluto emborrona el texto al desplazar |
+| `surface` | `#292524` | Tarjetas, cuadrícula de frecuentes |
+| `border` | `#44403C` | Separadores decorativos. 1.70:1 — **no vale para el borde de un control** |
+| `border-strong` | `#78716C` | Borde de campos y botones. 3.65:1 sobre `bg`, 3.16:1 sobre `surface` |
+| `text` | `#FAFAF9` | Texto principal — 16.74:1 sobre `bg` |
+| `text-muted` | `#A8A29E` | Secundario — 6.93:1 sobre `bg`, 6.01:1 sobre `surface` |
+| `accent` | `#14B8A6` | Acción de confirmar. 7.03:1 sobre `bg` |
+| `accent-text` | `#1C1917` | Sobre `accent`. 7.03:1 |
+| `danger` | `#F87171` | Anular, existencias negativas. 6.32:1 sobre `bg` |
+| `warning` | `#FBBF24` | Se está acabando. 10.48:1 sobre `bg` |
+
+**`accent-text` cambia de color entre temas y es lo único que lo hace.** En claro es blanco (5.47:1
+sobre el acento); en oscuro tiene que ser oscuro, porque blanco sobre `#14B8A6` da **2.49:1** y no
+se lee. Es el par que más fácilmente se hereda mal al añadir un tema oscuro, y por eso hay una
+prueba que fija los dos.
+
+Tres estados y no dos: claro, oscuro y **no elegir**. Sin elegir manda `prefers-color-scheme`. El
+CSS lo resuelve con `:root:not([data-theme="light"])` dentro de la consulta de medio; sin ese
+`:not`, quien pide claro con el dispositivo en oscuro se quedaría oscuro.
+
 Ningún estado se comunica solo por color: existencias bajas llevan además un texto (`AC-X02`,
 Accessibility Notes).
 
