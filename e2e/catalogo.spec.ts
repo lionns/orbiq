@@ -185,3 +185,140 @@ test("la pantalla del catálogo se opera a 360 px sin desbordarse", async ({ pag
   expect(caja!.y).toBeGreaterThan(740 / 3);
   expect(caja!.height).toBeGreaterThanOrEqual(48);
 });
+
+/**
+ * T-005 · US-012. Acotar y recorrer. Los productos los siembra la base: la pantalla de alta ya
+ * tiene sus propias pruebas y pasar por ella treinta veces solo haría la suite más lenta.
+ */
+test.describe("acotar y recorrer el catálogo", () => {
+  const CAT_A = `Bebidas ${MARCA}`;
+  const CAT_B = `Aseo ${MARCA}`;
+  let sembrados = false;
+
+  async function sembrar() {
+    if (sembrados) return;
+    sembrados = true;
+    const categorias = new Map<string, string>();
+    for (const nombre of [CAT_A, CAT_B]) {
+      const [c] = await db
+        .insert(schema.category)
+        .values({ name: nombre })
+        .returning({ id: schema.category.id });
+      categorias.set(nombre, c!.id);
+    }
+    // Treinta, para que la primera tanda de 24 no alcance.
+    const filas = Array.from({ length: 30 }, (_, i) => ({
+      name: `Recorrer ${MARCA} ${String(i).padStart(2, "0")}`,
+      price: (i + 1) * 1000,
+      categoryId: categorias.get(i % 2 === 0 ? CAT_A : CAT_B)!,
+      stock: i === 0 ? 0 : i === 1 ? -3 : i,
+    }));
+    await db.insert(schema.product).values(filas);
+  }
+
+  test.beforeEach(async () => {
+    await sembrar();
+  });
+
+  const soloMios = `/catalogo?q=${encodeURIComponent(`Recorrer ${MARCA}`)}`;
+
+  test("dice cuántos quedaron y muestra la primera tanda", async ({ page }) => {
+    await entrarComo(page, dueno);
+    await page.goto(soloMios);
+    // AC-016: el conteo es de todos los que cumplen, no de los que se ven.
+    await expect(page.getByTestId("conteo")).toContainText("30 productos");
+    await expect(page.getByTestId("conteo")).toContainText("mostrando 24");
+    await expect(page.getByTestId("lista-catalogo").locator("li")).toHaveCount(24);
+  });
+
+  test("ver más suma a lo ya visto y deja de ofrecerse al final", async ({ page }) => {
+    await entrarComo(page, dueno);
+    await page.goto(soloMios);
+    const primero = await page.getByTestId("lista-catalogo").locator("li").first().innerText();
+
+    await page.getByTestId("ver-mas").click();
+    await expect(page).toHaveURL(/ver=48/);
+
+    // AC-017: suma, no reemplaza — lo primero que se vio sigue arriba.
+    await expect(page.getByTestId("lista-catalogo").locator("li")).toHaveCount(30);
+    expect(await page.getByTestId("lista-catalogo").locator("li").first().innerText()).toBe(primero);
+    // Y ya no queda nada por mostrar.
+    await expect(page.getByTestId("ver-mas")).toHaveCount(0);
+    await expect(page.getByTestId("conteo")).not.toContainText("mostrando");
+  });
+
+  test("los tres filtros se combinan y se cumplen a la vez", async ({ page }) => {
+    await entrarComo(page, dueno);
+    // Categoría A son los pares: precios 1000, 3000, 5000… Entre 5000 y 15000 caben 5000, 7000,
+    // 9000, 11000, 13000 y 15000 — seis.
+    await page.goto(
+      `${soloMios}&categoria=${encodeURIComponent(CAT_A)}&desde=5000&hasta=15000`,
+    );
+    await expect(page.getByTestId("conteo")).toContainText("6 productos");
+    const textos = await page.getByTestId("lista-catalogo").locator("li").allInnerTexts();
+    expect(textos).toHaveLength(6);
+    expect(textos.every((t) => t.includes(CAT_A))).toBe(true);
+  });
+
+  test("el filtro de existencias encuentra lo agotado y lo que quedó en negativo", async ({
+    page,
+  }) => {
+    await entrarComo(page, dueno);
+    await page.goto(`${soloMios}&existencias=agotados`);
+    await expect(page.getByTestId("conteo")).toContainText("1 producto");
+
+    await page.goto(`${soloMios}&existencias=negativos`);
+    await expect(page.getByTestId("conteo")).toContainText("1 producto");
+    await expect(page.getByTestId("lista-catalogo")).toContainText("-3 en existencia");
+  });
+
+  test("recargar la dirección acotada muestra exactamente lo mismo", async ({ page }) => {
+    // AC-018: el estado vive en la dirección, así que el enlace se puede compartir.
+    await entrarComo(page, dueno);
+    const url = `${soloMios}&existencias=disponibles&desde=20000&ver=48`;
+    await page.goto(url);
+    const antes = await page.getByTestId("lista-catalogo").allInnerTexts();
+    await page.reload();
+    expect(await page.getByTestId("lista-catalogo").allInnerTexts()).toEqual(antes);
+  });
+
+  test("una dirección escrita a mano con valores imposibles no tumba la pantalla", async ({
+    page,
+  }) => {
+    await entrarComo(page, dueno);
+    await page.goto(`${soloMios}&existencias=carísimos&desde=hola&hasta=&ver=999999999`);
+    // Los parámetros imposibles se ignoran; el resto sigue valiendo.
+    await expect(page.getByTestId("conteo")).toContainText("30 productos");
+  });
+
+  test("limpiar quita los filtros y vuelve al catálogo entero", async ({ page }) => {
+    await entrarComo(page, dueno);
+    await page.goto(`${soloMios}&existencias=agotados`);
+    await page.getByTestId("limpiar-filtros").click();
+    await expect(page).toHaveURL(/\/catalogo$/);
+  });
+
+  test("acotar por la pantalla deja el resultado en la dirección", async ({ page }) => {
+    await entrarComo(page, dueno);
+    await page.goto("/catalogo");
+    await page.getByLabel("Buscar en el catálogo").fill(`Recorrer ${MARCA}`);
+    // Los filtros arrancan plegados cuando no hay ninguno activo.
+    await page.getByRole("group").getByText("Filtros", { exact: false }).click();
+    await page.getByLabel("Existencias").selectOption("negativos");
+    await page.getByRole("button", { name: "Aplicar" }).click();
+
+    await expect(page).toHaveURL(/existencias=negativos/);
+    await expect(page.getByTestId("conteo")).toContainText("1 producto");
+  });
+
+  test("los filtros a 360 px no empujan la lista fuera de la pantalla", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await entrarComo(page, dueno);
+    await page.goto(soloMios);
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+    // Cerrados por defecto: cinco campos abiertos siempre dejarían la lista abajo del pliegue.
+    const primero = await page.getByTestId("lista-catalogo").locator("li").first().boundingBox();
+    expect(primero!.y).toBeLessThan(740);
+  });
+});

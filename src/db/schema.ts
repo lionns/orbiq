@@ -98,6 +98,10 @@ export const product = pgTable(
   (t) => [
     // AC-004 / AC-005: único entre los que tienen código; varios sin código es lo normal.
     uniqueIndex("product_barcode_unique").on(t.barcode).where(sql`${t.barcode} is not null`),
+    // El catálogo se ordena y se recorre por nombre, siempre (`FR-011`).
+    index("product_name_idx").on(t.name),
+    // Acotar por categoría es el filtro que más se usa.
+    index("product_category_id_idx").on(t.categoryId),
     check("product_price_non_negative", sql`${t.price} >= 0`),
   ],
 );

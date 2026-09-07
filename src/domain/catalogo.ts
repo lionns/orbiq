@@ -1,5 +1,6 @@
-import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, gte, ilike, lt, lte, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/db";
+import type { FiltrosCatalogo } from "./filtros";
 import type { AltaDeProducto } from "./producto";
 
 /**
@@ -19,29 +20,69 @@ export type ResultadoAlta =
   | { ok: true; id: string }
   | { ok: false; campo: string; mensaje: string };
 
-export async function listarCatalogo(busqueda?: string): Promise<ProductoDelCatalogo[]> {
-  const texto = busqueda?.trim();
-  // El dueño busca por lo que ve en el empaque: el nombre o el código impreso.
-  const filtro = texto
-    ? and(
-        eq(schema.product.isActive, true),
-        or(ilike(schema.product.name, `%${texto}%`), ilike(schema.product.barcode, `%${texto}%`)),
-      )
-    : eq(schema.product.isActive, true);
+export type PaginaDelCatalogo = {
+  productos: ProductoDelCatalogo[];
+  /** Cuántos cumplen los filtros en total, no cuántos se están mostrando (`AC-016`). */
+  total: number;
+  /** Verdadero mientras quede algo por mostrar (`AC-017`). */
+  hayMas: boolean;
+};
 
-  return db
-    .select({
-      id: schema.product.id,
-      nombre: schema.product.name,
-      precio: schema.product.price,
-      existencias: schema.product.stock,
-      categoria: schema.category.name,
-      codigoDeBarras: schema.product.barcode,
-    })
-    .from(schema.product)
-    .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
-    .where(filtro)
-    .orderBy(asc(schema.product.name));
+/** Un solo sitio donde se traducen los filtros a SQL: la lista y el conteo no pueden discrepar. */
+function condiciones(f: FiltrosCatalogo): SQL {
+  const partes: (SQL | undefined)[] = [eq(schema.product.isActive, true)];
+
+  // El dueño busca por lo que ve en el empaque: el nombre o el código impreso.
+  if (f.busqueda) {
+    partes.push(
+      or(
+        ilike(schema.product.name, `%${f.busqueda}%`),
+        ilike(schema.product.barcode, `%${f.busqueda}%`),
+      ),
+    );
+  }
+  if (f.categoria) partes.push(eq(schema.category.name, f.categoria));
+  if (f.desde !== null) partes.push(gte(schema.product.price, f.desde));
+  if (f.hasta !== null) partes.push(lte(schema.product.price, f.hasta));
+
+  if (f.existencias === "disponibles") partes.push(gte(schema.product.stock, 1));
+  if (f.existencias === "agotados") partes.push(eq(schema.product.stock, 0));
+  // Negativo es lo que el libro dice que se vendió de más: existe porque decidimos permitirlo.
+  if (f.existencias === "negativos") partes.push(lt(schema.product.stock, 0));
+
+  return and(...partes)!;
+}
+
+export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatalogo> {
+  const donde = condiciones(f);
+
+  // Dos consultas y no una: el total tiene que ser el de todos los que cumplen, no el de los que
+  // se muestran. Sacarlo con una ventana sobre la misma consulta ahorraría un viaje y costaría
+  // entender por qué el número no cuadra el día que cambie el orden.
+  const [productos, [conteo]] = await Promise.all([
+    db
+      .select({
+        id: schema.product.id,
+        nombre: schema.product.name,
+        precio: schema.product.price,
+        existencias: schema.product.stock,
+        categoria: schema.category.name,
+        codigoDeBarras: schema.product.barcode,
+      })
+      .from(schema.product)
+      .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
+      .where(donde)
+      .orderBy(asc(schema.product.name))
+      .limit(f.ver),
+    db
+      .select({ n: count() })
+      .from(schema.product)
+      .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
+      .where(donde),
+  ]);
+
+  const total = conteo?.n ?? 0;
+  return { productos, total, hayMas: total > productos.length };
 }
 
 export async function categoriasExistentes(): Promise<string[]> {
