@@ -1,12 +1,9 @@
 ## Trace
 
-- 2026-09-07 — role: Implementer
-  - read: `design-handoff.md` § Design Tokens, `D-007`, `src/ui/README.md`
-  - did: calculó el contraste WCAG de cada par real de las dos paletas antes de escribir una línea
-    de CSS; baseline verde
-  - checks: `npm test` 42/42 · `typecheck` clean · `lint` clean · `test:e2e` 35/35
+- 2026-09-07 — role: Implementer · ronda 1, comprimida
+  - did: calculó el contraste WCAG de cada par real de las dos paletas antes de escribir CSS.
+    Baseline verde: `npm test` 42/42, `test:e2e` 35/35
   - assumptions: la preferencia va en cookie, para que el servidor pinte ya con el tema correcto
-  - blockers: ninguno
 
 - 2026-09-07 — role: Implementer
   - did: paleta oscura con los once pares reales medidos; tema decidido en el servidor por cookie
