@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -40,23 +41,28 @@ export const session = pgTable("session", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const account = pgTable("account", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  providerId: text("provider_id").notNull(),
-  accountId: text("account_id").notNull(),
-  password: text("password"),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  idToken: text("id_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
-  scope: text("scope"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const account = pgTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    providerId: text("provider_id").notNull(),
+    accountId: text("account_id").notNull(),
+    password: text("password"),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+    scope: text("scope"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // El ingreso busca la credencial de una persona en un proveedor (D-008).
+  (t) => [index("account_user_provider_idx").on(t.userId, t.providerId)],
+);
 
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
@@ -96,17 +102,22 @@ export const product = pgTable(
   ],
 );
 
-export const sale = pgTable("sale", {
-  /** Generado en el cliente. Su unicidad ES la idempotencia (D-005, AC-010). */
-  id: text("id").primaryKey(),
-  total: integer("total").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  voidedAt: timestamp("voided_at", { withTimezone: true }),
-  voidedBy: text("voided_by").references(() => user.id),
-});
+export const sale = pgTable(
+  "sale",
+  {
+    /** Generado en el cliente. Su unicidad ES la idempotencia (D-005, AC-010). */
+    id: text("id").primaryKey(),
+    total: integer("total").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
+    voidedBy: text("voided_by").references(() => user.id),
+  },
+  // La cuadrícula de frecuentes se deriva de las ventas recientes, no se guarda (US-005).
+  (t) => [index("sale_created_at_idx").on(t.createdAt)],
+);
 
 export const saleLine = pgTable(
   "sale_line",
@@ -123,6 +134,8 @@ export const saleLine = pgTable(
     unitPrice: integer("unit_price").notNull(),
   },
   (t) => [
+    index("sale_line_sale_id_idx").on(t.saleId),
+    index("sale_line_product_id_idx").on(t.productId),
     check("sale_line_quantity_positive", sql`${t.quantity} > 0`),
     check("sale_line_unit_price_non_negative", sql`${t.unitPrice} >= 0`),
   ],
@@ -149,6 +162,9 @@ export const stockMovement = pgTable(
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    // Recomputar el saldo de un producto es leer su tramo del libro (D-002). Sin este índice, esa
+    // propiedad se paga con un recorrido completo de la tabla.
+    index("stock_movement_product_occurred_idx").on(t.productId, t.occurredAt),
     // AC-013: un ajuste sin motivo no entra. La regla vive en la base, no solo en la pantalla.
     check(
       "stock_movement_adjustment_needs_reason",

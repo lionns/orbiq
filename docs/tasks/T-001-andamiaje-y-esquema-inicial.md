@@ -1,7 +1,7 @@
 ---
 id: T-001
 title: Andamiaje de la aplicación y esquema inicial
-status: doing
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -43,11 +43,11 @@ implements: [AC-X06]
 
 - [x] `npm test`, `npm run typecheck`, `npm run lint`, `npm run build` y `npm run test:e2e` existen y
       terminan en verde desde la raíz del repositorio.
-- [ ] CUANDO se aplica la migración inicial sobre una base vacía EL SISTEMA DEBE crear las siete
+- [x] CUANDO se aplica la migración inicial sobre una base vacía EL SISTEMA DEBE crear las nueve
       tablas de `data-model.md` con sus claves foráneas y sus restricciones de unicidad.
-- [ ] CUANDO se guardan dos productos sin código de barras EL SISTEMA DEBE aceptar ambos, y CUANDO
+- [x] CUANDO se guardan dos productos sin código de barras EL SISTEMA DEBE aceptar ambos, y CUANDO
       se guarda uno con un código ya usado DEBE rechazarlo — el índice parcial de `AC-004`/`AC-005`.
-- [ ] CUANDO se insertan movimientos para un producto EL SISTEMA DEBE poder recomputar su saldo desde
+- [x] CUANDO se insertan movimientos para un producto EL SISTEMA DEBE poder recomputar su saldo desde
       el libro y coincidir con `product.stock` (`NFR-005`).
 - [x] CUANDO se generan dos identificadores seguidos EL SISTEMA DEBE producirlos ordenados en el
       tiempo y no consecutivos (`D-002`).
@@ -59,8 +59,9 @@ implements: [AC-X06]
 
 - Baseline: `node scripts/harness-lint.mjs`
 - Final: `npm test && npm run typecheck && npm run lint && npm run build && npm run test:e2e && node scripts/harness-status.mjs && node scripts/harness-lint.mjs`
-- Task-specific: aplicar la migración sobre una base Neon vacía y confirmar el esquema resultante
-  contra la tabla de entidades de `data-model.md`, campo por campo.
+- Task-specific: `npm run db:migrate` sobre una base Neon vacía, confirmar el esquema resultante
+  contra `data-model.md` § Entities campo por campo, y `npm run db:verify`, que ejerce las reglas del
+  esquema contra la base real y la deja como la encontró.
 
 ## Assumptions
 
@@ -83,29 +84,41 @@ implements: [AC-X06]
 
 - Changes: andamiaje Next 16 / React 19 / TS 6 estricto / Tailwind 4 con los tokens medidos;
   Drizzle + Neon por WebSocket; Better Auth sin `socialProviders`; Vitest y Playwright con pruebas
-  reales; esquema de nueve tablas y migración inicial versionada.
+  reales; esquema de nueve tablas, migración inicial y migración de índices, ambas aplicadas.
 - Files: `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`,
   `postcss.config.mjs`, `vitest.config.ts`, `playwright.config.ts`, `drizzle.config.ts`,
-  `src/db/*`, `src/domain/*`, `src/lib/auth.ts`, `src/app/*`, `e2e/smoke.spec.ts`,
-  `drizzle/0000_spooky_blur.sql`, `.env.example`, `.gitignore`
+  `src/db/*`, `src/domain/*`, `src/lib/auth.ts`, `src/app/*`, `e2e/andamiaje.spec.ts`,
+  `scripts/verificar-esquema.mts`, `drizzle/0000_spooky_blur.sql`,
+  `drizzle/0001_low_jamie_braddock.sql`, `.env.example`, `.gitignore`
 - Baseline result: `harness-lint` clean. Los comandos `npm` no existían — excepción de
   `quality-gates.md`, que esta tarea cierra.
-- Final result: `npm test` 7/7 · `typecheck` clean · `lint` clean · `build` ok · `test:e2e` 1/1.
-  **Incompleto**: la migración no se ha aplicado contra una base real.
-- Decisions recorded: ninguna nueva. Se registró en `data-model.md` la tabla `verification`, que
-  exige Better Auth y este documento no contemplaba.
-- Follow-up: aplicar la migración sobre una base Neon vacía y verificar el esquema campo por campo;
-  añadir una prueba de extremo a extremo que toque la base, que hoy no existe.
+- Final result: `npm test` 7/7 · `typecheck` clean · `lint` clean · `build` ok · `test:e2e` 2/2
+  contra Neon · `db:verify` 5/5. Las dos migraciones aplicadas sobre una base vacía; esquema
+  confirmado campo por campo contra `data-model.md` § Entities.
+- Decisions recorded: ninguna nueva. Tres correcciones a `data-model.md` salidas de comparar el
+  documento con la base real: la tabla `verification` que exige Better Auth, las dos columnas de
+  vencimiento de token en `account`, y que `stock_movement.type` es un enum de Postgres y no `text`.
+  Se añadió § Indexes: Postgres no indexa las claves foráneas solo, y el saldo recomputable de
+  `D-002` no es asequible sin `stock_movement (product_id, occurred_at)`.
+- Follow-up: ninguno abierto.
 
 ## Review
 
-- 
+- Revisado por el Implementer, que es el mismo agente — riesgo ya registrado en `agent-config.md`
+  § Known Risks. Por eso la verificación no se apoya en la lectura del código sino en ejercer las
+  reglas contra la base real (`npm run db:verify`), donde el resultado no depende de quien lo mira.
+- Hallazgo propio, corregido en la misma tarea: el esquema no tenía ningún índice fuera de las
+  claves primarias y la unicidad. Se añadieron cinco en `0001`, con la base todavía vacía.
+- Hallazgo propio, corregido: `.env` traía el string agrupado y el directo intercambiados respecto
+  de cómo los usa el código. La aplicación va por el agrupado, las migraciones por el directo.
 
 ## Validation
 
 - Validated by: 
 - Date: 
+- Pendiente de tu firma. `quality-gates.md` te nombra validador y no me corresponde firmar por ti.
+  Lo verificable ya está corrido: `npm run db:verify` ejerce las cinco reglas contra la base real.
 
 ## Trace
 
-- 
+- `docs/traces/2026-09-06_T-001_implementer.md` 

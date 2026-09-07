@@ -6,7 +6,9 @@ estas (`D-003`).
 Dos reglas transversales, de `D-002`:
 
 - **Identificadores UUIDv7 generados en la aplicación** para las entidades de negocio — `category`,
-  `product`, `sale`, `sale_line`, `stock_movement`. Ordenados en el tiempo, no secuenciales.
+  `product`, `sale`, `sale_line`, `stock_movement`. Ordenados en el tiempo, no secuenciales. La
+  columna es `text`, no `uuid`: identidad ajena y propia comparten forma, y `sale.id` lo genera el
+  cliente.
 - Las cuatro tablas de identidad — `user`, `account`, `session`, `verification` — las define Better
   Auth y usan su propio generador (`D-008`). Sus columnas se pueden renombrar, su forma no.
 - **El libro nunca se reescribe.** Los movimientos no se editan ni se borran; una corrección es un
@@ -42,6 +44,7 @@ Una credencial. Una persona puede tener varias: hoy solo contraseña, mañana ta
 | account_id | text | yes | El identificador de la persona en ese proveedor |
 | password | text | no | **Aquí vive el hash**, scrypt. Verificado en `api/routes/sign-up.ts`, `providerId: "credential"` |
 | access_token, refresh_token, id_token | text | no | Solo con proveedor externo |
+| access_token_expires_at, refresh_token_expires_at | timestamptz | no | Solo con proveedor externo. Los exige Better Auth |
 | scope | text | no | Solo con proveedor externo |
 | created_at | timestamptz | yes | |
 | updated_at | timestamptz | yes | |
@@ -128,11 +131,27 @@ El libro. Inmutable (`D-002`).
 | id | uuid v7 | yes | |
 | product_id | uuid v7 | yes | → `product.id` |
 | quantity | integer | yes | Con signo. Negativo descuenta |
-| type | text | yes | `initial` · `sale` · `sale_void` · `adjustment`. Devoluciones, traslados y compras entran como tipos nuevos, sin tocar filas viejas |
+| type | enum `movement_type` | yes | `initial` · `sale` · `sale_void` · `adjustment`. Devoluciones, traslados y compras entran como tipos nuevos, sin tocar filas viejas — añadir un valor al enum es una migración de una línea |
 | sale_id | uuid v7 | no | → `sale.id`. Obligatorio cuando `type` es `sale` o `sale_void` |
 | reason | text | no | **Obligatorio cuando `type` es `adjustment`** (`brief.md` § In Scope) |
 | user_id | text | yes | → `user.id` |
 | occurred_at | timestamptz | yes | |
+
+## Indexes
+
+Postgres no indexa las claves foráneas solo. Estos cinco no son afinación anticipada: cada uno
+sostiene una propiedad que ya está escrita arriba.
+
+| Index | Sostiene |
+| --- | --- |
+| `stock_movement (product_id, occurred_at)` | Que el saldo sea **recomputable** desde el libro (`D-002`). Sin él, recomputar un producto recorre la tabla entera |
+| `sale (created_at)` | La cuadrícula de frecuentes, que se deriva de las ventas recientes (`US-005`) |
+| `sale_line (sale_id)` | Leer una venta con sus líneas |
+| `sale_line (product_id)` | Lo vendido de un producto |
+| `account (user_id, provider_id)` | La búsqueda exacta que hace el ingreso (`D-008`) |
+
+`product.barcode` tiene su índice único **parcial** — la unicidad y el índice son la misma cosa
+(`AC-004`, `AC-005`).
 
 ## Relationships
 
