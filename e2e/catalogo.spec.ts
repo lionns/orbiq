@@ -266,10 +266,13 @@ test.describe("acotar y recorrer el catálogo", () => {
     await entrarComo(page, dueno);
     await page.goto(`${soloMios}&existencias=agotados`);
     await expect(page.getByTestId("conteo")).toContainText("1 producto");
+    // En el catálogo, cero es un estado normal y no se pinta de rojo: solo el negativo alerta.
+    await expect(page.getByTestId("lista-catalogo").locator("[data-alerta]")).toHaveCount(0);
 
     await page.goto(`${soloMios}&existencias=negativos`);
     await expect(page.getByTestId("conteo")).toContainText("1 producto");
     await expect(page.getByTestId("lista-catalogo")).toContainText("-3 en existencia");
+    await expect(page.getByTestId("lista-catalogo").locator("[data-alerta]")).toHaveCount(1);
   });
 
   test("recargar la dirección acotada muestra exactamente lo mismo", async ({ page }) => {

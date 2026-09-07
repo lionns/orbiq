@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { ESTADOS, type FiltrosCatalogo } from "@/domain/filtros";
+import { Boton, BotonEnlace } from "@/ui/boton";
+import { Campo, CLASE_CONTROL } from "@/ui/campo";
 
 const ETIQUETA: Record<(typeof ESTADOS)[number], string> = {
   todos: "Todas",
@@ -7,9 +8,6 @@ const ETIQUETA: Record<(typeof ESTADOS)[number], string> = {
   agotados: "Agotados",
   negativos: "En negativo",
 };
-
-const claseCampo =
-  "min-h-12 rounded-[var(--radius-button)] border border-[color:var(--color-border-strong)] px-3";
 
 /**
  * Un formulario `GET`, no una acción de cliente: acotar tiene que funcionar con la red a medias, y
@@ -36,11 +34,11 @@ export function Filtros({
           defaultValue={filtros.busqueda ?? ""}
           placeholder="Nombre o código"
           aria-label="Buscar en el catálogo"
-          className={`${claseCampo} flex-1`}
+          className={CLASE_CONTROL}
         />
-        <button type="submit" className={claseCampo}>
+        <Boton type="submit" className="shrink-0">
           Buscar
-        </button>
+        </Boton>
       </div>
 
       <details open={acotado} className="mt-3">
@@ -49,9 +47,8 @@ export function Filtros({
         </summary>
 
         <div className="flex flex-col gap-3 pt-1">
-          <label className="flex flex-col gap-1">
-            <span className="text-[color:var(--color-text-muted)]">Categoría</span>
-            <select name="categoria" defaultValue={filtros.categoria ?? ""} className={claseCampo}>
+          <Campo etiqueta="Categoría" nombre="categoria">
+            <select name="categoria" defaultValue={filtros.categoria ?? ""} className={CLASE_CONTROL}>
               <option value="">Todas</option>
               {categorias.map((c) => (
                 <option key={c} value={c}>
@@ -59,18 +56,17 @@ export function Filtros({
                 </option>
               ))}
             </select>
-          </label>
+          </Campo>
 
-          <label className="flex flex-col gap-1">
-            <span className="text-[color:var(--color-text-muted)]">Existencias</span>
-            <select name="existencias" defaultValue={filtros.existencias} className={claseCampo}>
+          <Campo etiqueta="Existencias" nombre="existencias">
+            <select name="existencias" defaultValue={filtros.existencias} className={CLASE_CONTROL}>
               {ESTADOS.map((e) => (
                 <option key={e} value={e}>
                   {ETIQUETA[e]}
                 </option>
               ))}
             </select>
-          </label>
+          </Campo>
 
           {/* `min-w-0`: el estilo de fábrica de `fieldset` es `min-inline-size: min-content`, que
               le impide encoger y desborda la pantalla a 360 px. Y el `flex` va en un hijo, porque
@@ -78,44 +74,33 @@ export function Filtros({
           <fieldset className="min-w-0">
             <legend className="text-[color:var(--color-text-muted)]">Precio</legend>
             <div className="flex gap-2">
-              <label className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="sr-only">Precio desde</span>
-                <input
-                  name="desde"
-                  inputMode="numeric"
-                  placeholder="Desde"
-                  defaultValue={filtros.desde ?? ""}
-                  className={`${claseCampo} w-full`}
-                />
-              </label>
-              <label className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="sr-only">Precio hasta</span>
-                <input
-                  name="hasta"
-                  inputMode="numeric"
-                  placeholder="Hasta"
-                  defaultValue={filtros.hasta ?? ""}
-                  className={`${claseCampo} w-full`}
-                />
-              </label>
+              <Campo
+                etiqueta="Precio desde"
+                nombre="desde"
+                etiquetaOculta
+                inputMode="numeric"
+                placeholder="Desde"
+                defaultValue={filtros.desde ?? ""}
+              />
+              <Campo
+                etiqueta="Precio hasta"
+                nombre="hasta"
+                etiquetaOculta
+                inputMode="numeric"
+                placeholder="Hasta"
+                defaultValue={filtros.hasta ?? ""}
+              />
             </div>
           </fieldset>
 
           <div className="flex gap-2">
-            <button
-              type="submit"
-              className={`${claseCampo} flex-1 bg-[color:var(--color-accent)] font-medium text-[color:var(--color-accent-text)]`}
-            >
+            <Boton type="submit" variante="principal" className="flex-1">
               Aplicar
-            </button>
+            </Boton>
             {acotado ? (
-              <Link
-                href="/catalogo"
-                data-testid="limpiar-filtros"
-                className={`${claseCampo} flex items-center justify-center`}
-              >
+              <BotonEnlace href="/catalogo" data-testid="limpiar-filtros">
                 Limpiar
-              </Link>
+              </BotonEnlace>
             ) : null}
           </div>
         </div>

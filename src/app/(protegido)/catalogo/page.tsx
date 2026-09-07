@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { categoriasExistentes, listarCatalogo } from "@/domain/catalogo";
 import {
   comoDireccion,
@@ -7,7 +6,9 @@ import {
   siguienteTanda,
   type ParametrosCrudos,
 } from "@/domain/filtros";
-import { formatearPrecio } from "@/domain/moneda";
+import { BarraInferior } from "@/ui/barra-inferior";
+import { BotonEnlace } from "@/ui/boton";
+import { Existencias, Precio } from "@/ui/cifras";
 import { Filtros } from "./filtros";
 
 export const dynamic = "force-dynamic";
@@ -56,16 +57,8 @@ export default async function Catalogo({
                 </span>
               </span>
               <span className="shrink-0 text-right">
-                <span className="block font-medium tabular-nums">{formatearPrecio(p.precio)}</span>
-                <span
-                  className={`block tabular-nums ${
-                    p.existencias < 0
-                      ? "text-[color:var(--color-danger)]"
-                      : "text-[color:var(--color-text-muted)]"
-                  }`}
-                >
-                  {p.existencias} en existencia
-                </span>
+                <Precio valor={p.precio} className="block font-medium" />
+                <Existencias cantidad={p.existencias} className="block" />
               </span>
             </li>
           ))}
@@ -75,24 +68,21 @@ export default async function Catalogo({
       {/* Un enlace, no un botón: suma a lo ya visto, conserva los filtros y funciona sin
           JavaScript. El estado vive en la dirección (`AC-017`, `AC-018`). */}
       {hayMas ? (
-        <Link
+        <BotonEnlace
           href={comoDireccion(filtros, { ver: siguienteTanda(filtros) })}
           data-testid="ver-mas"
-          className="mt-4 flex min-h-12 items-center justify-center rounded-[var(--radius-button)] border border-[color:var(--color-border-strong)] px-4"
+          className="mt-4 w-full"
         >
           Ver más
-        </Link>
+        </BotonEnlace>
       ) : null}
 
       {/* Regla del pulgar: la acción vive abajo, no en el tercio superior. */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-[color:var(--color-border)] bg-[color:var(--color-bg)] p-4">
-        <Link
-          href="/catalogo/nuevo"
-          className="mx-auto flex min-h-12 max-w-2xl items-center justify-center rounded-[var(--radius-button)] bg-[color:var(--color-accent)] px-4 font-medium text-[color:var(--color-accent-text)]"
-        >
+      <BarraInferior className="p-4">
+        <BotonEnlace href="/catalogo/nuevo" variante="principal" className="mx-auto w-full max-w-2xl">
           Nuevo producto
-        </Link>
-      </div>
+        </BotonEnlace>
+      </BarraInferior>
     </main>
   );
 }

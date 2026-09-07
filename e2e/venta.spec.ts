@@ -190,6 +190,29 @@ test("vender más de lo que hay se permite y el saldo queda negativo", async ({ 
   expect(await existenciasDe(huevos!.id)).toBe(-2);
 });
 
+test("en la cuadrícula, el cero y el negativo se ven en rojo", async ({ page }) => {
+  // Ninguna prueba miraba esto y las dos pantallas no coincidían: el catálogo alerta solo en
+  // negativo y la venta también en cero. Ahora la diferencia está fijada, no heredada.
+  const [agotado, negativo, normal] = await sembrar([
+    { nombre: "Agotado", precio: 1000, existencias: 0 },
+    { nombre: "Debe", precio: 1000, existencias: 0 },
+    { nombre: "Normal", precio: 1000, existencias: 5 },
+  ]);
+  await db.insert(schema.stockMovement).values({
+    productId: negativo!.id,
+    quantity: -4,
+    type: "adjustment",
+    reason: "prueba de saldo negativo",
+    userId: dueno.id,
+  });
+  await db.update(schema.product).set({ stock: -4 }).where(eq(schema.product.id, negativo!.id));
+
+  await entrarComo(page, dueno);
+  await expect(page.getByTestId(`casilla-${agotado!.id}`).locator("[data-alerta]")).toHaveCount(1);
+  await expect(page.getByTestId(`casilla-${negativo!.id}`).locator("[data-alerta]")).toHaveCount(1);
+  await expect(page.getByTestId(`casilla-${normal!.id}`).locator("[data-alerta]")).toHaveCount(0);
+});
+
 test("tocar dos veces suma, y se puede corregir la cantidad sin rehacer la venta", async ({
   page,
 }) => {

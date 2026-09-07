@@ -14,6 +14,9 @@ import {
 import { nuevoId } from "@/domain/ids";
 import { formatearPrecio } from "@/domain/moneda";
 import type { CasillaDeVenta } from "@/domain/venta";
+import { Aviso } from "@/ui/aviso";
+import { Boton } from "@/ui/boton";
+import { Existencias, Precio } from "@/ui/cifras";
 import { confirmarVenta } from "./acciones";
 
 type Estado = "armando" | "enviando" | "falloDeRed";
@@ -77,16 +80,8 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                 >
                   <span className="line-clamp-2 font-medium">{c.nombre}</span>
                   <span>
-                    <span className="block tabular-nums">{formatearPrecio(c.precio)}</span>
-                    <span
-                      className={`block tabular-nums ${
-                        c.existencias <= 0
-                          ? "text-[color:var(--color-danger)]"
-                          : "text-[color:var(--color-text-muted)]"
-                      }`}
-                    >
-                      {c.existencias} en existencia
-                    </span>
+                    <Precio valor={c.precio} className="block" />
+                    <Existencias cantidad={c.existencias} alertarEnCero className="block" />
                   </span>
                 </button>
               </li>
@@ -124,6 +119,7 @@ function VentaEnCurso({
   return (
     // Fija abajo en celular, columna propia en pantalla grande. El total no se pierde de vista en
     // ningún tamaño (design-handoff.md § Responsive Behavior, AC-X01).
+    // No usa `BarraInferior` porque en pantalla grande deja de estar fija y pasa a ser una columna.
     <aside
       aria-label="Venta en curso"
       className="fixed inset-x-0 bottom-0 border-t border-[color:var(--color-border)] bg-[color:var(--color-bg)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:border lg:border-[color:var(--color-border)] lg:rounded-[var(--radius-card)]"
@@ -133,9 +129,10 @@ function VentaEnCurso({
           <li key={a.productoId} className="flex items-center gap-3 py-2">
             <span className="min-w-0 flex-1">
               <span className="block truncate">{a.nombre}</span>
-              <span className="block text-[color:var(--color-text-muted)] tabular-nums">
-                {formatearPrecio(a.precio * a.cantidad)}
-              </span>
+              <Precio
+                valor={a.precio * a.cantidad}
+                className="block text-[color:var(--color-text-muted)]"
+              />
             </span>
             <span className="flex items-center gap-1">
               <BotonCantidad
@@ -163,13 +160,11 @@ function VentaEnCurso({
 
       {estado === "falloDeRed" ? (
         // AC-015: decirlo sin rodeos. «Algo salió mal» deja al dueño sin saber si cobrar otra vez.
-        <p
-          role="alert"
-          data-testid="fallo-de-red"
-          className="mx-4 mb-2 rounded-[var(--radius-card)] border border-[color:var(--color-danger)] p-3 text-[color:var(--color-danger)]"
-        >
-          No se guardó la venta. Nada se descontó. Toca Reintentar.
-        </p>
+        <div className="mx-4 mb-2">
+          <Aviso asertivo conBorde data-testid="fallo-de-red">
+            No se guardó la venta. Nada se descontó. Toca Reintentar.
+          </Aviso>
+        </div>
       ) : null}
 
       <div className="flex items-center gap-4 border-t border-[color:var(--color-border)] p-4">
@@ -184,15 +179,17 @@ function VentaEnCurso({
             {formatearPrecio(total(carrito))}
           </span>
         </span>
-        <button
+        <Boton
           type="button"
+          variante="principal"
           onClick={onConfirmar}
           disabled={vacio || enviando}
           data-testid="confirmar"
-          className="min-h-14 shrink-0 rounded-[var(--radius-button)] bg-[color:var(--color-accent)] px-6 font-medium text-[color:var(--color-accent-text)] disabled:opacity-50"
+          tamano="alto"
+          className="shrink-0 px-6"
         >
           {enviando ? "Guardando…" : estado === "falloDeRed" ? "Reintentar" : "Confirmar"}
-        </button>
+        </Boton>
       </div>
     </aside>
   );
@@ -208,13 +205,8 @@ function BotonCantidad({
   children: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      aria-label={etiqueta}
-      onClick={onClick}
-      className="size-12 rounded-[var(--radius-button)] border border-[color:var(--color-border-strong)] text-xl leading-none active:bg-[color:var(--color-surface)]"
-    >
+    <Boton type="button" aria-label={etiqueta} onClick={onClick} className="w-12 px-0 text-xl">
       {children}
-    </button>
+    </Boton>
   );
 }

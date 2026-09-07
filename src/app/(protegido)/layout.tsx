@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { sesionActual } from "@/domain/session";
+import { Boton } from "@/ui/boton";
 import { salir } from "../acceso/acciones";
 
 /**
@@ -28,12 +29,7 @@ export default async function LayoutProtegido({ children }: { children: React.Re
           {sesion.nombre}
         </span>
         <form action={salir}>
-          <button
-            type="submit"
-            className="min-h-12 rounded-[var(--radius-button)] border border-[color:var(--color-border-strong)] px-4"
-          >
-            Salir
-          </button>
+          <Boton type="submit">Salir</Boton>
         </form>
       </header>
       {children}
