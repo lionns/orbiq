@@ -1,7 +1,7 @@
 ---
 id: T-004
 title: Registro de venta desde la cuadrícula de frecuentes
-status: ready
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -39,22 +39,22 @@ implements: [FR-004, FR-005, US-005, US-006, NFR-002, NFR-003, NFR-004, AC-008, 
 
 ## Acceptance Criteria
 
-- [ ] CUANDO se confirma una venta EL SISTEMA DEBE crear venta, líneas y movimientos dentro de una
+- [x] CUANDO se confirma una venta EL SISTEMA DEBE crear venta, líneas y movimientos dentro de una
       sola transacción, o no crear nada (`AC-008`).
-- [ ] CUANDO se confirma una venta EL SISTEMA DEBE copiar el precio vigente en cada línea, de modo
+- [x] CUANDO se confirma una venta EL SISTEMA DEBE copiar el precio vigente en cada línea, de modo
       que cambiarlo después no altere el total ya cobrado (`AC-009`).
-- [ ] CUANDO se envía dos veces una venta con el mismo identificador EL SISTEMA DEBE devolver la
+- [x] CUANDO se envía dos veces una venta con el mismo identificador EL SISTEMA DEBE devolver la
       venta ya registrada, sin crear una segunda ni descontar de nuevo (`AC-010`).
-- [ ] CUANDO el servidor no responde al confirmar EL SISTEMA DEBE decir que no se guardó y ofrecer
+- [x] CUANDO el servidor no responde al confirmar EL SISTEMA DEBE decir que no se guardó y ofrecer
       reintentar, sin aparentar éxito (`AC-015`).
-- [ ] CUANDO se confirma una venta EL SISTEMA DEBE dejar la pantalla lista para la siguiente sin un
+- [x] CUANDO se confirma una venta EL SISTEMA DEBE dejar la pantalla lista para la siguiente sin un
       diálogo que haya que cerrar (`design-handoff.md` § Interaction States).
-- [ ] El total es visible en todo momento mientras se arma la venta, a 360 px (`AC-X01`).
-- [ ] Ninguna acción del flujo de venta vive en el tercio superior de la pantalla en celular
+- [x] El total es visible en todo momento mientras se arma la venta, a 360 px (`AC-X01`).
+- [x] Ninguna acción del flujo de venta vive en el tercio superior de la pantalla en celular
       (`NFR-003`).
-- [ ] Una prueba de Playwright arma una venta de tres artículos, la confirma, y comprueba que las
+- [x] Una prueba de Playwright arma una venta de tres artículos, la confirma, y comprueba que las
       existencias de los tres bajaron y que el libro tiene un movimiento por cada uno (`D-006`).
-- [ ] Una prueba de dominio envía la misma venta dos veces y comprueba que las existencias bajaron
+- [x] Una prueba de dominio envía la misma venta dos veces y comprueba que las existencias bajaron
       una sola vez (`AC-010`).
 
 ## Verification
@@ -66,10 +66,13 @@ implements: [FR-004, FR-005, US-005, US-006, NFR-002, NFR-003, NFR-004, AC-008, 
 
 ## Assumptions
 
-- **Asunción** — la cuadrícula muestra los productos más vendidos recientemente. La ventana y la
-  cantidad de casillas siguen sin definir (`data-model.md` § Open Questions); para esta tarea se fija
-  un valor y se anota como pendiente de validar con el dueño.
-- **Asunción** — el stock puede quedar negativo. Se muestra en rojo, no se impide.
+- **Decidido con el estudio el 2026-09-06** — la cuadrícula muestra los más vendidos recientemente
+  y, mientras no haya historial, **el catálogo entero ordenado por nombre**. Una tienda nueva la ve
+  llena desde el primer día sin administrar favoritos (`data-model.md` § Open Questions).
+- **Decidido con el estudio el 2026-09-06** — el stock puede quedar negativo. Se muestra en rojo, no
+  se impide: la aplicación registra lo que pasó, no decide lo que se puede vender.
+- **Asunción** — la ventana de «reciente» y el número de casillas se fijan en código; siguen
+  pendientes de validar con un dueño usándolo de verdad.
 
 ## Risks
 
@@ -80,22 +83,51 @@ implements: [FR-004, FR-005, US-005, US-006, NFR-002, NFR-003, NFR-004, AC-008, 
 
 ## Outcome
 
-- Changes:
-- Files:
-- Baseline result:
-- Final result:
-- Decisions recorded:
-- Follow-up:
+- Changes: `carrito.ts` con la aritmética de la venta en curso, pura y probada aparte;
+  `venta.ts` con `registrarVenta` idempotente y transaccional y la cuadrícula derivada de las
+  ventas recientes; la venta pasa a ser la portada; navegación entre vender y catálogo. Fuera del
+  alcance original pero necesario para el demo: `scripts/sembrar-demo.mts`.
+- Files: `src/domain/carrito.ts`, `src/domain/carrito.test.ts`, `src/domain/venta.ts`,
+  `src/app/(protegido)/page.tsx`, `src/app/(protegido)/venta.tsx`,
+  `src/app/(protegido)/acciones.ts`, `src/app/(protegido)/layout.tsx`, `e2e/venta.spec.ts`,
+  `e2e/apoyo.ts`, `scripts/sembrar-demo.mts`, `docs/project/data-model.md`
+- Baseline result: `npm test` 24/24 · `typecheck` clean · `lint` clean · `harness-lint` clean.
+- Final result: `npm test` 30/30 · `typecheck` clean · `lint` clean · `build` ok · `test:e2e`
+  25/25 contra Neon, tres corridas seguidas sin un solo fallo intermitente · `db:verify` 5/5.
+- Decisions recorded: ninguna nueva. Se cerraron con el estudio las dos preguntas de producto que
+  esta tarea traía como supuestos: el stock puede quedar negativo, y la cuadrícula es el catálogo
+  mientras no haya historial. Las dos quedan en `data-model.md` § Open Questions.
+- Follow-up: **cronometrar una venta de tres artículos en un celular real** — `NFR-002` pide menos
+  de veinte segundos y ese criterio no se puede verificar leyendo un diff ni con un emulador. Y la
+  ventana de «reciente» (30 días) y el número de casillas (24) siguen siendo valores fijados en
+  código, pendientes de validar con un dueño usándolo de verdad.
 
 ## Review
 
-- 
+- La idempotencia no se apoya en que la pantalla se porte bien. El identificador de venta se genera
+  antes de enviar y se conserva mientras el envío falle, así que reintentar es el mismo envío; y si
+  dos llegan a la vez, uno choca contra la clave primaria y se traduce en devolver la venta que ya
+  existe (`AC-010`). La prueba llama al dominio directamente porque por la pantalla no se puede
+  provocar el segundo envío con el mismo identificador.
+- El saldo se recalcula desde el libro dentro de la transacción, no se resta a lo que había. Dos
+  ventas simultáneas del mismo producto no se pisan: cada una suma su movimiento y el saldo se
+  vuelve a leer entero (`D-002`).
+- El precio de la línea se lee del catálogo en el servidor al confirmar, no de lo que mandó la
+  pantalla. Un cliente que mienta sobre el precio no cambia lo que se cobra (`AC-009`).
+- Hallazgo propio, corregido: la suite se volvió intermitente al crecer. Cada prueba iniciaba
+  sesión y cada inicio corre scrypt, que es caro **a propósito**; cuatro trabajadores en paralelo
+  contra un solo servidor Node desbordaban el tiempo de espera. Ahora se inicia sesión una vez por
+  trabajador y se reparte la cookie — que además se parece más a la verdad, porque un dueño inicia
+  sesión una vez al mes y no una vez por acción. Las pruebas del ciclo de vida de la sesión
+  conservan su propio inicio por pantalla, porque cerrar sesión invalidaría la cookie compartida.
+- Sin medir: `NFR-002`. Es el único criterio de la noche que necesita un cronómetro y un pulgar.
 
 ## Validation
 
 - Validated by: 
 - Date: 
+- Pendiente de tu firma.
 
 ## Trace
 
-- 
+- `docs/traces/2026-09-06_T-004_implementer.md` 

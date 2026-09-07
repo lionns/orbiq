@@ -1,33 +1,20 @@
 import Link from "next/link";
-import { listarCatalogo, ultimoAlta } from "@/domain/catalogo";
+import { cuadricula } from "@/domain/venta";
+import { PantallaDeVenta } from "./venta";
 
-/**
- * Portada de andamiaje. La venta con cuadrícula la reemplaza en T-004; hoy sirve de puerta al
- * catálogo y de prueba de que la cadena entera —pantalla, servidor, Neon— responde.
- */
+/** La venta es la portada: es lo que el dueño abre cien veces al día (`US-005`). */
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const [productos, ultimo] = await Promise.all([listarCatalogo(), ultimoAlta()]);
+export default async function Venta() {
+  const casillas = await cuadricula();
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight">Orbiq</h1>
-      <p className="mt-2 text-[color:var(--color-text-muted)]">
-        Inventario y ventas. La venta con cuadrícula entra en T-004.
-      </p>
-      <p className="mt-6" data-testid="catalogo-total">
-        {productos.length} productos en el catálogo
-      </p>
-      <p className="mt-1 text-[color:var(--color-text-muted)]" data-testid="catalogo-ultimo">
-        {ultimo ? `Último dado de alta: ${ultimo}` : "Todavía no hay ninguno"}
-      </p>
-      <Link
-        href="/catalogo"
-        className="mt-8 flex min-h-12 items-center justify-center rounded-[var(--radius-button)] bg-[color:var(--color-accent)] px-4 font-medium text-[color:var(--color-accent-text)]"
-      >
-        Ver catálogo
+    <>
+      <PantallaDeVenta casillas={casillas} />
+      {/* Navegación fuera del flujo de venta, arriba, donde no estorba al pulgar. */}
+      <Link href="/catalogo" className="sr-only focus:not-sr-only">
+        Ir al catálogo
       </Link>
-    </main>
+    </>
   );
 }

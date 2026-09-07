@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { expect, type Page } from "@playwright/test";
+import { expect, type BrowserContext, type Page } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import { db, schema } from "../src/db";
 import { auth } from "../src/lib/auth";
@@ -45,7 +45,48 @@ export async function entrar(page: Page, correo: string, clave: string): Promise
   await page.getByRole("button", { name: "Entrar" }).click();
 }
 
-export async function entrarComo(page: Page, dueno: DuenoDePrueba): Promise<void> {
+/**
+ * Inicia sesión una sola vez por trabajador y reparte la cookie a las demás pruebas.
+ *
+ * Hacerlo por la pantalla en cada prueba corría scrypt otra vez, y scrypt es caro **a propósito**:
+ * cuatro trabajadores en paralelo contra un solo servidor Node lo convertían en una suite que
+ * fallaba a veces. Un dueño real inicia sesión una vez al mes, no una vez por acción — así que
+ * esto además se parece más a la verdad. El recorrido completo del formulario lo prueba
+ * `sesion.spec.ts`, que es de quien es esa responsabilidad.
+ */
+const cookiesPorDueno = new Map<string, string>();
+
+async function cookieDeSesion(dueno: DuenoDePrueba): Promise<string> {
+  const guardada = cookiesPorDueno.get(dueno.id);
+  if (guardada) return guardada;
+
+  const respuesta = await auth.api.signInEmail({
+    body: { email: dueno.correo, password: dueno.clave },
+    asResponse: true,
+  });
+  const cabecera = respuesta.headers.get("set-cookie");
+  if (!cabecera) throw new Error("Better Auth no devolvió cookie de sesión.");
+  cookiesPorDueno.set(dueno.id, cabecera);
+  return cabecera;
+}
+
+/**
+ * Inicio de sesión por la pantalla, con su propia sesión. Lo usan las pruebas del ciclo de vida de
+ * la sesión: comparten dueño, y una que cierra sesión o la vence dejaría la cookie compartida
+ * inservible para las demás.
+ */
+export async function entrarPorPantalla(page: Page, dueno: DuenoDePrueba): Promise<void> {
   await entrar(page, dueno.correo, dueno.clave);
-  await expect(page.getByTestId("sesion-nombre")).toHaveText(dueno.nombre);
+  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+}
+
+export async function entrarComo(page: Page, dueno: DuenoDePrueba): Promise<void> {
+  const cabecera = await cookieDeSesion(dueno);
+  const [par] = cabecera.split(";");
+  const [nombre, valor] = par!.split("=");
+  await (page.context() as BrowserContext).addCookies([
+    { name: nombre!, value: valor!, domain: "localhost", path: "/" },
+  ]);
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
 }

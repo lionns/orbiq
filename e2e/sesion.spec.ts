@@ -7,7 +7,7 @@ import { db, schema } from "../src/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { auth } from "../src/lib/auth";
-import { borrarDueno, crearDueno, entrar, entrarComo, type DuenoDePrueba } from "./apoyo";
+import { borrarDueno, crearDueno, entrar, entrarPorPantalla, type DuenoDePrueba } from "./apoyo";
 
 /**
  * T-002 · US-001. La rebanada de la sesión, recorrida entera contra la base real (`D-006`).
@@ -48,8 +48,10 @@ test("un correo que no existe da exactamente el mismo mensaje", async ({ page })
 });
 
 test("entra, la cookie es opaca, y al recargar sigue dentro", async ({ page, context }) => {
-  await entrarComo(page, dueno);
+  await entrarPorPantalla(page, dueno);
   await expect(page).toHaveURL(/\/$/);
+  // Quién entró: el nombre viaja en la página, aunque solo lo lea un lector de pantalla.
+  await expect(page.getByTestId("sesion-nombre")).toHaveText(dueno.nombre);
 
   // AC-002: la sesión vive en el servidor.
   const sesiones = await sesionesDe(dueno.id);
@@ -67,11 +69,11 @@ test("entra, la cookie es opaca, y al recargar sigue dentro", async ({ page, con
 
   // D-006: recargar no debe pedir la clave otra vez.
   await page.reload();
-  await expect(page.getByTestId("sesion-nombre")).toHaveText(dueno.nombre);
+  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
 });
 
 test("una sesión vencida se trata como ausente, no como inválida", async ({ page }) => {
-  await entrarComo(page, dueno);
+  await entrarPorPantalla(page, dueno);
 
   // Envejecer la fila es la única forma honesta de probarlo: la cookie sigue siendo la misma y el
   // navegador la sigue mandando. Quien decide es el servidor.
@@ -86,7 +88,7 @@ test("una sesión vencida se trata como ausente, no como inválida", async ({ pa
 });
 
 test("salir cierra la sesión en el servidor, no solo en el navegador", async ({ page }) => {
-  await entrarComo(page, dueno);
+  await entrarPorPantalla(page, dueno);
 
   await page.getByRole("button", { name: "Salir" }).click();
   await expect(page).toHaveURL(/\/acceso$/);

@@ -194,15 +194,20 @@ sostiene una propiedad que ya está escrita arriba.
 - **El identificador de acceso es el correo.** Ya no es supuesto: lo cierra `D-008`. Queda una
   pregunta de producto — si el dueño del primer negocio no tiene correo que revise, el alta la hace
   el estudio igual, pero conviene saberlo antes.
-- **Supuesto — el stock puede quedar negativo.** El brief dice que la aplicación *compite contra no
-  usarla*: si bloquea una venta porque el conteo dice cero, el dueño cobra igual y deja de abrirla.
-  Se registra y se muestra en pantalla, no se impide. Es una decisión de producto, y es tuya.
+- ~~**Supuesto — el stock puede quedar negativo.**~~ **Cerrada el 2026-09-06: se permite.** La
+  aplicación *compite contra no usarla*: si bloquea una venta porque el conteo dice cero, el dueño
+  cobra igual y deja de abrirla. El saldo negativo se registra y se muestra en rojo; corregirlo es
+  un ajuste, que ya deja motivo obligatorio (`AC-013`). La aplicación registra lo que pasó, no
+  decide lo que se puede vender.
 - ~~**Moneda y precisión del precio.**~~ **Cerrada el 2026-09-06: peso colombiano.** El COP no
   tiene centavos en circulación, así que su unidad mínima es el peso y `product.price` guarda
   exactamente lo que se teclea. Vive en `src/domain/moneda.ts`, no en el esquema: un despliegue por
   negocio significa una moneda por base (`D-005`). Cambiar a una moneda **con** centavos seguiría
   costando una migración — habría que multiplicar los precios ya guardados.
-- **La cuadrícula de frecuentes se deriva, no se guarda.** Sale de las ventas recientes. Falta
-  definir con qué ventana y cuántos productos — es lo primero que el dueño ve al abrir.
+- **La cuadrícula de frecuentes se deriva, no se guarda.** Sale de las ventas recientes.
+  **Cerrado el 2026-09-06:** mientras no haya historial suficiente, la cuadrícula **es el catálogo**
+  ordenado por nombre, y se va reordenando sola a medida que se vende. Así una tienda nueva la ve
+  llena desde el primer día sin administrar favoritos. La ventana y el número de casillas siguen
+  siendo un valor fijado en código, pendiente de validar con un dueño usándolo de verdad.
 - **Alta inicial del catálogo.** `brief.md` § Open Questions ya pregunta cuántos productos hay. Si
   son cientos, la carga masiva deja de estar fuera de alcance y necesita su propia decisión.

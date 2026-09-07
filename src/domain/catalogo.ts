@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, isNotNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { AltaDeProducto } from "./producto";
 
@@ -151,15 +151,4 @@ function esCodigoDeBarrasRepetido(error: unknown): boolean {
 function saldoDelLibro(productoId: string) {
   return sql`(select sum(${schema.stockMovement.quantity}) from ${schema.stockMovement}
     where ${schema.stockMovement.productId} = ${productoId})`;
-}
-
-/** Los últimos productos dados de alta. Lo usa el andamiaje de la portada hasta que llegue T-004. */
-export async function ultimoAlta(): Promise<string | null> {
-  const [fila] = await db
-    .select({ nombre: schema.product.name })
-    .from(schema.product)
-    .where(isNotNull(schema.product.name))
-    .orderBy(desc(schema.product.createdAt))
-    .limit(1);
-  return fila?.nombre ?? null;
 }

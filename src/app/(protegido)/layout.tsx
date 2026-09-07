@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { sesionActual } from "@/domain/session";
@@ -15,7 +16,15 @@ export default async function LayoutProtegido({ children }: { children: React.Re
   return (
     <div className="min-h-dvh">
       <header className="flex items-center justify-between border-b border-[color:var(--color-border)] px-4 py-3">
-        <span className="text-[color:var(--color-text-muted)]" data-testid="sesion-nombre">
+        <span className="flex items-center gap-4">
+          <Link href="/" className="font-medium">
+            Vender
+          </Link>
+          <Link href="/catalogo" className="text-[color:var(--color-text-muted)] underline">
+            Catálogo
+          </Link>
+        </span>
+        <span className="sr-only" data-testid="sesion-nombre">
           {sesion.nombre}
         </span>
         <form action={salir}>

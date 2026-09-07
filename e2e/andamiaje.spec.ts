@@ -40,7 +40,8 @@ test("lo que se escribe en la base aparece en la pantalla", async ({ page }) => 
 
   try {
     await entrarComo(page, dueno);
-    await expect(page.getByTestId("catalogo-ultimo")).toHaveText(`Último dado de alta: ${nombre}`);
+    await page.goto(`/catalogo?q=${encodeURIComponent(nombre)}`);
+    await expect(page.getByTestId("lista-catalogo")).toContainText(nombre);
   } finally {
     await db.delete(schema.product).where(eq(schema.product.id, creado!.id));
   }
