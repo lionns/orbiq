@@ -21,8 +21,8 @@ export function Aviso({
     <p
       role="alert"
       aria-live={asertivo ? "assertive" : "polite"}
-      className={`text-[color:var(--color-danger)] ${
-        conBorde ? "rounded-[var(--radius-card)] border border-[color:var(--color-danger)] p-3" : ""
+      className={`text-danger ${
+        conBorde ? "rounded-card border border-danger p-3" : ""
       }`}
       {...resto}
     >

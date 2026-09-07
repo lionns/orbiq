@@ -53,13 +53,13 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
     <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_22rem] lg:gap-6">
       <section className="px-4 pb-[19rem] pt-4 lg:pb-8" aria-label="Productos">
         {ultima !== null && estaVacio(carrito) ? (
-          <p className="mb-4 text-[color:var(--color-text-muted)]" data-testid="venta-anterior">
+          <p className="mb-4 text-text-muted" data-testid="venta-anterior">
             Venta registrada por {formatearPrecio(ultima)}. Lista la siguiente.
           </p>
         ) : null}
 
         {casillas.length === 0 ? (
-          <p className="text-[color:var(--color-text-muted)]" data-testid="cuadricula-vacia">
+          <p className="text-text-muted" data-testid="cuadricula-vacia">
             Todavía no hay productos. Da de alta el primero en el catálogo para empezar a vender.
           </p>
         ) : (
@@ -76,7 +76,7 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                   data-testid={`casilla-${c.id}`}
                   // `active:` es retroalimentación inmediata: si el dueño duda si lo añadió, lo
                   // toca dos veces y vende de más (design-handoff.md § Interaction States).
-                  className="flex min-h-24 w-full flex-col justify-between rounded-[var(--radius-card)] border border-[color:var(--color-border-strong)] p-3 text-left active:bg-[color:var(--color-surface)]"
+                  className="flex min-h-24 w-full flex-col justify-between rounded-card border border-border-strong p-3 text-left active:bg-surface"
                 >
                   <span className="line-clamp-2 font-medium">{c.nombre}</span>
                   <span>
@@ -122,7 +122,7 @@ function VentaEnCurso({
     // No usa `BarraInferior` porque en pantalla grande deja de estar fija y pasa a ser una columna.
     <aside
       aria-label="Venta en curso"
-      className="fixed inset-x-0 bottom-0 border-t border-[color:var(--color-border)] bg-[color:var(--color-bg)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:border lg:border-[color:var(--color-border)] lg:rounded-[var(--radius-card)]"
+      className="fixed inset-x-0 bottom-0 border-t border-border bg-bg lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:border lg:border-border lg:rounded-card"
     >
       <ul className="max-h-[38vh] overflow-y-auto px-4" data-testid="venta-en-curso">
         {carrito.articulos.map((a) => (
@@ -131,7 +131,7 @@ function VentaEnCurso({
               <span className="block truncate">{a.nombre}</span>
               <Precio
                 valor={a.precio * a.cantidad}
-                className="block text-[color:var(--color-text-muted)]"
+                className="block text-text-muted"
               />
             </span>
             <span className="flex items-center gap-1">
@@ -167,13 +167,13 @@ function VentaEnCurso({
         </div>
       ) : null}
 
-      <div className="flex items-center gap-4 border-t border-[color:var(--color-border)] p-4">
+      <div className="flex items-center gap-4 border-t border-border p-4">
         <span className="flex-1">
-          <span className="block text-[color:var(--color-text-muted)]">
+          <span className="block text-text-muted">
             Total · {unidades(carrito)} {unidades(carrito) === 1 ? "artículo" : "artículos"}
           </span>
           <span
-            className="block font-semibold tabular-nums [font-size:var(--text-total)] leading-none"
+            className="block font-semibold tabular-nums text-total leading-none"
             data-testid="total"
           >
             {formatearPrecio(total(carrito))}

@@ -17,6 +17,11 @@
 
   --text-total: 2.5rem; /* 40px — el número que se mira mientras se cobra */
 
+  /* Pila de sistema, sin fuente web: una tipografía descargada son 40-100 kB por datos móviles
+     antes de que se vea el primer precio (design-handoff.md § Typography). Como token y no como
+     regla sobre `body`, para que sea la utilidad `font-sans` y no CSS suelto. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
   --radius-card: 8px;
   --radius-button: 12px;
 }
@@ -55,28 +60,27 @@
   --color-warning: #fbbf24;
 }
 
-body {
-  background: var(--color-bg);
-  color: var(--color-text);
-  /* Pila de sistema: una tipografía descargada son 40-100 kB por datos móviles antes de que se vea
-     el primer precio (design-handoff.md § Typography). */
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
+/* Lo que sigue es lo único que no puede ser una clase de Tailwind, y cada regla dice por qué.
+   Todo lo demás —color, radio, tipografía, tamaño— se aplica con utilidades generadas por `@theme`
+   (`T-008`). Si alguna vez vuelve a aparecer CSS aquí, tiene que traer su motivo. */
 
-/* 16px mínimo en cualquier campo: por debajo, iOS hace zoom al enfocar y saca al dueño del flujo. */
+/* Por qué no es una clase: haría falta acordarse de ponerla en cada campo, y olvidarla no falla —
+   simplemente iOS hace zoom al enfocar y saca al dueño del flujo con alguien esperando. */
 input,
 select,
 textarea {
   font-size: 16px;
 }
 
-/* Un lector de código de barras es un teclado. Sin foco visible no se sabe dónde va a escribir. */
+/* Por qué no es una clase: es una garantía, no un estilo. Un lector de código de barras es un
+   teclado, y sin foco visible no se sabe dónde va a escribir (`AC-X02`). */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
-/* design-handoff.md § Motion: no es una versión degradada, es la ausencia de decoración. */
+/* Por qué no es una clase: tiene que alcanzar a todo, incluido lo que traiga una dependencia.
+   design-handoff.md § Motion: no es una versión degradada, es la ausencia de decoración. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

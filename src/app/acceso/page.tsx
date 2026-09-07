@@ -21,7 +21,7 @@ export default async function Acceso() {
         <SelectorDeTema actual={tema} accion={elegirTema} />
       </span>
       <h1 className="text-3xl font-semibold tracking-tight">Orbiq</h1>
-      <p className="mt-2 text-[color:var(--color-text-muted)]">Entra para abrir la caja.</p>
+      <p className="mt-2 text-text-muted">Entra para abrir la caja.</p>
       <FormularioAcceso />
     </main>
   );

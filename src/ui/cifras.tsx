@@ -35,7 +35,7 @@ export function Existencias({
     <span
       data-alerta={alerta ? "" : undefined}
       className={`tabular-nums ${
-        alerta ? "text-[color:var(--color-danger)]" : "text-[color:var(--color-text-muted)]"
+        alerta ? "text-danger" : "text-text-muted"
       } ${className}`}
     >
       {cantidad} en existencia

@@ -20,12 +20,12 @@ export default async function LayoutProtegido({ children }: { children: React.Re
 
   return (
     <div className="min-h-dvh">
-      <header className="flex items-center justify-between border-b border-[color:var(--color-border)] px-4 py-3">
+      <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <span className="flex items-center gap-4">
           <Link href="/" className="font-medium">
             Vender
           </Link>
-          <Link href="/catalogo" className="text-[color:var(--color-text-muted)] underline">
+          <Link href="/catalogo" className="text-text-muted underline">
             Catálogo
           </Link>
         </span>

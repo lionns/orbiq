@@ -9,7 +9,7 @@ export default async function NuevoProducto() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-6">
-      <Link href="/catalogo" className="text-[color:var(--color-text-muted)] underline">
+      <Link href="/catalogo" className="text-text-muted underline">
         Volver al catálogo
       </Link>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">Nuevo producto</h1>

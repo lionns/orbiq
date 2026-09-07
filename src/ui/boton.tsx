@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
 const BASE =
-  "inline-flex items-center justify-center rounded-[var(--radius-button)] px-4 font-medium";
+  "inline-flex items-center justify-center rounded-button px-4 font-medium";
 
 /**
  * Los 48 px de área táctil de `design-handoff.md` § Touch Targets, aquí y no repartidos por cinco
@@ -23,10 +23,10 @@ export type Tamano = keyof typeof TAMANOS;
 export const VARIANTES = {
   /** La acción principal de la pantalla. Solo una por pantalla. */
   principal:
-    "bg-[color:var(--color-accent)] text-[color:var(--color-accent-text)] disabled:opacity-50",
+    "bg-accent text-accent-text disabled:opacity-50",
   /** Todo lo demás. El borde es el fuerte: el decorativo no llega a 3:1 y no sirve para un control. */
   secundario:
-    "border border-[color:var(--color-border-strong)] active:bg-[color:var(--color-surface)] disabled:opacity-50",
+    "border border-border-strong active:bg-surface disabled:opacity-50",
 } as const;
 
 export type Variante = keyof typeof VARIANTES;

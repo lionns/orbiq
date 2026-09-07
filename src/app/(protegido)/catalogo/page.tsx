@@ -31,7 +31,7 @@ export default async function Catalogo({
 
       <Filtros filtros={filtros} categorias={categorias} acotado={acotado} />
 
-      <p className="mt-4 text-[color:var(--color-text-muted)]" data-testid="conteo">
+      <p className="mt-4 text-text-muted" data-testid="conteo">
         {total === 0
           ? "Ningún producto"
           : total === 1
@@ -47,11 +47,11 @@ export default async function Catalogo({
           {productos.map((p) => (
             <li
               key={p.id}
-              className="flex items-baseline justify-between gap-4 rounded-[var(--radius-card)] border border-[color:var(--color-border)] p-4"
+              className="flex items-baseline justify-between gap-4 rounded-card border border-border p-4"
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium">{p.nombre}</span>
-                <span className="block text-[color:var(--color-text-muted)]">
+                <span className="block text-text-muted">
                   {p.categoria ?? "Sin categoría"}
                   {p.codigoDeBarras ? ` · ${p.codigoDeBarras}` : ""}
                 </span>
@@ -90,7 +90,7 @@ export default async function Catalogo({
 function EstadoVacio({ acotado }: { acotado: boolean }) {
   // design-handoff.md § Interaction States: el catálogo vacío ofrece dar de alta el primero.
   return (
-    <p className="mt-8 text-[color:var(--color-text-muted)]" data-testid="catalogo-vacio">
+    <p className="mt-8 text-text-muted" data-testid="catalogo-vacio">
       {acotado
         ? "Ningún producto cumple lo que buscas. Quita algún filtro."
         : "Todavía no hay productos. Da de alta el primero para empezar a vender."}

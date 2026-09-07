@@ -29,7 +29,7 @@ export function SelectorDeTema({
       <form
         action={accion}
         // Absoluto: abrirlo no puede empujar la navegación ni la lista de abajo.
-        className="absolute right-0 z-10 mt-1 flex flex-col gap-1 rounded-[var(--radius-card)] border border-[color:var(--color-border-strong)] bg-[color:var(--color-bg)] p-2"
+        className="absolute right-0 z-10 mt-1 flex flex-col gap-1 rounded-card border border-border-strong bg-bg p-2"
       >
         {TEMAS.map((tema) => (
           <Boton

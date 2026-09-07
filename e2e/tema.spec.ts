@@ -118,3 +118,57 @@ test("el tema también se elige desde las pantallas del negocio, y a 360 px no d
   const panel = await page.getByTestId("tema-claro").boundingBox();
   expect(panel!.x + panel!.width).toBeLessThanOrEqual(360);
 });
+
+/**
+ * Los tokens de `design-handoff.md` § Design Tokens, comprobados contra lo que el navegador
+ * calcula de verdad. Sin esto, cambiar una utilidad por otra parecida pasa las demás pruebas —el
+ * fondo del `body` sigue siendo el mismo— y mueve un color a la callada.
+ */
+const TOKENS = {
+  claro: {
+    fondo: "rgb(255, 255, 255)",
+    texto: "rgb(28, 25, 23)",
+    apagado: "rgb(87, 83, 78)",
+    acento: "rgb(15, 118, 110)",
+    textoDelAcento: "rgb(255, 255, 255)",
+    bordeFuerte: "rgb(142, 135, 129)",
+  },
+  oscuro: {
+    fondo: "rgb(28, 25, 23)",
+    texto: "rgb(250, 250, 249)",
+    apagado: "rgb(168, 162, 158)",
+    acento: "rgb(20, 184, 166)",
+    // Oscuro, no blanco: blanco sobre el acento da 2.49:1 (`T-007` § Review).
+    textoDelAcento: "rgb(28, 25, 23)",
+    bordeFuerte: "rgb(120, 113, 108)",
+  },
+} as const;
+
+for (const [nombre, esperado] of Object.entries(TOKENS)) {
+  test(`los colores calculados del tema ${nombre} son los de design-handoff.md`, async ({
+    page,
+    context,
+  }) => {
+    if (nombre === "oscuro") {
+      await context.addCookies([
+        { name: "orbiq.tema", value: "oscuro", domain: "localhost", path: "/" },
+      ]);
+    }
+    await page.goto("/acceso");
+
+    const medido = await page.evaluate(() => {
+      const s = (sel: string) => getComputedStyle(document.querySelector(sel)!);
+      const boton = s('form button[type="submit"]:not([name="tema"])');
+      return {
+        fondo: getComputedStyle(document.body).backgroundColor,
+        texto: getComputedStyle(document.body).color,
+        apagado: s("main > p").color,
+        acento: boton.backgroundColor,
+        textoDelAcento: boton.color,
+        bordeFuerte: s('input[name="correo"]').borderTopColor,
+      };
+    });
+
+    expect(medido).toEqual(esperado);
+  });
+}

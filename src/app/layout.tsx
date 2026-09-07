@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="es" {...atributosDeTema(tema)}>
-      <body>{children}</body>
+      <body className="bg-bg font-sans text-text">{children}</body>
     </html>
   );
 }

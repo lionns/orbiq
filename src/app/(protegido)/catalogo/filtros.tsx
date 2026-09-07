@@ -72,7 +72,7 @@ export function Filtros({
               le impide encoger y desborda la pantalla a 360 px. Y el `flex` va en un hijo, porque
               una `legend` dentro de un contenedor flex no se coloca donde uno espera. */}
           <fieldset className="min-w-0">
-            <legend className="text-[color:var(--color-text-muted)]">Precio</legend>
+            <legend className="text-text-muted">Precio</legend>
             <div className="flex gap-2">
               <Campo
                 etiqueta="Precio desde"
