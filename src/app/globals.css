@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Tokens de design-handoff.md § Design Tokens. Cada ratio de contraste está medido, no estimado. */
+@theme {
+  --color-bg: #ffffff;
+  --color-surface: #f5f5f4;
+  --color-border: #d6d3d1; /* 1.49:1 — solo separadores, nunca borde de un control */
+  --color-border-strong: #8e8781; /* 3.54:1 — bordes de campos y botones */
+  --color-text: #1c1917; /* 17.49:1 */
+  --color-text-muted: #57534e; /* 7.63:1 */
+  --color-accent: #0f766e; /* 5.47:1 */
+  --color-accent-text: #ffffff;
+  --color-danger: #b91c1c; /* 6.47:1 */
+  --color-warning: #a16207; /* 4.92:1 */
+
+  --text-total: 2.5rem; /* 40px — el número que se mira mientras se cobra */
+
+  --radius-card: 8px;
+  --radius-button: 12px;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  /* Pila de sistema: una tipografía descargada son 40-100 kB por datos móviles antes de que se vea
+     el primer precio (design-handoff.md § Typography). */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 16px mínimo en cualquier campo: por debajo, iOS hace zoom al enfocar y saca al dueño del flujo. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* Un lector de código de barras es un teclado. Sin foco visible no se sabe dónde va a escribir. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* design-handoff.md § Motion: no es una versión degradada, es la ausencia de decoración. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

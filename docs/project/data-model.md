@@ -7,8 +7,8 @@ Dos reglas transversales, de `D-002`:
 
 - **Identificadores UUIDv7 generados en la aplicación** para las entidades de negocio — `category`,
   `product`, `sale`, `sale_line`, `stock_movement`. Ordenados en el tiempo, no secuenciales.
-- Las tres tablas de identidad — `user`, `account`, `session` — las define Better Auth y usan su
-  propio generador (`D-008`). Sus columnas se pueden renombrar, su forma no.
+- Las cuatro tablas de identidad — `user`, `account`, `session`, `verification` — las define Better
+  Auth y usan su propio generador (`D-008`). Sus columnas se pueden renombrar, su forma no.
 - **El libro nunca se reescribe.** Los movimientos no se editan ni se borran; una corrección es un
   movimiento nuevo.
 
@@ -58,6 +58,20 @@ Una credencial. Una persona puede tener varias: hoy solo contraseña, mañana ta
 | user_agent | text | no | |
 | created_at | timestamptz | yes | |
 | updated_at | timestamptz | yes | |
+
+### verification
+
+Tabla que exige Better Auth para valores de un solo uso — verificación de correo, restablecimiento.
+No estaba en este documento y apareció al generar la migración: es de la dependencia, no del
+dominio. Se registra en vez de dejarla como sorpresa (`D-008`, `architecture.md` § Known Constraints).
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| id | text | yes | |
+| identifier | text | yes | |
+| value | text | yes | |
+| expires_at | timestamptz | yes | |
+| created_at, updated_at | timestamptz | yes | |
 
 ### category
 
