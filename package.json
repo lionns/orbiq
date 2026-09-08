@@ -5,9 +5,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "predev": "node scripts/copiar-wasm.mjs",
+    "predev": "node scripts/copiar-wasm.mjs && node scripts/generar-iconos.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/copiar-wasm.mjs",
+    "prebuild": "node scripts/copiar-wasm.mjs && node scripts/generar-iconos.mjs",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",

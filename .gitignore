@@ -11,6 +11,9 @@ playwright-report/
 test-results/
 .DS_Store
 
-# Se copia desde node_modules en cada build (scripts/copiar-wasm.mjs).
+# Generados en cada build: el decodificador desde node_modules y los íconos desde los tokens
+# de design-handoff.md (scripts/copiar-wasm.mjs, scripts/generar-iconos.mjs).
 /public/zxing_reader.wasm
+/public/icono-*.png
+/public/apple-touch-icon.png
 
