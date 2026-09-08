@@ -9,7 +9,7 @@ Run these before starting new implementation. Any required failure blocks the ta
 | Check | Command or Procedure | Required | Notes |
 | --- | --- | --- | --- |
 | Tests | `npm test` | yes | Vitest sobre las funciones de dominio (`D-006`) |
-| Harness records | `node scripts/harness-lint.mjs` | yes | Budgets and record shape (D-009) |
+| Harness records | `node scripts/harness-lint.mjs` | yes | Presupuestos de `harness.json` § budgets y forma de los registros de `docs/sdd/TEMPLATES.md` |
 | Type check | `npm run typecheck` | yes | `tsc --noEmit`, modo estricto |
 | Lint | `npm run lint` | yes | |
 | Build | `npm run build` | | Lo cubre el despliegue; aquí es señal temprana |

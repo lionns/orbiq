@@ -13,5 +13,6 @@ rather than editing. Template in `../sdd/TEMPLATES.md`.
 | [D-004](D-004-identity-sesion-unica-de-dueno.md) | 2026-09-04 | Usuarios como tabla desde el día uno, con un solo rol | `superseded` | none |
 | [D-005](D-005-deploy-un-despliegue-por-negocio.md) | 2026-09-04 | Un despliegue por negocio, con el camino a multi-tenant abierto | `accepted` | none |
 | [D-006](D-006-tests-la-rebanada-es-la-prueba.md) | 2026-09-04 | Cada rebanada llega con una prueba que la atraviesa | `accepted` | none |
-| [D-007](D-007-interface-web-responsive-en-pestana.md) | 2026-09-04 | Web responsive, pulgar primero, en pestaña del navegador | `accepted` | none |
+| [D-007](D-007-interface-web-responsive-en-pestana.md) | 2026-09-04 | Web responsive, pulgar primero, en pestaña del navegador | `superseded` | none |
 | [D-008](D-008-identity-credenciales-como-relacion.md) | 2026-09-06 | Credenciales como relación propia, con proveedor externo desde el esquema | `accepted` | D-004 |
+| [D-009](D-009-interface-instalable-en-pantalla-de-inicio.md) | 2026-09-08 | Instalable en la pantalla de inicio, en Android y en iPhone | `accepted` | D-007 |
