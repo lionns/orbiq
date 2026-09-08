@@ -83,9 +83,15 @@ export function ObjetivoDeEscaneo({
   conCampo?: boolean;
 }) {
   const [tecleado, setTecleado] = useState("");
-  const [camara, setCamara] = useState<"apagada" | "encendiendo" | "leyendo" | "sinPermiso">(
-    "apagada",
-  );
+  /**
+   * Dos estados y no uno con cuatro valores. `activa` es lo único que dispara el efecto de la
+   * cámara, y el efecto **no lo escribe** salvo para apagarla: si el estado que enciende la cámara
+   * cambiara mientras está encendida, React limpiaría el efecto y pararía el flujo a los pocos
+   * milisegundos — la imagen aparecía y se moría sola. `fallo` queda fuera de sus dependencias a
+   * propósito.
+   */
+  const [activa, setActiva] = useState(false);
+  const [fallo, setFallo] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
   const lectura = useRef<LecturaEnCurso>(LECTURA_VACIA);
 
@@ -117,7 +123,7 @@ export function ObjetivoDeEscaneo({
   // Entrada 3 — la cámara. El bucle vive aquí y no en un `setInterval` suelto: al desmontar hay que
   // apagar la cámara, o el piloto del teléfono se queda encendido después de salir de la pantalla.
   useEffect(() => {
-    if (camara !== "encendiendo") return;
+    if (!activa) return;
     let flujo: MediaStream | null = null;
     let vivo = true;
 
@@ -133,7 +139,6 @@ export function ObjetivoDeEscaneo({
           await el.play();
         }
         const detector = await crearDetector();
-        setCamara("leyendo");
 
         while (vivo && el) {
           const encontrados = await detector.detect(el);
@@ -141,6 +146,10 @@ export function ObjetivoDeEscaneo({
           const primero = encontrados[0]?.rawValue;
           if (primero) {
             emitir(primero);
+            // Se escanea un artículo y se ve el resultado: el escaneo continuo está fuera de
+            // alcance. Cerrar es además el acuse de recibo — una cámara que sigue abierta y ya no
+            // lee es peor que ninguna.
+            setActiva(false);
             break;
           }
           await new Promise((r) => setTimeout(r, 120));
@@ -148,7 +157,10 @@ export function ObjetivoDeEscaneo({
       } catch {
         // Sin permiso o sin cámara. Se dice, no se disimula (`NFR-004`): quedan las otras dos
         // entradas y el dueño tiene que saber cuál le queda.
-        if (vivo) setCamara("sinPermiso");
+        if (vivo) {
+          setFallo(true);
+          setActiva(false);
+        }
       }
     })();
 
@@ -156,12 +168,11 @@ export function ObjetivoDeEscaneo({
       vivo = false;
       flujo?.getTracks().forEach((t) => t.stop());
     };
-  }, [camara, emitir]);
+  }, [activa, emitir]);
 
-  const encendida = camara === "encendiendo" || camara === "leyendo";
   // Sin campo propio el objetivo es un botón dentro de una fila ajena: no ocupa alto mientras está
   // cerrado, y se lleva la fila entera solo cuando hay algo que enseñar.
-  const ocupaLaFila = !conCampo && (encendida || camara === "sinPermiso") ? "basis-full" : "";
+  const ocupaLaFila = !conCampo && (activa || fallo) ? "basis-full" : "";
 
   return (
     <div className={`flex flex-col gap-2 ${ocupaLaFila}`} data-testid="objetivo-de-escaneo">
@@ -191,15 +202,18 @@ export function ObjetivoDeEscaneo({
         ) : null}
         <Boton
           type="button"
-          onClick={() => setCamara(encendida ? "apagada" : "encendiendo")}
+          onClick={() => {
+            setFallo(false);
+            setActiva((estaba) => !estaba);
+          }}
           data-testid="alternar-camara"
           className="shrink-0"
         >
-          {encendida ? "Cerrar" : "Cámara"}
+          {activa ? "Cerrar" : "Cámara"}
         </Boton>
       </div>
 
-      {encendida ? (
+      {activa ? (
         <video
           ref={video}
           muted
@@ -209,7 +223,7 @@ export function ObjetivoDeEscaneo({
         />
       ) : null}
 
-      {camara === "sinPermiso" ? (
+      {fallo ? (
         <p role="alert" className="text-danger" data-testid="camara-sin-permiso">
           No se pudo abrir la cámara. Teclea el código o usa el lector.
         </p>

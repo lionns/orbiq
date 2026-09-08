@@ -99,7 +99,7 @@ implements: [FR-002, FR-003, NFR-001, AC-006, AC-007]
 - Baseline result: `npm test` 49/49 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
   `build` ok.
 - Final result: `npm test` **65/65** · `harness-lint` clean · `typecheck` clean · `lint` clean ·
-  `build` ok · `test:e2e` **75/75**.
+  `build` ok · `test:e2e` **80/80**.
 - Decisions recorded: ninguna nueva. Se ejecuta `D-009`, y se cierra el «sin decidir» que
   `architecture.md` § Stack tenía abierto para la librería de lectura.
 - Follow-up: **el criterio de los tres segundos (`NFR-001`) sigue sin marcar** — se mide con un
@@ -127,6 +127,10 @@ implements: [FR-002, FR-003, NFR-001, AC-006, AC-007]
 - **El `.wasm` se descargaba de un CDN de terceros.** Es el comportamiento por defecto de
   `zxing-wasm`. Escanear es el acto central del producto y no puede depender de un dominio ajeno:
   se copia a `public/` en cada build.
+- **La cámara se apagaba sola, y lo encontró el dueño probando, no la suite.** El efecto que la
+  abría dependía del estado que él mismo escribía, así que React lo limpiaba y paraba el flujo a
+  los ~300 ms: la imagen aparecía y moría sin ningún error. Ahora hay prueba, y se verificó contra
+  el commit roto — falla ahí y pasa aquí.
 - El ritmo separa a la pistola de una persona, y esa regla es una función pura con siete pruebas,
   incluida la del umbral por ambos lados. Que el lector no robe teclas a quien escribe tiene su
   propia prueba de recorrido, porque `AC-X02` es lo que se rompe primero.
