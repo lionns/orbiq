@@ -1,6 +1,7 @@
 import { ESTADOS, type FiltrosCatalogo } from "@/domain/filtros";
 import { Boton, BotonEnlace } from "@/ui/boton";
 import { Campo, CLASE_CONTROL } from "@/ui/campo";
+import { BuscadorPorCodigo } from "./buscador-por-codigo";
 
 const ETIQUETA: Record<(typeof ESTADOS)[number], string> = {
   todos: "Todas",
@@ -27,7 +28,7 @@ export function Filtros({
 }) {
   return (
     <form className="mt-4" role="search">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input
           name="q"
           type="search"
@@ -39,6 +40,7 @@ export function Filtros({
         <Boton type="submit" className="shrink-0">
           Buscar
         </Boton>
+        <BuscadorPorCodigo />
       </div>
 
       <details open={acotado} className="mt-3">

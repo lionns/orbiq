@@ -16,16 +16,47 @@ import { formatearPrecio } from "@/domain/moneda";
 import type { CasillaDeVenta } from "@/domain/venta";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
+import { Campo } from "@/ui/campo";
 import { Existencias, Precio } from "@/ui/cifras";
-import { confirmarVenta } from "./acciones";
+import { ObjetivoDeEscaneo } from "@/ui/objetivo-de-escaneo";
+import { altaRapida, buscarPorCodigo, confirmarVenta } from "./acciones";
 
 type Estado = "armando" | "enviando" | "falloDeRed";
+
+/** Lo último que dijo el objetivo de escaneo. Se muestra junto a él, no en otra pantalla. */
+type Hallazgo =
+  | { tipo: "nada" }
+  | { tipo: "anadido"; nombre: string }
+  | { tipo: "desconocido"; codigo: string }
+  | { tipo: "ilegible"; codigo: string };
 
 export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
   const router = useRouter();
   const [carrito, setCarrito] = useState<Carrito>(() => carritoVacio(nuevoId()));
   const [estado, setEstado] = useState<Estado>("armando");
   const [ultima, setUltima] = useState<number | null>(null);
+  const [hallazgo, setHallazgo] = useState<Hallazgo>({ tipo: "nada" });
+
+  function alCarrito(producto: { id: string; nombre: string; precio: number }) {
+    setCarrito((actual) =>
+      agregar(actual, {
+        productoId: producto.id,
+        nombre: producto.nombre,
+        precio: producto.precio,
+      }),
+    );
+    setHallazgo({ tipo: "anadido", nombre: producto.nombre });
+  }
+
+  /**
+   * La única salida del objetivo de escaneo. Da igual por cuál de las tres entradas llegó el
+   * código: desde aquí hacia abajo hay un solo camino (`AC-006`).
+   */
+  async function alEscanear(codigo: string) {
+    const resuelto = await buscarPorCodigo(codigo);
+    if (resuelto.ok) return alCarrito(resuelto.producto);
+    setHallazgo({ tipo: resuelto.motivo, codigo: resuelto.codigo });
+  }
 
   async function confirmar() {
     setEstado("enviando");
@@ -52,6 +83,29 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
   return (
     <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_22rem] lg:gap-6">
       <section className="px-4 pb-[19rem] pt-4 lg:pb-8" aria-label="Productos">
+        <div className="mb-4">
+          <ObjetivoDeEscaneo onCodigo={alEscanear} />
+          {hallazgo.tipo === "anadido" ? (
+            <p className="mt-2 text-text-muted" data-testid="escaneo-anadido">
+              Añadido: {hallazgo.nombre}
+            </p>
+          ) : null}
+          {hallazgo.tipo === "ilegible" ? (
+            <p className="mt-2 text-danger" role="alert" data-testid="escaneo-ilegible">
+              «{hallazgo.codigo}» no parece un código de barras.
+            </p>
+          ) : null}
+          {hallazgo.tipo === "desconocido" ? (
+            // `AC-007`: se ofrece darlo de alta sin salir de aquí. La venta es estado de esta
+            // pantalla, así que no navegar es lo que garantiza que no se pierda.
+            <AltaRapida
+              codigo={hallazgo.codigo}
+              onCreado={alCarrito}
+              onDescartar={() => setHallazgo({ tipo: "nada" })}
+            />
+          ) : null}
+        </div>
+
         {ultima !== null && estaVacio(carrito) ? (
           <p className="mb-4 text-text-muted" data-testid="venta-anterior">
             Venta registrada por {formatearPrecio(ultima)}. Lista la siguiente.
@@ -213,5 +267,84 @@ function BotonCantidad({
     <Boton type="button" aria-label={etiqueta} onClick={onClick} className="w-12 px-0 text-xl">
       {children}
     </Boton>
+  );
+}
+
+/**
+ * El alta de un código desconocido, dentro de la pantalla de venta (`FR-003`, `AC-007`).
+ *
+ * No navega a ninguna parte a propósito: la venta en curso vive en el estado de esta pantalla, y
+ * cualquier navegación la perdería. Pide lo mínimo para poder cobrar y deja el resto del producto
+ * para su ficha.
+ */
+function AltaRapida({
+  codigo,
+  onCreado,
+  onDescartar,
+}: {
+  codigo: string;
+  onCreado: (producto: { id: string; nombre: string; precio: number }) => void;
+  onDescartar: () => void;
+}) {
+  const [nombre, setNombre] = useState("");
+  const [precio, setPrecio] = useState("");
+  const [error, setError] = useState<Record<string, string>>({});
+  const [guardando, setGuardando] = useState(false);
+
+  async function guardar() {
+    setGuardando(true);
+    setError({});
+    try {
+      const resultado = await altaRapida(codigo, nombre, precio);
+      if (!resultado.ok) return setError({ [resultado.campo]: resultado.mensaje });
+      onCreado({ id: resultado.id, nombre: nombre.trim(), precio: Number(precio) });
+    } catch {
+      setError({ nombre: "No se guardó. Revisa la conexión y vuelve a intentarlo." });
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  return (
+    <div
+      className="mt-2 rounded-card border border-border-strong bg-surface p-3"
+      data-testid="alta-rapida"
+    >
+      <p className="mb-2 font-medium">Ese código no está. Dalo de alta y sigue vendiendo.</p>
+      <p className="mb-2 text-text-muted">Código {codigo}</p>
+      <div className="flex flex-col gap-2">
+        <Campo
+          etiqueta="Nombre"
+          nombre="nombre-rapido"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          error={error.nombre}
+          data-testid="alta-rapida-nombre"
+        />
+        <Campo
+          etiqueta="Precio"
+          nombre="precio-rapido"
+          value={precio}
+          onChange={(e) => setPrecio(e.target.value)}
+          error={error.precio ?? error.codigoDeBarras}
+          inputMode="numeric"
+          data-testid="alta-rapida-precio"
+        />
+        <div className="flex gap-2">
+          <Boton
+            type="button"
+            variante="principal"
+            onClick={guardar}
+            disabled={guardando}
+            data-testid="alta-rapida-guardar"
+          >
+            {guardando ? "Guardando…" : "Dar de alta y añadir"}
+          </Boton>
+          <Boton type="button" onClick={onDescartar} data-testid="alta-rapida-descartar">
+            Ahora no
+          </Boton>
+        </div>
+      </div>
+    </div>
   );
 }

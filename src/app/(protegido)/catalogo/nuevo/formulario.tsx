@@ -8,7 +8,14 @@ import { darDeAlta, type EstadoAlta } from "./acciones";
 
 const inicial: EstadoAlta = { errores: {} };
 
-export function FormularioProducto({ categorias }: { categorias: string[] }) {
+export function FormularioProducto({
+  categorias,
+  codigo = "",
+}: {
+  categorias: string[];
+  /** Precargado cuando se llega desde un escaneo de código desconocido (`AC-007`). */
+  codigo?: string;
+}) {
   const [estado, accion, enviando] = useActionState(darDeAlta, inicial);
 
   return (
@@ -46,6 +53,9 @@ export function FormularioProducto({ categorias }: { categorias: string[] }) {
         error={estado.errores.codigoDeBarras}
         ayuda="Opcional. Granel, pan y huevos no tienen."
         inputMode="numeric"
+        // `defaultValue` y no `value`: el campo sigue siendo del navegador, así que el formulario
+        // continúa funcionando sin JavaScript, como el resto del alta.
+        defaultValue={codigo}
       />
 
       <BarraInferior className="p-4">

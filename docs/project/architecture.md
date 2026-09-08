@@ -23,8 +23,7 @@ eso vive aquí y no en una decisión.
 | Pruebas | Vitest (dominio) + Playwright (rebanada completa) | Suite rápida y recorrido real (`D-006`) |
 | Hospedaje | Vercel, un proyecto por negocio | Un despliegue por negocio (`D-005`) |
 
-Queda **sin decidir** aquí, y se resuelve en su tarea sobre evidencia: la librería de lectura de
-código de barras que respalda a `BarcodeDetector` donde no exista.
+| Lectura de códigos | `BarcodeDetector` del navegador, con `barcode-detector` (ZXing en WebAssembly) de respaldo | Resuelto en `T-016` sobre lo medido, no sobre la documentación |
 
 ## Frontend
 
@@ -37,7 +36,20 @@ código de barras que respalda a `BarcodeDetector` donde no exista.
 - El estado del servidor vive en el servidor y se revalida. No hay store global de cliente hasta que
   un caso lo pida (`D-003`).
 - El escaneo entra por un único componente objetivo que acepta cámara, lector de teclado y texto
-  tecleado por igual, con `BarcodeDetector` nativo donde exista (`D-007`).
+  tecleado por igual, con `BarcodeDetector` nativo donde exista (`D-009`).
+- **El respaldo expone la misma API que el nativo**, así que elegir uno u otro es una línea y no una
+  rama: es lo que hace cumplible `AC-006`, que exige que las tres entradas den el mismo resultado.
+  Pesa 1,1 MB, se importa solo cuando hace falta y nunca entra en el paquete inicial.
+- **El `.wasm` se sirve desde nuestro origen.** `zxing-wasm` por defecto se lo descarga a un CDN de
+  terceros en tiempo de ejecución; `scripts/copiar-wasm.mjs` lo copia a `public/` en cada build, con
+  la versión que fija `package-lock.json`. El acto central del producto no depende de un dominio
+  ajeno.
+- **Se piden `ean_13` y `ean_8`, no `upc_a`.** Un UPC-A es un EAN-13 con un cero delante, así que un
+  lector de EAN-13 lo lee. Medido: Chromium **no** anuncia `upc_a`, de modo que exigirlo descartaba
+  el decodificador nativo y bajaba el WebAssembly en Android para nada. La equivalencia de doce y
+  trece dígitos se resuelve al consultar, en `src/domain/escaneo.ts` § `equivalentes`.
+- Un lector de códigos por Bluetooth se empareja como teclado (HID) y entra por la misma puerta que
+  el tecleado: no hay código propio para él, que es lo que `D-009` compró.
 - Accesibilidad: objetivos táctiles grandes, foco visible, y la aplicación entera operable por
   teclado — un lector de códigos de barras *es* un teclado.
 

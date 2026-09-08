@@ -1,5 +1,6 @@
-import { and, asc, count, eq, gte, ilike, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, gte, ilike, inArray, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { equivalentes, normalizarCodigo } from "./escaneo";
 import type { FiltrosCatalogo } from "./filtros";
 import type { AltaDeProducto, EdicionDeProducto } from "./producto";
 
@@ -89,6 +90,39 @@ export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatal
 
   const total = conteo?.n ?? 0;
   return { productos, total, hayMas: total > productos.length };
+}
+
+export type Resuelto =
+  | { ok: true; producto: ProductoDelCatalogo }
+  | { ok: false; motivo: "desconocido" | "ilegible"; codigo: string };
+
+/**
+ * Un código a un producto. Es la única entrada del escaneo: da igual si lo trajo la cámara, el
+ * lector o el dedo (`AC-006`), y por ser función de dominio sirve igual a la pantalla de hoy que a
+ * la ruta HTTP de mañana (`D-001`).
+ *
+ * Un producto desactivado se devuelve igual. Existe, tiene ese código, y decir «desconocido»
+ * llevaría al dueño a darlo de alta otra vez y a chocar con la unicidad de `AC-004`.
+ */
+export async function resolverCodigo(crudo: string): Promise<Resuelto> {
+  const codigo = normalizarCodigo(crudo);
+  if (codigo === null) return { ok: false, motivo: "ilegible", codigo: crudo.trim() };
+
+  const [producto] = await db
+    .select({
+      id: schema.product.id,
+      nombre: schema.product.name,
+      precio: schema.product.price,
+      existencias: schema.product.stock,
+      categoria: schema.category.name,
+      codigoDeBarras: schema.product.barcode,
+      activo: schema.product.isActive,
+    })
+    .from(schema.product)
+    .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
+    .where(inArray(schema.product.barcode, equivalentes(codigo)));
+
+  return producto ? { ok: true, producto } : { ok: false, motivo: "desconocido", codigo };
 }
 
 export async function categoriasExistentes(): Promise<string[]> {
