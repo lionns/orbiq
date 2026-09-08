@@ -17,3 +17,6 @@ test-results/
 /public/icono-*.png
 /public/apple-touch-icon.png
 
+
+# Hoja de códigos de barras, generada bajo demanda (scripts/hoja-de-codigos.mts).
+/hoja-de-codigos.html

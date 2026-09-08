@@ -18,7 +18,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:verify": "tsx scripts/verificar-esquema.mts",
     "alta-dueno": "tsx scripts/alta-dueno.mts",
-    "sembrar-demo": "tsx scripts/sembrar-demo.mts"
+    "sembrar-demo": "tsx scripts/sembrar-demo.mts",
+    "codigos": "tsx scripts/hoja-de-codigos.mts"
   },
   "type": "module",
   "dependencies": {
