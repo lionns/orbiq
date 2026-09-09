@@ -5,7 +5,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { crearProducto, resolverCodigo, type Resuelto, type ResultadoAlta } from "@/domain/catalogo";
 import { validarAlta } from "@/domain/producto";
-import { registrarVenta, type LineaPedida, type ResultadoVenta } from "@/domain/venta";
+import {
+  registrarVenta,
+  resolverEntradaDeVenta,
+  type EntradaDeVenta,
+  type LineaPedida,
+  type ResultadoVenta,
+} from "@/domain/venta";
 import { sesionActual } from "@/domain/session";
 
 export async function confirmarVenta(
@@ -62,4 +68,16 @@ export async function altaRapida(
   const resultado = await crearProducto(validado.valor, sesion.usuarioId);
   if (resultado.ok) revalidatePath("/catalogo");
   return resultado;
+}
+
+/**
+ * Lo que el dueño escribe o escanea en la venta, resuelto en un solo viaje (`FR-015`, `AC-023`).
+ *
+ * Un viaje y no dos —primero código, luego nombre— porque `NFR-002` cuenta segundos: una venta de
+ * tres artículos entera tiene que caber en veinte.
+ */
+export async function buscarEnVenta(texto: string): Promise<EntradaDeVenta> {
+  const sesion = await sesionActual(await headers());
+  if (!sesion) redirect("/acceso");
+  return resolverEntradaDeVenta(texto);
 }

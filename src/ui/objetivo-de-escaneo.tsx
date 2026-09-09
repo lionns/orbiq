@@ -72,9 +72,19 @@ export function ObjetivoDeEscaneo({
   onCodigo,
   etiqueta = "Código de barras",
   conCampo = true,
+  admiteNombre = false,
+  onVaciar,
 }: {
   onCodigo: (codigo: string) => void;
+  /** Se avisa al quedar el campo vacío: la venta lo usa para volver a los frecuentes. */
+  onVaciar?: (() => void) | undefined;
   etiqueta?: string;
+  /**
+   * En la venta el mismo campo acepta nombre o código (`FR-015`): quien decide qué era es la
+   * función de dominio, no la pantalla. Cambia el teclado que sale en el celular — con nombres, el
+   * numérico no sirve.
+   */
+  admiteNombre?: boolean;
   /**
    * El catálogo ya tiene un campo que busca por nombre **o código**, así que allí el objetivo
    * aporta la cámara y el lector y no un segundo cuadro de texto. Dos campos que aceptan lo mismo
@@ -184,15 +194,21 @@ export function ObjetivoDeEscaneo({
           <input
             name="codigo"
             value={tecleado}
-            onChange={(e) => setTecleado(e.target.value)}
+            onChange={(e) => {
+              setTecleado(e.target.value);
+              if (!e.target.value) onVaciar?.();
+            }}
             onKeyDown={(e) => {
               if (e.key !== "Enter") return;
               e.preventDefault();
+              // El texto **se queda**. Al buscar por nombre, vaciarlo es como se vuelve a los
+              // frecuentes (`T-017`), y no se puede vaciar lo que ya se vació solo. La cámara y el
+              // lector no pasan por este campo, así que no les afecta.
               emitir(tecleado.trim());
-              setTecleado("");
             }}
-            // `inputMode` saca el teclado numérico en celular sin impedir pegar un código.
-            inputMode="numeric"
+            // El teclado que sale en el celular. Numérico mientras solo entren códigos; con
+            // nombres tiene que ser el normal o no se puede escribir «panela».
+            inputMode={admiteNombre ? "text" : "numeric"}
             autoComplete="off"
             placeholder={etiqueta}
             data-testid="codigo-tecleado"

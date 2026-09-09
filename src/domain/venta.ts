@@ -1,5 +1,7 @@
-import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { resolverCodigo } from "./catalogo";
+import { normalizarCodigo } from "./escaneo";
 
 /** La transacción de Drizzle no es la misma forma que `db`, pero para escribir es intercambiable. */
 type Escritor = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -64,6 +66,59 @@ export async function cuadricula(): Promise<CasillaDeVenta[]> {
     .groupBy(schema.product.id)
     .orderBy(desc(vendidoReciente), asc(schema.product.name))
     .limit(CASILLAS);
+}
+
+/**
+ * Lo que el dueño escribe en la venta, resuelto. Una sola función decide qué era, y la pantalla no
+ * tiene que adivinarlo (`D-001`): un código se busca como código y cualquier otra cosa se busca
+ * como nombre.
+ */
+export type EntradaDeVenta =
+  | { tipo: "producto"; producto: CasillaDeVenta }
+  | { tipo: "codigoDesconocido"; codigo: string }
+  | { tipo: "resultados"; texto: string; resultados: CasillaDeVenta[] };
+
+/** Suficientes para encontrar lo que se busca, pocos para que quepan sin empujar el total. */
+export const RESULTADOS = 12;
+
+export async function resolverEntradaDeVenta(texto: string): Promise<EntradaDeVenta> {
+  const limpio = texto.trim();
+
+  // Si tiene forma de código, es un código. Escanear y teclear el código no pueden dar resultados
+  // distintos (`AC-006`), así que este camino es el mismo de `T-016`.
+  const codigo = normalizarCodigo(limpio);
+  if (codigo !== null) {
+    const resuelto = await resolverCodigo(codigo);
+    if (!resuelto.ok) return { tipo: "codigoDesconocido", codigo };
+    const { id, nombre, precio, existencias } = resuelto.producto;
+    return { tipo: "producto", producto: { id, nombre, precio, existencias } };
+  }
+
+  if (!limpio) return { tipo: "resultados", texto: limpio, resultados: [] };
+
+  const resultados = await db
+    .select({
+      id: schema.product.id,
+      nombre: schema.product.name,
+      precio: schema.product.price,
+      existencias: schema.product.stock,
+    })
+    .from(schema.product)
+    // Un producto retirado no se vende (`T-012`), así que no puede aparecer aquí.
+    .where(
+      and(
+        eq(schema.product.isActive, true),
+        // También por código: un trozo de código —«7702»— no es un código válido y caería aquí.
+        or(
+          ilike(schema.product.name, `%${limpio}%`),
+          ilike(schema.product.barcode, `%${limpio}%`),
+        ),
+      ),
+    )
+    .orderBy(asc(schema.product.name))
+    .limit(RESULTADOS);
+
+  return { tipo: "resultados", texto: limpio, resultados };
 }
 
 export async function registrarVenta(

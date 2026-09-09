@@ -19,7 +19,7 @@ import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
 import { Existencias, Precio } from "@/ui/cifras";
 import { ObjetivoDeEscaneo } from "@/ui/objetivo-de-escaneo";
-import { altaRapida, buscarPorCodigo, confirmarVenta } from "./acciones";
+import { altaRapida, buscarEnVenta, confirmarVenta } from "./acciones";
 
 type Estado = "armando" | "enviando" | "falloDeRed";
 
@@ -28,7 +28,8 @@ type Hallazgo =
   | { tipo: "nada" }
   | { tipo: "anadido"; nombre: string }
   | { tipo: "desconocido"; codigo: string }
-  | { tipo: "ilegible"; codigo: string };
+  /** Lo buscado por nombre. Los resultados sustituyen a la cuadrícula, no se apilan sobre ella. */
+  | { tipo: "resultados"; texto: string; resultados: CasillaDeVenta[] };
 
 export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
   const router = useRouter();
@@ -37,7 +38,17 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
   const [ultima, setUltima] = useState<number | null>(null);
   const [hallazgo, setHallazgo] = useState<Hallazgo>({ tipo: "nada" });
 
-  function alCarrito(producto: { id: string; nombre: string; precio: number }) {
+  /**
+   * El único camino para añadir, venga de la cuadrícula, de un resultado o del escaneo.
+   *
+   * El aviso es del que llega **a ciegas**: quien escanea no vio qué producto era hasta que se lo
+   * dicen. Quien toca una casilla ya sabe cuál tocó, y meterle una línea encima desplazaría la
+   * cuadrícula bajo el dedo entre un toque y el siguiente.
+   */
+  function alCarrito(
+    producto: { id: string; nombre: string; precio: number },
+    aviso: Hallazgo = { tipo: "nada" },
+  ) {
     setCarrito((actual) =>
       agregar(actual, {
         productoId: producto.id,
@@ -45,17 +56,23 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
         precio: producto.precio,
       }),
     );
-    setHallazgo({ tipo: "anadido", nombre: producto.nombre });
+    setHallazgo(aviso);
   }
 
   /**
-   * La única salida del objetivo de escaneo. Da igual por cuál de las tres entradas llegó el
-   * código: desde aquí hacia abajo hay un solo camino (`AC-006`).
+   * La única salida del objetivo. Da igual si llegó por cámara, por lector o tecleado (`AC-006`), y
+   * da igual si era un código o un nombre: quien lo decide es la función de dominio, en un solo
+   * viaje al servidor (`FR-015`).
    */
-  async function alEscanear(codigo: string) {
-    const resuelto = await buscarPorCodigo(codigo);
-    if (resuelto.ok) return alCarrito(resuelto.producto);
-    setHallazgo({ tipo: resuelto.motivo, codigo: resuelto.codigo });
+  async function alEscanear(texto: string) {
+    const entrada = await buscarEnVenta(texto);
+    if (entrada.tipo === "producto") {
+      return alCarrito(entrada.producto, { tipo: "anadido", nombre: entrada.producto.nombre });
+    }
+    if (entrada.tipo === "codigoDesconocido") {
+      return setHallazgo({ tipo: "desconocido", codigo: entrada.codigo });
+    }
+    setHallazgo({ tipo: "resultados", texto: entrada.texto, resultados: entrada.resultados });
   }
 
   async function confirmar() {
@@ -79,20 +96,28 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
   }
 
   const enviando = estado === "enviando";
+  // Una lista u otra, nunca las dos: los resultados ocupan el sitio de los frecuentes.
+  const buscando = hallazgo.tipo === "resultados" && hallazgo.resultados.length > 0;
+  const mostrando = buscando ? hallazgo.resultados : casillas;
 
   return (
     <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_22rem] lg:gap-6">
       <section className="px-4 pb-[19rem] pt-4 lg:pb-8" aria-label="Productos">
         <div className="mb-4">
-          <ObjetivoDeEscaneo onCodigo={alEscanear} />
+          <ObjetivoDeEscaneo
+            onCodigo={alEscanear}
+            etiqueta="Nombre o código"
+            admiteNombre
+            onVaciar={() => setHallazgo({ tipo: "nada" })}
+          />
           {hallazgo.tipo === "anadido" ? (
             <p className="mt-2 text-text-muted" data-testid="escaneo-anadido">
               Añadido: {hallazgo.nombre}
             </p>
           ) : null}
-          {hallazgo.tipo === "ilegible" ? (
-            <p className="mt-2 text-danger" role="alert" data-testid="escaneo-ilegible">
-              «{hallazgo.codigo}» no parece un código de barras.
+          {hallazgo.tipo === "resultados" && hallazgo.resultados.length === 0 ? (
+            <p className="mt-2" role="alert" data-testid="sin-resultados">
+              Ningún producto se llama «{hallazgo.texto}».
             </p>
           ) : null}
           {hallazgo.tipo === "desconocido" ? (
@@ -112,7 +137,15 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
           </p>
         ) : null}
 
-        {casillas.length === 0 ? (
+        {buscando ? (
+          <p className="mb-3 text-text-muted" data-testid="encabezado-resultados">
+            {mostrando.length === 1
+              ? `1 resultado para «${hallazgo.texto}»`
+              : `${mostrando.length} resultados para «${hallazgo.texto}»`}
+          </p>
+        ) : null}
+
+        {mostrando.length === 0 && !buscando ? (
           <p className="text-text-muted" data-testid="cuadricula-vacia">
             Todavía no hay productos. Da de alta el primero en el catálogo para empezar a vender.
           </p>
@@ -120,15 +153,13 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
           // `auto-rows-fr` iguala el alto de todas las filas; sin él, una fila cuyos nombres caben
           // en una línea encoge y la cuadrícula queda dentada.
           <ul className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {casillas.map((c) => (
+            {mostrando.map((c) => (
               <li key={c.id}>
                 <button
                   type="button"
-                  onClick={() =>
-                    setCarrito((actual) =>
-                      agregar(actual, { productoId: c.id, nombre: c.nombre, precio: c.precio }),
-                    )
-                  }
+                  // Un solo camino para añadir, venga de la cuadrícula o de un resultado: es lo
+                  // que hace que tocar un resultado devuelva los frecuentes sin código aparte.
+                  onClick={() => alCarrito(c)}
                   data-testid={`casilla-${c.id}`}
                   data-tarjeta
                   // `active:` es retroalimentación inmediata: si el dueño duda si lo añadió, lo

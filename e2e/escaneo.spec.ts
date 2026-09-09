@@ -109,11 +109,20 @@ test("AC-007 · un código desconocido se da de alta sin perder la venta", async
   expect(creado?.precio).toBe(1200);
 });
 
-test("un código ilegible se dice, no se busca en la base", async ({ page }) => {
+test("lo que no tiene forma de código se busca como nombre", async ({ page }) => {
   await entrarComo(page, dueno);
-  await page.getByTestId("codigo-tecleado").fill("770200");
+
+  // Hasta `T-016` esto era un callejón: «no parece un código de barras» y ahí acababa. `T-017`
+  // cambió el contrato a propósito — el mismo campo acepta nombre o código, y quien decide qué era
+  // es la función de dominio. Un trozo de código que no coincide con nada cae en «sin resultados».
+  // Un trozo del código sembrado por esta prueba: no es un código válido —le faltan dígitos— pero
+  // sí encuentra el producto. Un literal fijo no serviría: la búsqueda también mira el código, y
+  // cualquier prefijo suelto engancharía con lo que haya sembrado en la base.
+  await page.getByTestId("codigo-tecleado").fill(CONOCIDO.slice(0, 7));
   await page.getByTestId("codigo-tecleado").press("Enter");
-  await expect(page.getByTestId("escaneo-ilegible")).toContainText("no parece un código");
+  await expect(page.getByTestId("escaneo-ilegible")).toHaveCount(0);
+  await expect(page.getByTestId("encabezado-resultados")).toContainText("1 resultado");
+  await expect(page.getByTestId(`casilla-${panelaId}`)).toBeVisible();
 });
 
 test("desde el catálogo, el lector abre la ficha del producto", async ({ page }) => {
