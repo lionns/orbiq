@@ -1,7 +1,7 @@
 ---
 id: T-014
 title: Historial de ventas, con detalle y anulación
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -103,8 +103,8 @@ implements: [FR-006, FR-012, US-007, US-013, AC-011, AC-012, AC-019, AC-020, AC-
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
 - Pendiente de tu firma, junto con `T-004`…`T-008` y `T-010`…`T-013`.
 
 ## Trace

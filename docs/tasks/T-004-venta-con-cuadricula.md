@@ -1,7 +1,7 @@
 ---
 id: T-004
 title: Registro de venta desde la cuadrícula de frecuentes
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -124,8 +124,8 @@ implements: [FR-004, FR-005, US-005, US-006, NFR-002, NFR-003, NFR-004, AC-008, 
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
 - Pendiente de tu firma.
 
 ## Trace

@@ -1,7 +1,7 @@
 ---
 id: T-008
 title: Tailwind sin CSS a mano donde no hace falta
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -93,8 +93,8 @@ implements: [FR-010, AC-X02]
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
 - Pendiente de tu firma, junto con `T-004`…`T-007`.
 
 ## Trace

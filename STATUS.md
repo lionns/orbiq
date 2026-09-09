@@ -9,25 +9,25 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
-| [T-004](docs/tasks/T-004-venta-con-cuadricula.md) | `review` | El dueño arma una venta tocando productos en una cuadrícula, ve el total todo el tiempo, y confirma. Confirmar descuenta existencias en una sola transacción y reintentar no cobra dos veces. |
-| [T-005](docs/tasks/T-005-filtros-y-paginado-del-catalogo.md) | `review` | El dueño acota el catálogo por categoría, estado de existencias y rango de precio, y lo recorre por partes con «Ver más» sin perder lo que ya vio. Todo el estado vive en la dirección, así que el enlace se comparte y la pantalla funciona sin JavaScript. |
-| [T-006](docs/tasks/T-006-componentes-compartidos-de-interfaz.md) | `review` | Sacar a componentes compartidos lo que hoy está copiado en cinco pantallas —botones, campos, la barra fija de abajo, el precio y las existencias— sin cambiar una sola cosa de lo que el dueño ve. |
-| [T-007](docs/tasks/T-007-tema-claro-oscuro-o-del-sistema.md) | `review` | El dueño elige entre tema claro, oscuro o el del sistema, la elección se recuerda, y la pantalla nunca aparece con el tema equivocado ni por un instante. Ambas paletas cumplen contraste medido, no estimado. |
-| [T-008](docs/tasks/T-008-tailwind-sin-css-a-mano.md) | `review` | Que las 43 clases con valor arbitrario pasen a ser las utilidades que `@theme` ya genera, y que el CSS escrito a mano se reduzca a lo que no se puede expresar con una clase — con el motivo escrito al lado de cada regla que se queda. |
-| [T-010](docs/tasks/T-010-superficies-y-bordes-que-se-vean.md) | `review` | Que un botón secundario y una tarjeta se distingan del fondo de la página en los dos temas, y que la suite detecte por sí sola el día que dejen de distinguirse. |
-| [T-011](docs/tasks/T-011-historial-de-movimientos-y-ajuste.md) | `review` | El dueño abre un producto y ve todos los movimientos que llevaron a sus existencias actuales, y corrige el conteo explicando por qué. Es la pantalla que hace visible el libro de D-002 — hasta hoy el libro existía y nadie podía verlo. |
-| [T-012](docs/tasks/T-012-editar-y-desactivar-productos.md) | `review` | El dueño corrige los datos de un producto y retira el que ya no vende, y las dos cosas quedan registradas donde ya mira: en el historial del producto, junto a sus movimientos. |
-| [T-013](docs/tasks/T-013-la-ficha-informa-antes-de-editar.md) | `review` | Que tocar un producto en el catálogo lleve a verlo, no a un formulario. Las acciones que lo cambian existen, pero detrás de una intención explícita y separadas de la consulta. |
-| [T-014](docs/tasks/T-014-historial-de-ventas.md) | `review` | El dueño ve las ventas de un día con su total, abre una para ver qué llevaba y a cuánto, busca por rango de fechas y anula la que registró por error. Es lo que se mira al cerrar la caja. |
 | [T-015](docs/tasks/T-015-instalable-en-la-pantalla-de-inicio.md) | `review` | Que el dueño abra orbiq tocando un ícono, a pantalla completa y sin barra de direcciones, igual en Android que en iPhone. Hoy llega escribiendo una dirección en el navegador, que es el paso que compite con no usarla. |
 | [T-016](docs/tasks/T-016-objetivo-de-escaneo.md) | `review` | Que el dueño apunte a un código y vea el producto, venga de la cámara, de una pistola lectora o tecleado a mano, por el mismo camino y con el mismo resultado. Es el acto central del producto y hoy no existe: el esquema guarda el código desde T-003 y nada lo lee. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
+| [T-004](docs/tasks/T-004-venta-con-cuadricula.md) | `done` | El dueño arma una venta tocando productos en una cuadrícula, ve el total todo el tiempo, y confirma. Confirmar descuenta existencias en una sola transacción y reintentar no cobra dos veces. |
+| [T-005](docs/tasks/T-005-filtros-y-paginado-del-catalogo.md) | `done` | El dueño acota el catálogo por categoría, estado de existencias y rango de precio, y lo recorre por partes con «Ver más» sin perder lo que ya vio. Todo el estado vive en la dirección, así que el enlace se comparte y la pantalla funciona sin JavaScript. |
+| [T-006](docs/tasks/T-006-componentes-compartidos-de-interfaz.md) | `done` | Sacar a componentes compartidos lo que hoy está copiado en cinco pantallas —botones, campos, la barra fija de abajo, el precio y las existencias— sin cambiar una sola cosa de lo que el dueño ve. |
+| [T-007](docs/tasks/T-007-tema-claro-oscuro-o-del-sistema.md) | `done` | El dueño elige entre tema claro, oscuro o el del sistema, la elección se recuerda, y la pantalla nunca aparece con el tema equivocado ni por un instante. Ambas paletas cumplen contraste medido, no estimado. |
+| [T-008](docs/tasks/T-008-tailwind-sin-css-a-mano.md) | `done` | Que las 43 clases con valor arbitrario pasen a ser las utilidades que `@theme` ya genera, y que el CSS escrito a mano se reduzca a lo que no se puede expresar con una clase — con el motivo escrito al lado de cada regla que se queda. |
+| [T-010](docs/tasks/T-010-superficies-y-bordes-que-se-vean.md) | `done` | Que un botón secundario y una tarjeta se distingan del fondo de la página en los dos temas, y que la suite detecte por sí sola el día que dejen de distinguirse. |
+| [T-011](docs/tasks/T-011-historial-de-movimientos-y-ajuste.md) | `done` | El dueño abre un producto y ve todos los movimientos que llevaron a sus existencias actuales, y corrige el conteo explicando por qué. Es la pantalla que hace visible el libro de D-002 — hasta hoy el libro existía y nadie podía verlo. |
+| [T-012](docs/tasks/T-012-editar-y-desactivar-productos.md) | `done` | El dueño corrige los datos de un producto y retira el que ya no vende, y las dos cosas quedan registradas donde ya mira: en el historial del producto, junto a sus movimientos. |
+| [T-013](docs/tasks/T-013-la-ficha-informa-antes-de-editar.md) | `done` | Que tocar un producto en el catálogo lleve a verlo, no a un formulario. Las acciones que lo cambian existen, pero detrás de una intención explícita y separadas de la consulta. |
+| [T-014](docs/tasks/T-014-historial-de-ventas.md) | `done` | El dueño ve las ventas de un día con su total, abre una para ver qué llevaba y a cuánto, busca por rango de fechas y anula la que registró por error. Es lo que se mira al cerrar la caja. |
 
 ## Next
 
-**T-004** (`review`) — El dueño arma una venta tocando productos en una cuadrícula, ve el total todo el tiempo, y confirma. Confirmar descuenta existencias en una sola transacción y reintentar no cobra dos veces.
+**T-015** (`review`) — Que el dueño abra orbiq tocando un ícono, a pantalla completa y sin barra de direcciones, igual en Android que en iPhone. Hoy llega escribiendo una dirección en el navegador, que es el paso que compite con no usarla.
 
 ## Open decisions
 
@@ -35,10 +35,10 @@ None. All decisions are accepted or superseded.
 
 ## Journal — last 5
 
-- 2026-09-08 | T-015 | review | instalable en pantalla de inicio, con iconos generados de los tokens | 6 files | test 65/65, e2e 78/78 | D-009
-- 2026-09-08 | T-016 | review | objetivo de escaneo con cámara, lector y tecleado, y alta desde código desconocido | 16 files | test 65/65, e2e 75/75 | D-009
-- 2026-09-06 | T-003 | done | catálogo con alta que escribe el libro y saldo recomputado | 11 files | test 24/24, e2e 18/18 | D-002,D-003
-- 2026-09-06 | T-002 | done | sesión de dueño con correo y contraseña, guardia donde se leen los datos | 14 files | test 11/11, e2e 10/10 | D-001,D-008
-- 2026-09-06 | T-001 | done | andamiaje y esquema de nueve tablas aplicado contra Neon | 30 files | test 7/7, e2e 2/2, db:verify 5/5 | D-001,D-002,D-003,D-006,D-008
+- 2026-09-08 | T-014 | done | historial de ventas, con detalle y anulación | 17 files | test 49/49, e2e 70/70, db:verify 5/5 | D-002,D-001
+- 2026-09-08 | T-013 | done | la ficha del producto informa antes de dejar editar | 7 files | test 49/49, e2e 61/61 | D-007
+- 2026-09-08 | T-012 | done | editar y desactivar productos, con rastro de lo que cambió | 20 files | test 49/49, e2e 58/58, db:verify 5/5 | D-002,D-003
+- 2026-09-08 | T-011 | done | historial de movimientos por producto y ajuste de existencias | 14 files | test 48/48, e2e 53/53, db:verify 5/5 | D-002,D-001
+- 2026-09-08 | T-010 | done | superficies y bordes que de verdad se distingan | 11 files | test 48/48, e2e 47/47 | D-007
 
 Full history: [`JOURNAL.md`](JOURNAL.md) · decisions: [`docs/decisions/`](docs/decisions/README.md)

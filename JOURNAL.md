@@ -8,3 +8,13 @@
 2026-09-06 | T-003 | done | catálogo con alta que escribe el libro y saldo recomputado | 11 files | test 24/24, e2e 18/18 | D-002,D-003
 2026-09-08 | T-016 | review | objetivo de escaneo con cámara, lector y tecleado, y alta desde código desconocido | 16 files | test 65/65, e2e 75/75 | D-009
 2026-09-08 | T-015 | review | instalable en pantalla de inicio, con iconos generados de los tokens | 6 files | test 65/65, e2e 78/78 | D-009
+2026-09-08 | T-004 | done | registro de venta desde la cuadrícula de frecuentes | 18 files | test 30/30, e2e 25/25, db:verify 5/5 | D-001,D-002,D-005,D-006
+2026-09-08 | T-005 | done | filtros y recorrido por partes del catálogo | 16 files | test 42/42, e2e 34/34, db:verify 5/5 | D-001,D-003,D-007
+2026-09-08 | T-006 | done | componentes compartidos de interfaz | 17 files | test 42/42, e2e 35/35 | D-003,D-007
+2026-09-08 | T-007 | done | tema claro, oscuro o el del sistema | 14 files | test 48/48, e2e 42/42 | D-007
+2026-09-08 | T-008 | done | tailwind sin css a mano donde no hace falta | 19 files | test 48/48, e2e 44/44 | D-003,D-007
+2026-09-08 | T-010 | done | superficies y bordes que de verdad se distingan | 11 files | test 48/48, e2e 47/47 | D-007
+2026-09-08 | T-011 | done | historial de movimientos por producto y ajuste de existencias | 14 files | test 48/48, e2e 53/53, db:verify 5/5 | D-002,D-001
+2026-09-08 | T-012 | done | editar y desactivar productos, con rastro de lo que cambió | 20 files | test 49/49, e2e 58/58, db:verify 5/5 | D-002,D-003
+2026-09-08 | T-013 | done | la ficha del producto informa antes de dejar editar | 7 files | test 49/49, e2e 61/61 | D-007
+2026-09-08 | T-014 | done | historial de ventas, con detalle y anulación | 17 files | test 49/49, e2e 70/70, db:verify 5/5 | D-002,D-001

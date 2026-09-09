@@ -1,7 +1,7 @@
 ---
 id: T-012
 title: Editar y desactivar productos, con rastro de lo que cambió
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -103,8 +103,8 @@ implements: [FR-001, FR-013, FR-014, US-014, US-015, AC-021, AC-022]
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
 - Pendiente de tu firma, junto con `T-004`…`T-008`, `T-010` y `T-011`.
 
 ## Trace

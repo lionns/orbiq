@@ -1,7 +1,7 @@
 ---
 id: T-011
 title: Historial de movimientos por producto y ajuste de existencias
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -98,8 +98,8 @@ implements: [FR-007, FR-008, US-008, US-009, AC-013, AC-014, NFR-005]
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
 - Pendiente de tu firma, junto con `T-004`…`T-008` y `T-010`.
 
 ## Trace

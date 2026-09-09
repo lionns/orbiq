@@ -1,7 +1,7 @@
 ---
 id: T-010
 title: Superficies y bordes que de verdad se distingan
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -106,8 +106,8 @@ implements: [FR-010, AC-X01, AC-X02]
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
 - Pendiente de tu firma, junto con `T-004`…`T-008`.
 
 ## Trace
