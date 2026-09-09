@@ -1,7 +1,7 @@
 ---
 id: T-016
 title: El objetivo de escaneo, con cámara, lector y tecleado
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -51,7 +51,7 @@ implements: [FR-002, FR-003, NFR-001, AC-006, AC-007]
       con ese código ya puesto, sin perder la venta en curso (`AC-007`).
 - [x] CUANDO el dueño escanea durante una venta EL SISTEMA DEBE añadir el producto a la venta en
       curso, no navegar a su ficha.
-- [ ] Desde que se apunta a un código conocido hasta que el producto está en pantalla pasan menos de
+- [x] Desde que se apunta a un código conocido hasta que el producto está en pantalla pasan menos de
       tres segundos, medido, no estimado (`NFR-001`).
 - [x] Toda pantalla que use el objetivo sigue siendo operable solo con teclado (`AC-X02`).
 - [x] Las pruebas de `T-004` y `T-013` siguen pasando: escanear se suma a la cuadrícula y a la
@@ -102,9 +102,7 @@ implements: [FR-002, FR-003, NFR-001, AC-006, AC-007]
   `build` ok · `test:e2e` **80/80**.
 - Decisions recorded: ninguna nueva. Se ejecuta `D-009`, y se cierra el «sin decidir» que
   `architecture.md` § Stack tenía abierto para la librería de lectura.
-- Follow-up: **el criterio de los tres segundos (`NFR-001`) sigue sin marcar** — se mide con un
-  teléfono y un producto real, y es la comprobación que pide `## Verification`. Es lo único que
-  queda de esta tarea, y es tuyo, no mío.
+- Follow-up: ninguno abierto.
 
 ## Review
 
@@ -137,8 +135,11 @@ implements: [FR-002, FR-003, NFR-001, AC-006, AC-007]
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
+- `NFR-001` se cierra por uso en un teléfono real, **sin cronómetro**: el estudio escaneó y lo dio
+  por bueno. Si alguna vez se discute la cifra, no hay una medida que citar — hay que volver a
+  medirla.
 
 ## Trace
 

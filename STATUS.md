@@ -9,8 +9,6 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
-| [T-015](docs/tasks/T-015-instalable-en-la-pantalla-de-inicio.md) | `review` | Que el dueño abra orbiq tocando un ícono, a pantalla completa y sin barra de direcciones, igual en Android que en iPhone. Hoy llega escribiendo una dirección en el navegador, que es el paso que compite con no usarla. |
-| [T-016](docs/tasks/T-016-objetivo-de-escaneo.md) | `review` | Que el dueño apunte a un código y vea el producto, venga de la cámara, de una pistola lectora o tecleado a mano, por el mismo camino y con el mismo resultado. Es el acto central del producto y hoy no existe: el esquema guarda el código desde T-003 y nada lo lee. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -24,10 +22,12 @@ Harness `0.9.0` · profile `team`
 | [T-012](docs/tasks/T-012-editar-y-desactivar-productos.md) | `done` | El dueño corrige los datos de un producto y retira el que ya no vende, y las dos cosas quedan registradas donde ya mira: en el historial del producto, junto a sus movimientos. |
 | [T-013](docs/tasks/T-013-la-ficha-informa-antes-de-editar.md) | `done` | Que tocar un producto en el catálogo lleve a verlo, no a un formulario. Las acciones que lo cambian existen, pero detrás de una intención explícita y separadas de la consulta. |
 | [T-014](docs/tasks/T-014-historial-de-ventas.md) | `done` | El dueño ve las ventas de un día con su total, abre una para ver qué llevaba y a cuánto, busca por rango de fechas y anula la que registró por error. Es lo que se mira al cerrar la caja. |
+| [T-015](docs/tasks/T-015-instalable-en-la-pantalla-de-inicio.md) | `done` | Que el dueño abra orbiq tocando un ícono, a pantalla completa y sin barra de direcciones, igual en Android que en iPhone. Hoy llega escribiendo una dirección en el navegador, que es el paso que compite con no usarla. |
+| [T-016](docs/tasks/T-016-objetivo-de-escaneo.md) | `done` | Que el dueño apunte a un código y vea el producto, venga de la cámara, de una pistola lectora o tecleado a mano, por el mismo camino y con el mismo resultado. Es el acto central del producto y hoy no existe: el esquema guarda el código desde T-003 y nada lo lee. |
 
 ## Next
 
-**T-015** (`review`) — Que el dueño abra orbiq tocando un ícono, a pantalla completa y sin barra de direcciones, igual en Android que en iPhone. Hoy llega escribiendo una dirección en el navegador, que es el paso que compite con no usarla.
+**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
 
 ## Open decisions
 

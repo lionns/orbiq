@@ -1,7 +1,7 @@
 ---
 id: T-015
 title: Instalable en la pantalla de inicio
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -44,7 +44,7 @@ implements: [FR-010, NFR-003]
 
 ## Acceptance Criteria
 
-- [ ] CUANDO se abre la aplicación desde el ícono de la pantalla de inicio EL SISTEMA DEBE mostrarla
+- [x] CUANDO se abre la aplicación desde el ícono de la pantalla de inicio EL SISTEMA DEBE mostrarla
       a pantalla completa, sin barra de direcciones y con su propia tarjeta en el conmutador.
 - [x] CUANDO Android instala la aplicación EL SISTEMA DEBE ofrecer un WebAPK, no un marcador — lo
       que exige manifest válido, `start_url` dentro de `scope` e ícono de 512 px `maskable`.
@@ -119,8 +119,11 @@ implements: [FR-010, NFR-003]
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-08
+- La apertura desde el ícono la firma el estudio. Lo que sí quedó automatizado es el manifest y que
+  cada ícono se sirva (`e2e/instalable.spec.ts`); que no salga la barra de direcciones en un
+  teléfono concreto no lo puede comprobar Playwright.
 
 ## Trace
 

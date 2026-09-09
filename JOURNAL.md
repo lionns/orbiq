@@ -6,8 +6,8 @@
 2026-09-06 | T-001 | done | andamiaje y esquema de nueve tablas aplicado contra Neon | 30 files | test 7/7, e2e 2/2, db:verify 5/5 | D-001,D-002,D-003,D-006,D-008
 2026-09-06 | T-002 | done | sesión de dueño con correo y contraseña, guardia donde se leen los datos | 14 files | test 11/11, e2e 10/10 | D-001,D-008
 2026-09-06 | T-003 | done | catálogo con alta que escribe el libro y saldo recomputado | 11 files | test 24/24, e2e 18/18 | D-002,D-003
-2026-09-08 | T-016 | review | objetivo de escaneo con cámara, lector y tecleado, y alta desde código desconocido | 16 files | test 65/65, e2e 75/75 | D-009
-2026-09-08 | T-015 | review | instalable en pantalla de inicio, con iconos generados de los tokens | 6 files | test 65/65, e2e 78/78 | D-009
+2026-09-08 | T-016 | done | objetivo de escaneo con cámara, lector y tecleado, y alta desde código desconocido | 23 files | test 65/65, e2e 80/80 | D-009
+2026-09-08 | T-015 | done | instalable en pantalla de inicio, con iconos generados de los tokens | 10 files | test 65/65, e2e 80/80 | D-009
 2026-09-08 | T-004 | done | registro de venta desde la cuadrícula de frecuentes | 18 files | test 30/30, e2e 25/25, db:verify 5/5 | D-001,D-002,D-005,D-006
 2026-09-08 | T-005 | done | filtros y recorrido por partes del catálogo | 16 files | test 42/42, e2e 34/34, db:verify 5/5 | D-001,D-003,D-007
 2026-09-08 | T-006 | done | componentes compartidos de interfaz | 17 files | test 42/42, e2e 35/35 | D-003,D-007
