@@ -6,6 +6,7 @@ import { eq, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
 import { nuevoId } from "../src/domain/ids";
 import { registrarVenta } from "../src/domain/venta";
+import { diaDelNegocio } from "../src/domain/zona";
 import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
@@ -48,7 +49,9 @@ const stockDe = async (id: string) =>
 const movimientosDe = (id: string) =>
   db.select().from(schema.stockMovement).where(eq(schema.stockMovement.productId, id));
 
-const hoy = () => new Date().toISOString().slice(0, 10);
+// «Hoy» es el del negocio, no el de UTC: `toISOString()` adelantaba el día cinco horas antes de
+// que lo hiciera la pantalla, y esta suite se caía sola cada tarde a partir de las siete (`T-019`).
+const hoy = () => diaDelNegocio(new Date());
 
 /**
  * El total del día suma **todas** las ventas del negocio, no las de una prueba: la base es una sola.
@@ -75,6 +78,55 @@ async function abrirAnular(page: Page) {
   await seccion.locator("summary").click();
   await expect(seccion).toHaveAttribute("open", "");
 }
+
+/**
+ * T-019. Con instantes fijos y no con `now()`: una prueba de fechas que dependa de la hora a la que
+ * se corra pasa por la mañana y falla por la noche, que es el defecto mismo que vino a fijar.
+ *
+ * Bogotá es UTC-5 todo el año, así que la medianoche del negocio son las 05:00Z.
+ */
+test("el día de una venta lo pone el negocio, no la zona de la base ni la del servidor", async ({
+  page,
+}) => {
+  const p = await sembrar("Panela", 2800, 10);
+
+  // 21:30 del 28 de febrero en Bogotá. En UTC ya es el 1 de marzo, y ahí se colaba el defecto: el
+  // encabezado la ponía bajo el día siguiente con «9:30 p. m.» escrito al lado.
+  const nocheDel28 = new Date("2026-03-01T02:30:00Z");
+  const tarde = nuevoId();
+  await registrarVenta(tarde, [{ productoId: p.id, cantidad: 1 }], dueno.id);
+  await db.update(schema.sale).set({ createdAt: nocheDel28 }).where(eq(schema.sale.id, tarde));
+  expect(diaDelNegocio(nocheDel28)).toBe("2026-02-28");
+
+  // La medianoche exacta del negocio: el primer instante que sí es del día siguiente. Fija el
+  // extremo del rango, que es donde vive el error de uno.
+  const medianoche = new Date("2026-03-01T05:00:00Z");
+  const justoDespues = nuevoId();
+  await registrarVenta(justoDespues, [{ productoId: p.id, cantidad: 1 }], dueno.id);
+  await db
+    .update(schema.sale)
+    .set({ createdAt: medianoche })
+    .where(eq(schema.sale.id, justoDespues));
+
+  await entrarComo(page, dueno);
+
+  await page.goto("/ventas?desde=2026-02-28&hasta=2026-02-28");
+  await expect(page.getByTestId("dia-2026-02-28")).toContainText("28 de febrero de 2026");
+  // La hora del negocio, no la de UTC. Sin esto el encabezado y la fila se contradicen.
+  await expect(page.getByTestId(`venta-${tarde}`)).toContainText("9:30");
+  await expect(page.getByTestId(`venta-${tarde}`)).not.toContainText("2:30");
+  await expect(page.getByTestId(`venta-${justoDespues}`)).toHaveCount(0);
+
+  await page.goto("/ventas?desde=2026-03-01&hasta=2026-03-01");
+  await expect(page.getByTestId(`venta-${justoDespues}`)).toBeVisible();
+  await expect(page.getByTestId(`venta-${tarde}`)).toHaveCount(0);
+
+  // El detalle fecha la misma venta igual que el listado: es adonde se va a comprobar precisamente
+  // eso, y antes cada uno usaba un reloj distinto.
+  await page.goto(`/ventas/${tarde}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("28 de febrero de 2026");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("9:30");
+});
 
 test("las ventas se agrupan por día con su total, y se entra al detalle", async ({ page }) => {
   const p = await sembrar("Arroz", 3500, 20);

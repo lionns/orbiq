@@ -7,6 +7,7 @@ import {
   type EventoDelProducto,
 } from "@/domain/movimientos";
 import { formatearPrecio } from "@/domain/moneda";
+import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
 import { SeccionPlegable } from "@/ui/seccion-plegable";
@@ -20,6 +21,8 @@ export const dynamic = "force-dynamic";
 const cuando = new Intl.DateTimeFormat("es-CO", {
   dateStyle: "medium",
   timeStyle: "short",
+  // El libro se lee para reconstruir qué pasó y cuándo; en la zona del negocio, como todo lo demás.
+  timeZone: ZONA_DEL_NEGOCIO,
 });
 
 export default async function HistorialDeProducto({

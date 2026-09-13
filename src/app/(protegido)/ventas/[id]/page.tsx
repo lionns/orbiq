@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { detalleDeVenta } from "@/domain/venta";
+import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Aviso } from "@/ui/aviso";
 import { Precio } from "@/ui/cifras";
 import { SeccionPlegable } from "@/ui/seccion-plegable";
@@ -8,7 +9,13 @@ import { BotonAnular } from "./anulacion";
 
 export const dynamic = "force-dynamic";
 
-const cuando = new Intl.DateTimeFormat("es-CO", { dateStyle: "full", timeStyle: "short" });
+// En la zona del negocio: sin esto, la misma venta se fechaba aquí y en el listado con relojes
+// distintos, y el detalle es adonde se va a comprobar precisamente eso.
+const cuando = new Intl.DateTimeFormat("es-CO", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: ZONA_DEL_NEGOCIO,
+});
 
 export default async function Venta({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

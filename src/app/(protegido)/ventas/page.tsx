@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { ventasPorDia } from "@/domain/venta";
+import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
 import { Precio } from "@/ui/cifras";
 
 export const dynamic = "force-dynamic";
 
-const dia = new Intl.DateTimeFormat("es-CO", { dateStyle: "full" });
-const hora = new Intl.DateTimeFormat("es-CO", { timeStyle: "short" });
+// `d.dia` ya viene siendo una fecha del negocio, así que solo hay que escribirla: se ancla a
+// mediodía UTC y se formatea en UTC para que ninguna zona la corra un día. La **hora** de cada
+// venta sí es un instante, y esa se escribe en la zona del negocio o contradice a su encabezado.
+const dia = new Intl.DateTimeFormat("es-CO", { dateStyle: "full", timeZone: "UTC" });
+const hora = new Intl.DateTimeFormat("es-CO", { timeStyle: "short", timeZone: ZONA_DEL_NEGOCIO });
 
 /** `YYYY-MM-DD` o nada. Una fecha inventada en la dirección se ignora, no tumba la pantalla. */
 const fecha = (v: string | string[] | undefined): string | null => {
@@ -49,7 +53,7 @@ export default async function Ventas({
                 id={`dia-${d.dia}`}
                 className="flex items-baseline justify-between gap-4 border-b border-border pb-2"
               >
-                <span className="font-medium">{dia.format(new Date(`${d.dia}T12:00:00`))}</span>
+                <span className="font-medium">{dia.format(new Date(`${d.dia}T12:00:00Z`))}</span>
                 {/* El número que se mira al cerrar la caja. */}
                 <Precio valor={d.total} className="font-semibold" data-testid={`total-${d.dia}`} />
               </h2>

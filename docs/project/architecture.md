@@ -115,6 +115,11 @@ que no lo cubre. Las rutas citadas son de su repositorio.
 **Moneda:** peso colombiano, sin centavos, en `src/domain/moneda.ts`. No es una columna ni una
 decisión de arquitectura: un despliegue por negocio es una moneda por base (`D-005`).
 
+**Zona horaria:** `America/Bogota`, en `src/domain/zona.ts`, por el mismo argumento. Se escribe
+porque ni la base ni el servidor la saben —Neon corre su sesión en UTC y el proceso en la zona que
+le toque—, así que sin fijarla el corte del día lo decidía la infraestructura y el cierre de caja
+cambiaba de día cinco horas antes de tiempo (`T-019`).
+
 ## Deployment
 
 - Un proyecto de Vercel y una base de Neon por negocio (`D-005`).

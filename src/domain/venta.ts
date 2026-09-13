@@ -1,7 +1,8 @@
-import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { resolverCodigo } from "./catalogo";
 import { normalizarCodigo } from "./escaneo";
+import { ZONA_DEL_NEGOCIO } from "./zona";
 
 /** La transacción de Drizzle no es la misma forma que `db`, pero para escribir es intercambiable. */
 type Escritor = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -226,7 +227,7 @@ export type VentaDelDia = {
 };
 
 export type DiaDeVentas = {
-  /** `YYYY-MM-DD` en la zona del servidor. Con un despliegue por negocio, es el día del negocio. */
+  /** `YYYY-MM-DD` en la zona del negocio (`zona.ts`), no en la de la base ni la del servidor. */
   dia: string;
   /** Suma solo de las no anuladas: una venta anulada no es plata que entró (`AC-019`). */
   total: number;
@@ -235,10 +236,26 @@ export type DiaDeVentas = {
 
 export type RangoDeFechas = { desde: string | null; hasta: string | null };
 
+/**
+ * El instante en que empieza un día del negocio. `timezone(zona, timestamp)` interpreta una fecha
+ * sin zona **como** de esa zona y devuelve el instante: es la conversión que `new Date("...")` hacía
+ * en la zona del proceso, hecha donde sí se sabe cuál es la zona correcta.
+ *
+ * Se convierten los extremos y no la columna a propósito. Envolver `created_at` en una expresión
+ * dejaría fuera a `sale_created_at_idx`; así la comparación sigue siendo contra un instante y el
+ * índice sigue sirviendo.
+ */
+const medianoche = (fecha: string, masDias = 0) =>
+  // Los `::text` y el `::int` no sobran: un parámetro llega a Postgres sin tipo, y `$1::date + $2`
+  // no resuelve a ningún operador. Comprobado contra la base, no deducido.
+  sql`timezone(${ZONA_DEL_NEGOCIO}::text, ((${fecha}::text)::date + ${masDias}::int)::timestamp)`;
+
 export async function ventasPorDia(rango: RangoDeFechas): Promise<DiaDeVentas[]> {
   const condiciones = [];
-  if (rango.desde) condiciones.push(gte(schema.sale.createdAt, new Date(`${rango.desde}T00:00:00`)));
-  if (rango.hasta) condiciones.push(lte(schema.sale.createdAt, new Date(`${rango.hasta}T23:59:59.999`)));
+  if (rango.desde) condiciones.push(gte(schema.sale.createdAt, medianoche(rango.desde)));
+  // Hasta la medianoche del día siguiente, sin incluirla. `23:59:59.999` dejaba fuera lo ocurrido
+  // en el último milisegundo del día, que existe porque el instante guardado tiene microsegundos.
+  if (rango.hasta) condiciones.push(lt(schema.sale.createdAt, medianoche(rango.hasta, 1)));
 
   const filas = await db
     .select({
@@ -246,7 +263,9 @@ export async function ventasPorDia(rango: RangoDeFechas): Promise<DiaDeVentas[]>
       total: schema.sale.total,
       cuando: schema.sale.createdAt,
       anuladaEn: schema.sale.voidedAt,
-      dia: sql<string>`to_char(${schema.sale.createdAt}, 'YYYY-MM-DD')`,
+      // En la zona del negocio: `to_char` a secas usaba la de la sesión de Postgres, que en Neon es
+      // UTC, y ahí una venta de las nueve de la noche en Bogotá ya es del día siguiente.
+      dia: sql<string>`to_char(timezone(${ZONA_DEL_NEGOCIO}, ${schema.sale.createdAt}), 'YYYY-MM-DD')`,
       // Por unión y no por subconsulta correlacionada: ver el comentario de `cuadricula`.
       articulos: sql<number>`coalesce(sum(${schema.saleLine.quantity}), 0)::int`,
     })
