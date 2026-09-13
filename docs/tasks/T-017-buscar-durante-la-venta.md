@@ -1,7 +1,7 @@
 ---
 id: T-017
 title: Buscar un producto por nombre durante la venta
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -92,8 +92,10 @@ implements: [FR-015, US-016, AC-023, NFR-002]
   tarea**: se comprobó guardando los cambios y corriéndolos sobre `HEAD`, donde fallan igual. Ver
   `## Review`.
 - Decisions recorded: ninguna nueva.
-- Follow-up: la tarea queda en `review` y no en `done` porque `test:e2e` es un control final y está
-  en rojo. Lo que lo pone rojo es un defecto de zona horaria ajeno, que necesita su propia tarea.
+- Follow-up: cerrado. El rojo de `test:e2e` tenía dos causas, ninguna de esta tarea y las dos con
+  tarea propia desde entonces: el corte del día en la zona equivocada (`T-019`) y una prueba que
+  dependía de caber en la cuadrícula (`T-018`). Cuál de las dos se veía dependía de la hora y de lo
+  que hubiera en la base. Con las dos cerradas, la suite queda en 87/87.
 
 ## Review
 
@@ -119,8 +121,10 @@ implements: [FR-015, US-016, AC-023, NFR-002]
 
 ## Validation
 
-- Validated by: 
-- Date: 
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-13
+- Se firma hoy y no el 8: el `test:e2e` rojo con el que se entregó no era suyo, y hasta que no se
+  cerraron las dos causas —`T-018` y `T-019`— no había un verde contra el que validarla.
 
 ## Trace
 

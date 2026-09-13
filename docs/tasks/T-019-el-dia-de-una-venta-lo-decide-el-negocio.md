@@ -1,7 +1,7 @@
 ---
 id: T-019
 title: El día de una venta lo decide el negocio, no el servidor
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -131,8 +131,10 @@ implements: [FR-013, US-013, AC-018, AC-019]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-13
+- Queda vivo un hallazgo que no llegó a tarea: `aspecto.spec.ts` § tema oscuro falló una vez y no
+  se reprodujo en ocho pasadas. Ver `## Review`.
 
 ## Trace
 

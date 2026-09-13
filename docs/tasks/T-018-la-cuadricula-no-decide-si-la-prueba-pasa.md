@@ -1,7 +1,7 @@
 ---
 id: T-018
 title: La cuadrícula no decide si la prueba pasa
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -95,8 +95,8 @@ implements: [AC-X05, NFR-006]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-13
 
 ## Trace
 

@@ -18,3 +18,6 @@
 2026-09-08 | T-012 | done | editar y desactivar productos, con rastro de lo que cambió | 20 files | test 49/49, e2e 58/58, db:verify 5/5 | D-002,D-003
 2026-09-08 | T-013 | done | la ficha del producto informa antes de dejar editar | 7 files | test 49/49, e2e 61/61 | D-007
 2026-09-08 | T-014 | done | historial de ventas, con detalle y anulación | 17 files | test 49/49, e2e 70/70, db:verify 5/5 | D-002,D-001
+2026-09-13 | T-017 | done | buscar un producto por nombre o código durante la venta | 9 files | test 65/65, e2e 87/87 tras T-018 y T-019 | D-001,D-009
+2026-09-13 | T-018 | done | la prueba del saldo negativo deja de depender de la cuadrícula | 4 files | test 65/65, e2e 86/86 en dos pasadas | D-006
+2026-09-13 | T-019 | done | el día de una venta lo decide el negocio, no el servidor | 11 files | test 69/69, e2e 87/87, también con TZ=Asia/Tokyo y TZ=UTC | D-005
