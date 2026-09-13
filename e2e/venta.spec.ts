@@ -181,8 +181,20 @@ test("si la red falla, lo dice sin rodeos, no descuenta, y reintentar cobra una 
 
 test("vender más de lo que hay se permite y el saldo queda negativo", async ({ page }) => {
   // Decidido con el estudio: la aplicación registra lo que pasó, no decide lo que se puede vender.
-  const [huevos] = await sembrar([{ nombre: "Huevos", precio: 800, existencias: 1 }]);
+  /**
+   * Se llega a la única unidad **vendiendo**, no sembrándola. La cuadrícula ordena por lo más
+   * vendido y corta en 24 casillas, así que un producto recién sembrado y sin ventas se cae de
+   * ella en cuanto la base tiene datos de las otras pruebas — y esta fallaba solo con la suite
+   * completa, que es la peor forma de fallar. Es el mismo obstáculo que ya sorteó la prueba de los
+   * colores de alerta, y se sortea igual: como se llega en la vida real.
+   */
+  const [huevos] = await sembrar([{ nombre: "Huevos", precio: 800, existencias: 31 }]);
+  await registrarVenta(nuevoId(), [{ productoId: huevos!.id, cantidad: 30 }], dueno.id);
+  expect(await existenciasDe(huevos!.id)).toBe(1);
+
   await entrarComo(page, dueno);
+  // Antes de tocarla: si no estuviera, el fallo dice que falta la casilla y no que expiró un clic.
+  await expect(page.getByTestId(`casilla-${huevos!.id}`)).toHaveCount(1);
   await tocar(page, huevos!.id, 3);
   await page.getByTestId("confirmar").click();
   await expect(page.getByTestId("venta-anterior")).toBeVisible();
