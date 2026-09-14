@@ -52,3 +52,30 @@ export function Existencias({
     </span>
   );
 }
+
+/**
+ * Una cantidad a secas: la del carrito, la de un movimiento del libro. Ni precio ni existencias, y
+ * por eso no es ninguno de los dos componentes de arriba.
+ *
+ * Existe para que `tabular-nums` no vuelva a repartirse por las pantallas. Estaba suelto en tres
+ * sitios, y una regla escrita en tres archivos es una regla que un día se queda en dos
+ * (`design-handoff.md` § Typography).
+ */
+export function Cantidad({
+  valor,
+  conSigno = false,
+  className = "",
+  ...resto
+}: {
+  valor: number;
+  /** Con signo siempre en el libro: un «3» sin signo no dice si entró o salió. */
+  conSigno?: boolean;
+  className?: string;
+} & { "data-testid"?: string }) {
+  return (
+    <span className={`tabular-nums ${className}`} {...resto}>
+      {conSigno && valor > 0 ? "+" : ""}
+      {valor}
+    </span>
+  );
+}

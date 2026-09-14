@@ -11,7 +11,7 @@ import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
 import { SeccionPlegable } from "@/ui/seccion-plegable";
-import { Existencias, Precio } from "@/ui/cifras";
+import { Cantidad, Existencias, Precio } from "@/ui/cifras";
 import { cambiarEstado } from "./acciones";
 import { FormularioAjuste } from "./ajuste";
 import { FormularioEdicion } from "./edicion";
@@ -163,11 +163,11 @@ function FilaDelHistorial({ evento: e }: { evento: EventoDelProducto }) {
     <li data-tarjeta className={marco} data-testid={`movimiento-${e.tipo}`}>
       <span className="flex items-baseline justify-between gap-4">
         <span className="font-medium">{ETIQUETA_MOVIMIENTO[e.tipo]}</span>
-        {/* Con signo siempre: un «3» sin signo no dice si entró o salió. */}
-        <span className={`tabular-nums font-medium ${suma ? "" : "text-danger"}`}>
-          {suma ? "+" : ""}
-          {e.cantidad}
-        </span>
+        <Cantidad
+          valor={e.cantidad}
+          conSigno
+          className={`font-medium ${suma ? "" : "text-danger"}`}
+        />
       </span>
       {pie}
       {e.motivo ? <span className="mt-1 block">{e.motivo}</span> : null}

@@ -83,12 +83,34 @@ Accessibility Notes).
 ### Typography
 
 - **Pila de sistema**, sin fuente web. Una tipografía descargada son 40-100 kB por datos móviles
-  antes de que se vea el primer precio (`brief.md` § Constraints).
-- Escala: `12 · 14 · 16 · 20 · 28 · 40`.
+  antes de que se vea el primer precio (`brief.md` § Constraints). Se revisó el 2026-09-13 al
+  rediseñar y se mantiene: la jerarquía sale del tamaño y del peso, no de la fuente.
+- Escala: `14 · 16 · 18 · 20 · 24 · 30 · 40`.
+- **14 px es el suelo absoluto** (`T-021`). Por debajo no hay texto en ninguna pantalla.
 - **16 px es el mínimo en cualquier campo de entrada.** Por debajo, iOS hace zoom al enfocar y saca
   al dueño del flujo.
 - El total de la venta va en `40`. Es el número que se mira mientras se cobra.
-- Precios y cantidades con cifras tabulares, para que no bailen al cambiar.
+- Precios y cantidades con cifras tabulares, para que no bailen al cambiar. Se aplican **solo** en
+  `src/ui/cifras.tsx`: repartido por las pantallas, un día una columna se queda sin ellas.
+
+#### La jerarquía la hace el tamaño, no el color
+
+Añadido el 2026-09-13 (`T-021`). Hasta entonces **toda la aplicación estaba en 16 px**: no había ni
+un `text-xs` ni un `text-sm`, y tampoco nada que destacara. El nombre de un producto, su precio y
+sus existencias se leían igual de grandes, así que la vista no tenía dónde agarrarse y había que
+leer la casilla entera para saber cuánto costaba algo.
+
+En una casilla de la cuadrícula manda el precio, le sigue el nombre y las existencias son la nota:
+
+| Elemento | Tamaño | Por qué |
+| --- | --- | --- |
+| Precio | `24` | Es lo que se compara de un vistazo mientras se cobra |
+| Nombre | `18` | Identifica; se lee después de haber encontrado el precio |
+| Existencias | `16` | **No baja de 16**: se separa por su píldora y su peso, no encogiéndola |
+
+Las existencias **no se hacen más pequeñas** aunque sean la nota. El saldo negativo está permitido
+(`T-004`), así que verlo es la única salvaguarda que queda, y el público de esta aplicación incluye
+a un dueño de setenta años. Se separa con relleno y peso, que no cuestan legibilidad.
 
 ### Spacing
 
@@ -150,4 +172,8 @@ pantalla.
 - Ningún estado se comunica solo por color ni solo por icono: siempre hay texto.
 - El objetivo de escaneo se puede saltar con el teclado — quien use lector no debería tener que
   tocar la pantalla nunca.
-- **Sin decidir:** modo oscuro. Se evalúa cuando haya un dueño usándola de noche, no antes.
+- El tema claro es el que abre por defecto, y no por gusto: la presbicia, el astigmatismo y la
+  miopía empeoran con texto claro sobre fondo oscuro —el halo alrededor de las letras—, y en un
+  local con luz de día la pupila dilatada cuesta más de enfocar. El oscuro existe y está a un toque
+  porque con catarata algunas personas leen mejor así, y la variación individual es grande: elegir
+  por el dueño sería peor que darle el interruptor (`T-007`, `T-023`).

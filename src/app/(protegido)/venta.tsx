@@ -17,7 +17,7 @@ import type { CasillaDeVenta } from "@/domain/venta";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
-import { Existencias, Precio } from "@/ui/cifras";
+import { Cantidad, Existencias, Precio } from "@/ui/cifras";
 import { ObjetivoDeEscaneo } from "@/ui/objetivo-de-escaneo";
 import { altaRapida, buscarEnVenta, confirmarVenta } from "./acciones";
 
@@ -168,9 +168,11 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                   // no se le dice. Sin esto, en una fila con un nombre largo el vecino queda corto.
                   className="flex h-full min-h-24 w-full flex-col justify-between rounded-card border border-border-strong bg-surface p-3 text-left active:bg-bg"
                 >
-                  <span className="line-clamp-2 font-medium">{c.nombre}</span>
+                  {/* `design-handoff.md` § La jerarquía la hace el tamaño: 24 el precio, 18 el
+                      nombre, 16 las existencias — que no bajan de 16 aunque sean la nota. */}
+                  <span className="line-clamp-2 text-lg font-medium">{c.nombre}</span>
                   <span>
-                    <Precio valor={c.precio} className="block" />
+                    <Precio valor={c.precio} className="block text-2xl font-semibold" />
                     <Existencias cantidad={c.existencias} alertarEnCero className="block" />
                   </span>
                 </button>
@@ -231,12 +233,11 @@ function VentaEnCurso({
               >
                 −
               </BotonCantidad>
-              <span
-                className="min-w-8 text-center tabular-nums"
+              <Cantidad
+                valor={a.cantidad}
+                className="min-w-8 text-center"
                 data-testid={`cantidad-${a.productoId}`}
-              >
-                {a.cantidad}
-              </span>
+              />
               <BotonCantidad
                 etiqueta={`Agregar uno de ${a.nombre}`}
                 onClick={() => onCantidad(a.productoId, a.cantidad + 1)}
@@ -262,12 +263,13 @@ function VentaEnCurso({
           <span className="block text-text-muted">
             Total · {unidades(carrito)} {unidades(carrito) === 1 ? "artículo" : "artículos"}
           </span>
-          <span
-            className="block font-semibold tabular-nums text-total leading-none"
+          {/* El total es un precio, así que sale por donde salen los precios. Antes formateaba
+              por su cuenta y repetía las cifras tabulares. */}
+          <Precio
+            valor={total(carrito)}
+            className="block font-semibold text-total leading-none"
             data-testid="total"
-          >
-            {formatearPrecio(total(carrito))}
-          </span>
+          />
         </span>
         <Boton
           type="button"
