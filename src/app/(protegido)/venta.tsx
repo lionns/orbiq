@@ -172,9 +172,12 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                   {/* `design-handoff.md` § La jerarquía la hace el tamaño: 24 el precio, 18 el
                       nombre, 16 las existencias — que no bajan de 16 aunque sean la nota. */}
                   <span className="line-clamp-2 text-lg font-medium">{c.nombre}</span>
-                  <span>
-                    <Precio valor={c.precio} className="block text-2xl font-semibold" />
-                    <Existencias cantidad={c.existencias} alertarEnCero className="block" />
+                  {/* Las existencias van **debajo** del precio y no a su lado: compartiendo fila,
+                      «0 en existencia» se parte y el número queda en otro renglón que la palabra.
+                      Se vio en la maqueta a 390 px antes de escribirlo aquí. */}
+                  <span className="flex flex-col items-start gap-1">
+                    <Precio valor={c.precio} className="text-2xl font-semibold" />
+                    <Existencias cantidad={c.existencias} alertarEnCero />
                   </span>
                 </button>
               </li>

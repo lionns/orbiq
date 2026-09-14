@@ -8,30 +8,30 @@
    Aquí los valores se declaran; más abajo los temas solo eligen cuál rige. */
 :root {
   /* Tema claro. Ratios contra `--claro-bg`. */
-  --claro-bg: #ffffff;
-  --claro-surface: #e9e7e4; /* 1.23:1 sobre bg — se distingue como panel */
-  --claro-border: #d6d3d1; /* 1.49:1 — solo separadores, nunca borde de un control */
-  --claro-border-strong: #7c756f; /* 4.53:1 sobre bg y 3.67:1 sobre surface */
-  --claro-text: #1c1917; /* 17.49:1 */
-  --claro-text-muted: #57534e; /* 7.63:1 */
-  --claro-accent: #0f766e; /* 5.47:1 */
-  --claro-accent-text: #ffffff;
-  --claro-danger: #b91c1c; /* 6.47:1 */
-  --claro-warning: #a16207; /* 4.92:1 */
+  --claro-bg: #efeae3; /* fondo cálido: la tarjeta blanca se levanta de él a 1.20:1 */
+  --claro-surface: #ffffff; /* 1.20:1 sobre bg — ahora sí se lee como tarjeta */
+  --claro-border: #d9d2c8; /* 1.25:1 — solo separadores, nunca borde de un control */
+  --claro-border-strong: #7c756f; /* 3.79:1 sobre bg y 4.53:1 sobre surface */
+  --claro-text: #1c1917; /* 14.61:1 sobre bg, 17.49:1 sobre surface */
+  --claro-text-muted: #57534e; /* 6.38:1 sobre bg, 7.63:1 sobre surface */
+  --claro-accent: #0f766e; /* 4.57:1 sobre bg */
+  --claro-accent-text: #ffffff; /* 5.47:1 sobre el acento */
+  --claro-danger: #b91c1c; /* 6.47:1 sobre surface */
+  --claro-warning: #8a4a08; /* 6.85:1 sobre surface — más oscuro que antes: el fondo dejó de ser blanco */
 
   /* Tema oscuro. Ratios contra `--oscuro-bg`. */
   --oscuro-bg: #1c1917; /* no es negro puro: en OLED el negro absoluto emborrona al desplazar */
-  --oscuro-surface: #332f2b; /* 1.32:1 sobre bg */
-  --oscuro-border: #44403c; /* 1.70:1 — solo separadores, nunca borde de un control */
-  --oscuro-border-strong: #8e8781; /* 4.94:1 sobre bg y 3.75:1 sobre surface */
-  --oscuro-text: #fafaf9; /* 16.74:1 */
-  --oscuro-text-muted: #a8a29e; /* 6.93:1 */
-  --oscuro-accent: #14b8a6; /* 7.03:1 */
+  --oscuro-surface: #2e2926; /* 1.22:1 sobre bg */
+  --oscuro-border: #443d38; /* 1.64:1 — solo separadores, nunca borde de un control */
+  --oscuro-border-strong: #8e8781; /* 4.94:1 sobre bg y 4.06:1 sobre surface */
+  --oscuro-text: #fafaf9; /* 16.74:1 sobre bg, 13.76:1 sobre surface */
+  --oscuro-text-muted: #a8a29e; /* 6.93:1 sobre bg, 5.70:1 sobre surface */
+  --oscuro-accent: #14b8a6; /* 7.03:1 sobre bg */
   /* Oscuro y no blanco: blanco sobre este acento da 2.49:1 y no se lee. Es el par que más
      fácilmente se hereda mal del tema claro, y por eso hay una prueba que fija los dos. */
   --oscuro-accent-text: #1c1917; /* 7.03:1 sobre el acento */
-  --oscuro-danger: #f87171; /* 6.32:1 */
-  --oscuro-warning: #fbbf24; /* 10.48:1 */
+  --oscuro-danger: #f87171; /* 5.20:1 sobre surface */
+  --oscuro-warning: #fbbf24; /* 8.61:1 sobre surface */
 
   /* Qué tema rige. Sin elegir nada, el claro. */
   --paleta-bg: var(--claro-bg);

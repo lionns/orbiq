@@ -1,7 +1,7 @@
 ---
 id: T-023
 title: La venta con identidad y jerarquía
-status: ready
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -41,16 +41,19 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
 
 ## Acceptance Criteria
 
-- [ ] CUANDO el dueño abre la venta EL SISTEMA DEBE mostrar el nombre del negocio y un acceso
+- [x] CUANDO el dueño abre la venta EL SISTEMA DEBE mostrar el nombre del negocio y un acceso
       visible al selector de tema.
-- [ ] CUANDO una casilla muestra existencias bajas EL SISTEMA DEBE escribirlas en una sola línea,
+- [x] CUANDO una casilla muestra existencias bajas EL SISTEMA DEBE escribirlas en una sola línea,
       sin que la palabra y el número queden en renglones distintos, a 360 px.
-- [ ] CUANDO no se ha elegido tema EL SISTEMA DEBE abrir en claro, también con el dispositivo en
-      oscuro.
-- [ ] Toda superficie de control se distingue de su fondo en los dos temas, medido y no estimado.
-- [ ] Las pruebas de `T-004`, `T-016` y `T-017` pasan sin tocarlas: escanear, buscar por nombre,
+- [x] CUANDO no se ha elegido tema EL SISTEMA DEBE seguir al dispositivo, y el dueño puede elegir
+      claro u oscuro desde la cabecera. (**Criterio retirado y sustituido el 2026-09-13, decidido
+      por el estudio.** El original pedía forzar el claro ignorando `prefers-color-scheme`; eso
+      exigía borrar una prueba de `T-007` y le pisa al dueño una preferencia que ya expresó en su
+      teléfono. Ver `## Review`.)
+- [x] Toda superficie de control se distingue de su fondo en los dos temas, medido y no estimado.
+- [x] Las pruebas de `T-004`, `T-016` y `T-017` pasan sin tocarlas: escanear, buscar por nombre,
       tocar la cuadrícula, corregir cantidad y confirmar no cambian.
-- [ ] A 360 px ninguna acción del flujo de venta vive en el tercio superior, y el total sigue
+- [x] A 360 px ninguna acción del flujo de venta vive en el tercio superior, y el total sigue
       visible todo el tiempo (`AC-X01`).
 
 ## Verification
@@ -80,14 +83,53 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
 
 ## Outcome
 
-- Changes:
-- Files:
-- Baseline result:
-- Final result:
-- Decisions recorded:
-- Follow-up:
+- Changes: `src/domain/negocio.ts` da nombre al negocio, con el mismo argumento que la moneda y la
+  zona (`D-005`). La cabecera pasa a ser una banda de acento con ese nombre, la navegación y el
+  tema, en **una sola fila**. El fondo y la tarjeta se invirtieron —fondo cálido, tarjeta blanca—,
+  que es lo que hace que una casilla se lea como objeto. Las existencias bajan a su propia línea
+  bajo el precio.
+- Files: `src/domain/negocio.ts`, `src/app/globals.css`, `src/app/(protegido)/layout.tsx`,
+  `src/app/(protegido)/venta.tsx`, `docs/project/design-handoff.md`, `e2e/tema.spec.ts`
+- Baseline result: `npm test` 69/69 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
+  `build` ok.
+- Final result: `npm test` 69/69 · `typecheck` clean · `lint` clean · `build` ok · `harness-lint`
+  clean · `test:e2e` **91/91 en dos pasadas seguidas**.
+- Decisions recorded: ninguna nueva.
+- Follow-up: `NEGOCIO.nombre` dice «Mi tienda», que es un marcador visible. Se cambia por el del
+  primer cliente cuando lo haya, y es una línea.
 
 ## Review
+
+- **Dos criterios de esta tarea no sobrevivieron al código, y los dos se llevaron al estudio antes
+  de tocar nada.** El primero daba por hecho un «nombre del negocio» que **no existe en el esquema**
+  —lo que hay es el nombre del dueño, que es quien entra, no cómo se llama la tienda—; se resolvió
+  con una constante de dominio, siguiendo el precedente escrito de la moneda. El segundo pedía
+  forzar el tema claro ignorando `prefers-color-scheme`: eso exigía **borrar una prueba de `T-007`**,
+  que es lo que `quality-gates.md` llama defecto, y además le pisa al dueño una preferencia que ya
+  expresó en su teléfono. La propia evidencia que se citó al proponerlo dice que la variación
+  individual es enorme y que ninguna polaridad gana para todos — es decir, respaldaba lo que orbiq
+  ya tenía. Retirado.
+- **Los colores se buscaron sobre una rejilla, no se eligieron.** Los del lienzo daban `surface`
+  sobre `bg` a **1.11 en claro y 1.15 en oscuro**, por debajo del umbral de 1.18 que
+  `aspecto.spec.ts` exige — la misma trampa que `T-010` documentó. El par que cumple las cuatro
+  condiciones a la vez es `#EFEAE3` con `#FFFFFF` en claro y `#1C1917` con `#2E2926` en oscuro.
+  `warning` tuvo que oscurecerse a `#8A4A08`: el ámbar viejo se medía contra blanco y el fondo dejó
+  de serlo.
+- **La cabecera costó tres intentos, y los tres se midieron.** Con iconos desbordaba a lo ancho
+  (472 px en una pantalla de 360, `T-022`). En dos filas desbordaba a lo alto: el primer producto
+  del catálogo caía en 761 con 740 de pantalla, o sea **bajo el pliegue**. La versión final es una
+  fila donde el nombre trunca, así que un negocio con nombre largo encoge su propio rótulo en vez
+  de sacar la navegación de la pantalla.
+- **Se actualizaron los colores esperados de `e2e/tema.spec.ts`, y conviene mirarlo.** No es
+  ablandar la prueba: sigue comparando colores calculados exactos contra la tabla del handoff, y la
+  tabla cambió a propósito dentro del alcance de esta tarea. **La especificación se actualizó
+  primero y la prueba la siguió**, que es el orden que pide `AGENTS.md`. Aun así es un cambio de
+  valores esperados hecho por quien implementa.
+- **El enlace «Vender» desapareció** porque el nombre del negocio ya lleva a la misma pantalla.
+  Tener los dos era decir lo mismo dos veces y costaba sitio donde no sobra.
+- **La suite volvió a 91/91 y a un minuto**, desde los 87 de 91 y 3,2 minutos de `T-022`. Los
+  fallos de entonces no eran de aquella tarea ni de esta: eran latencia contra Neon. El defecto de
+  aislamiento sigue ahí sin manifestarse hoy, y sigue mereciendo su tarea.
 
 ## Validation
 
@@ -96,4 +138,4 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
 
 ## Trace
 
-- `docs/traces/<fecha>_T-023_implementer.md`
+- `docs/traces/2026-09-13_T-023_implementer.md`

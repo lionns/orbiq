@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { COOKIE_TEMA, leerTema } from "@/domain/tema";
 import { sesionActual } from "@/domain/session";
+import { NEGOCIO } from "@/domain/negocio";
 import { Boton } from "@/ui/boton";
 import { SelectorDeTema } from "@/ui/selector-tema";
 import { elegirTema } from "@/app/acciones-tema";
@@ -20,29 +21,34 @@ export default async function LayoutProtegido({ children }: { children: React.Re
 
   return (
     <div className="min-h-dvh">
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <span className="flex items-center gap-4">
-          {/* Sin iconos: la navegación son tres enlaces y a 360 px el glifo de cada uno saca la
-              cabecera de la pantalla — medido en `T-022`, 472 px de ancho. La cabecera se rediseña
-              en `T-023` y allí se vuelve a mirar. */}
-          <Link href="/" className="font-medium">
-            Vender
-          </Link>
-          <Link href="/catalogo" className="text-text-muted underline">
+      {/* Una sola fila, y contada por las dos dimensiones. En dos filas la identidad costaba
+          21 px de alto y empujaba el primer producto del catálogo bajo el pliegue (medido: 761 con
+          740 de pantalla). A lo ancho, el nombre trunca en vez de empujar: un negocio con nombre
+          largo no puede sacar la navegación de la pantalla. */}
+      <header className="flex items-center gap-3 bg-accent px-4 py-1.5 text-accent-text">
+        {/* El nombre **es** el enlace a vender: tener además un «Vender» al lado decía lo mismo
+            dos veces y costaba sitio que aquí no sobra. */}
+        <Link href="/" className="min-w-0 flex-1 truncate font-semibold">
+          {NEGOCIO.nombre}
+        </Link>
+        <nav className="flex shrink-0 items-center gap-3">
+          <Link href="/catalogo" className="underline">
             Catálogo
           </Link>
-          <Link href="/ventas" className="text-text-muted underline">
+          <Link href="/ventas" className="underline">
             Ventas
           </Link>
+        </nav>
+        <span className="flex shrink-0 items-center gap-1">
+          <SelectorDeTema actual={tema} accion={elegirTema} />
+          <form action={salir}>
+            <Boton type="submit" variante="secundario">
+              Salir
+            </Boton>
+          </form>
         </span>
         <span className="sr-only" data-testid="sesion-nombre">
           {sesion.nombre}
-        </span>
-        <span className="flex items-center gap-1">
-          <SelectorDeTema actual={tema} accion={elegirTema} />
-          <form action={salir}>
-            <Boton type="submit">Salir</Boton>
-          </form>
         </span>
       </header>
       {children}

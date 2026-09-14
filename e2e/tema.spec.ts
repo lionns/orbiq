@@ -2,6 +2,7 @@
 // DATABASE_URL al cargarse.
 import "dotenv/config";
 import { expect, test } from "@playwright/test";
+import { NEGOCIO } from "../src/domain/negocio";
 import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
@@ -20,7 +21,7 @@ test.afterAll(async () => {
 const fondoDe = (page: import("@playwright/test").Page) =>
   page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
-const CLARO = "rgb(255, 255, 255)";
+const CLARO = "rgb(239, 234, 227)";
 const OSCURO = "rgb(28, 25, 23)";
 
 async function elegir(page: import("@playwright/test").Page, tema: string) {
@@ -105,6 +106,12 @@ test("el tema también se elige desde las pantallas del negocio, y a 360 px no d
 }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await entrarComo(page, dueno);
+
+  // T-023: la cabecera dice de quién es el negocio, y el tema se alcanza desde ahí sin buscarlo.
+  // Antes la aplicación no lo decía en ninguna parte y se sentía prestada.
+  await expect(page.getByRole("link", { name: NEGOCIO.nombre })).toBeVisible();
+  await expect(page.getByTestId("abrir-tema")).toBeVisible();
+
   await elegir(page, "oscuro");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   expect(await fondoDe(page)).toBe(OSCURO);
@@ -126,7 +133,7 @@ test("el tema también se elige desde las pantallas del negocio, y a 360 px no d
  */
 const TOKENS = {
   claro: {
-    fondo: "rgb(255, 255, 255)",
+    fondo: "rgb(239, 234, 227)",
     texto: "rgb(28, 25, 23)",
     apagado: "rgb(87, 83, 78)",
     acento: "rgb(15, 118, 110)",

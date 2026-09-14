@@ -17,18 +17,22 @@ tenga identidad, se reemplazan los valores y las reglas siguen sirviendo.
 Neutros más un acento. El acento es el único color saturado del flujo de venta, y existe para que
 "Confirmar" no se confunda con nada más.
 
+Revisados el 2026-09-13 (`T-023`). **El fondo y la tarjeta se invirtieron**: antes el fondo era
+blanco y la tarjeta un gris que a 1.23:1 apenas se veía; ahora el fondo es cálido y la tarjeta es
+blanca, que es lo que hace que una casilla se lea como objeto y no como texto entre hilos.
+
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `bg` | `#FFFFFF` | Fondo |
-| `surface` | `#E9E7E4` | Relleno de tarjetas, campos y botones secundarios. 1.23:1 sobre `bg` — se distingue como panel |
-| `border` | `#D6D3D1` | Separadores decorativos. 1.49:1 — **no vale para el borde de un control** |
-| `border-strong` | `#7C756F` | Borde de campos y botones. 4.53:1 sobre `bg` y **3.67:1 sobre `surface`** |
-| `text` | `#1C1917` | Texto principal — 17.49:1 sobre `bg` |
-| `text-muted` | `#57534E` | Secundario — 7.63:1 sobre `bg` |
-| `accent` | `#0F766E` | Acción de confirmar. 5.47:1 sobre blanco |
+| `bg` | `#EFEAE3` | Fondo cálido. La tarjeta blanca se levanta de él a 1.20:1 |
+| `surface` | `#FFFFFF` | Relleno de tarjetas, campos y botones secundarios. **1.20:1 sobre `bg`** |
+| `border` | `#D9D2C8` | Separadores decorativos. 1.25:1 — **no vale para el borde de un control** |
+| `border-strong` | `#7C756F` | Borde de campos y botones. 3.79:1 sobre `bg` y **4.53:1 sobre `surface`** |
+| `text` | `#1C1917` | Texto principal — 14.61:1 sobre `bg`, 17.49:1 sobre `surface` |
+| `text-muted` | `#57534E` | Secundario — 6.38:1 sobre `bg`, 7.63:1 sobre `surface` |
+| `accent` | `#0F766E` | Banda de identidad y acción de cobrar. 4.57:1 sobre `bg` |
 | `accent-text` | `#FFFFFF` | Sobre `accent`. 5.47:1 |
-| `danger` | `#B91C1C` | Anular, existencias negativas. 6.47:1 sobre blanco |
-| `warning` | `#A16207` | Se está acabando. 4.92:1 sobre blanco |
+| `danger` | `#B91C1C` | Anular, existencias negativas. 6.47:1 sobre `surface` |
+| `warning` | `#8A4A08` | Se está acabando. 6.85:1 sobre `surface`. **Más oscuro que antes**: el fondo dejó de ser blanco y el ámbar viejo se quedaba corto |
 
 #### Tema oscuro
 
@@ -39,15 +43,15 @@ color.
 | Token | Valor | Uso |
 | --- | --- | --- |
 | `bg` | `#1C1917` | Fondo. No es negro puro: en OLED el negro absoluto emborrona el texto al desplazar |
-| `surface` | `#332F2B` | Relleno de tarjetas, campos y botones secundarios. 1.32:1 sobre `bg` |
+| `surface` | `#2E2926` | Relleno de tarjetas, campos y botones secundarios. 1.22:1 sobre `bg` |
 | `border` | `#44403C` | Separadores decorativos. 1.70:1 — **no vale para el borde de un control** |
-| `border-strong` | `#8E8781` | Borde de campos y botones. 4.94:1 sobre `bg` y **3.75:1 sobre `surface`** |
-| `text` | `#FAFAF9` | Texto principal — 16.74:1 sobre `bg` |
-| `text-muted` | `#A8A29E` | Secundario — 6.93:1 sobre `bg`, 6.01:1 sobre `surface` |
+| `border-strong` | `#8E8781` | Borde de campos y botones. 4.94:1 sobre `bg` y **4.06:1 sobre `surface`** |
+| `text` | `#FAFAF9` | Texto principal — 16.74:1 sobre `bg`, 13.76:1 sobre `surface` |
+| `text-muted` | `#A8A29E` | Secundario — 6.93:1 sobre `bg`, 5.70:1 sobre `surface` |
 | `accent` | `#14B8A6` | Acción de confirmar. 7.03:1 sobre `bg` |
 | `accent-text` | `#1C1917` | Sobre `accent`. 7.03:1 |
-| `danger` | `#F87171` | Anular, existencias negativas. 6.32:1 sobre `bg` |
-| `warning` | `#FBBF24` | Se está acabando. 10.48:1 sobre `bg` |
+| `danger` | `#F87171` | Anular, existencias negativas. 5.20:1 sobre `surface` |
+| `warning` | `#FBBF24` | Se está acabando. 8.61:1 sobre `surface` |
 
 **`accent-text` cambia de color entre temas y es lo único que lo hace.** En claro es blanco (5.47:1
 sobre el acento); en oscuro tiene que ser oscuro, porque blanco sobre `#14B8A6` da **2.49:1** y no
