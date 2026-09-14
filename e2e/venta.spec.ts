@@ -336,3 +336,60 @@ test("la cuadrícula ordena por lo más vendido, no por cualquier cosa", async (
   expect(posicion("Zzz poco vendido")).toBeGreaterThanOrEqual(0);
   expect(posicion("Zzz poco vendido")).toBeLessThan(posicion("Aaa muy vendido"));
 });
+
+/**
+ * Reportado por el estudio con captura: «tenemos problemas con este botón al agregar muchos
+ * productos en la versión de PC». El total y el botón compartían línea, y el número no se encoge ni
+ * se parte: en cuanto llegaba a seis cifras empujaba al botón fuera de la barra —29 px fuera de la
+ * columna de computador, y de paso una barra de desplazamiento horizontal en toda la página—.
+ *
+ * Pasó porque la suite entera corre a 412 px, el ancho del Pixel 7, y ahí cabía por 16. Los dos
+ * anchos que fallaban son los dos extremos de `AC-X01`: 360 px y computador. Por eso esta prueba
+ * fija su propio tamaño en vez de confiar en el del proyecto.
+ */
+test("el botón de confirmar se queda dentro de la barra con un total de seis cifras", async ({
+  page,
+}) => {
+  const [caro] = await sembrar([{ nombre: "Canasta", precio: 58_010, existencias: 40 }]);
+  await registrarVenta(nuevoId(), [{ productoId: caro!.id, cantidad: 30 }], dueno.id);
+
+  // 360 es el ancho más estrecho que el producto promete; de 1024 para arriba la barra deja de ser
+  // una franja y pasa a ser una columna de 352 px — más estrecha que casi cualquier teléfono, que
+  // es lo que hace del computador el caso difícil y no el fácil.
+  for (const [ancho, alto] of [
+    [360, 740],
+    [1024, 900],
+    [1440, 900],
+  ] as const) {
+    await page.setViewportSize({ width: ancho, height: alto });
+    await entrarComo(page, dueno);
+    await tocar(page, caro!.id, 3);
+    await expect(page.getByTestId("total")).toContainText("174.030");
+
+    const medido = await page.evaluate(() => {
+      const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
+      const boton = document.querySelector('[data-testid="confirmar"]')!.getBoundingClientRect();
+      const total = document.querySelector('[data-testid="total"]')!.getBoundingClientRect();
+      return {
+        desborde: Math.round(Math.max(boton.right - barra.right, barra.left - boton.left)),
+        solapan: boton.top < total.bottom && boton.left < total.right && total.left < boton.right,
+        anchoBoton: Math.round(boton.width),
+        altoBoton: Math.round(boton.height),
+        scrollWidth: document.documentElement.scrollWidth,
+        ancho: window.innerWidth,
+      };
+    });
+
+    // Dentro de la barra, no al ras: el borde redondeado de la columna es el que se veía cortado.
+    expect(medido.desborde, `a ${ancho} px el botón se sale ${medido.desborde} px`).toBeLessThan(0);
+    // Y dentro sin pisar el total: encogerlo hasta que quepa sería la otra forma de «caber».
+    expect(medido.solapan, `a ${ancho} px el botón pisa el total`).toBe(false);
+    // La página no se ensancha por culpa de la barra.
+    expect(medido.scrollWidth, `a ${ancho} px la página se desplaza en horizontal`).toBeLessThanOrEqual(
+      medido.ancho,
+    );
+    // Sigue siendo el objetivo táctil de `NFR-003`, no un botón encogido para que entre.
+    expect(medido.altoBoton).toBeGreaterThanOrEqual(48);
+    expect(medido.anchoBoton).toBeGreaterThan(150);
+  }
+});

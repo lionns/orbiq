@@ -290,8 +290,17 @@ function VentaEnCurso({
         </div>
       ) : null}
 
-      <div className="flex shrink-0 items-center gap-4 border-t border-border p-4">
-        <span className="flex-1">
+      {/* Apilado y no en fila: el total y el botón compartían línea y el número, que no se
+          encoge ni se parte, empujaba al botón fuera de la barra en cuanto llegaba a seis cifras
+          —29 px fuera de la columna en computador, 20 px a 360 px de ancho, medido—. A 412 px
+          cabía por 16, que es el ancho del Pixel 7 con el que corre toda la suite: por eso pasó.
+
+          Se apila **siempre** y no solo donde no cabe: un botón que salta de línea al cruzar las
+          seis cifras mueve la acción principal bajo el dedo entre un toque y el siguiente. La
+          columna de computador mide 352 px, menos que casi cualquier teléfono, así que el caso
+          estrecho no es el celular (`AC-X01`). */}
+      <div className="flex shrink-0 flex-col gap-3 border-t border-border p-4">
+        <span>
           <span className="block text-text-muted">
             Total · {unidades(carrito)} {unidades(carrito) === 1 ? "artículo" : "artículos"}
           </span>
@@ -310,7 +319,9 @@ function VentaEnCurso({
           disabled={vacio || enviando}
           data-testid="confirmar"
           tamano="alto"
-          className="shrink-0 gap-2 px-6"
+          // A todo el ancho de la barra: es la acción principal y ya no compite por el sitio con
+          // el total, así que el objetivo táctil es el mayor que cabe (`NFR-003`).
+          className="w-full gap-2 px-6"
         >
           {/* El icono cambia con el estado, como el texto: reintentar no es confirmar. Mientras
               guarda no hay ninguno — un glifo que aparece y desaparece bajo el dedo distrae. */}
