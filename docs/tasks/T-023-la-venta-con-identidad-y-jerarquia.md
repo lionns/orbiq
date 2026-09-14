@@ -49,60 +49,78 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
       claro u oscuro desde la cabecera. (**Criterio retirado y sustituido el 2026-09-13, decidido
       por el estudio.** El original pedía forzar el claro ignorando `prefers-color-scheme`; eso
       exigía borrar una prueba de `T-007` y le pisa al dueño una preferencia que ya expresó en su
-      teléfono. Ver `## Review
+      teléfono. Ver la revisión de abajo.)
+- [x] Toda superficie de control se distingue de su fondo en los dos temas, medido y no estimado.
+- [x] Las pruebas de `T-004`, `T-016` y `T-017` pasan sin tocarlas: escanear, buscar por nombre,
+      tocar la cuadrícula, corregir cantidad y confirmar no cambian.
+- [x] A 360 px ninguna acción del flujo de venta vive en el tercio superior, y el total sigue
+      visible todo el tiempo (`AC-X01`).
 
-- **Dos criterios no sobrevivieron al código y los dos se llevaron al estudio antes de implementar.**
-  Uno daba por hecho un «nombre del negocio» que no existe en el esquema —lo que hay es el del
-  dueño, que es quien entra, no cómo se llama la tienda—; se resolvió con una constante de dominio,
-  siguiendo el precedente de la moneda. El otro pedía forzar el claro ignorando
-  `prefers-color-scheme`: exigía **borrar una prueba de `T-007`** y le pisa al dueño una preferencia
-  que ya expresó. La evidencia que se citó al proponerlo dice que ninguna polaridad gana para todos,
-  o sea que respaldaba lo que orbiq ya tenía. Retirado.
+## Verification
+
+- Baseline: `npm test && node scripts/harness-lint.mjs && npm run typecheck && npm run lint && npm run build`
+- Final: el mismo comando en verde, más `npm run test:e2e`.
+- Task-specific: recorrer con un celular real las cinco pantallas en los dos temas —venta, catálogo,
+  ficha, historial de ventas y acceso— y comprobar que ninguna quedó rota por heredar los
+  componentes nuevos. Es un cambio visual: «no cambia nada» hay que demostrarlo mirando, y
+  `aspecto.spec.ts` solo cubre cuatro.
+
+## Assumptions
+
+- **Asunción** — que el claro venga por defecto es lo correcto para un dueño mayor. Sale de
+  literatura sobre polaridad de contraste y edad, no de un dueño real usándola. Si el primer cliente
+  trabaja de noche y pide lo contrario, se cambia el valor por defecto: es una línea.
+
+## Risks
+
+- **Catálogo, ficha e historial no están diseñados.** Heredan tipografía, color y componentes, y
+  pueden quedar a medio camino: con cabecera nueva en la venta y sin ella en el resto. Se avisó
+  antes de empezar y se decidió avanzar así. Si al recorrerlas se ven incoherentes, la salida es una
+  tarea que lleve la dirección al resto, no ensancharla aquí.
+- Es el cambio más visible que ha tenido el producto. No hay usuarios todavía, que es justo lo que
+  lo hace barato: el argumento de la memoria muscular protege a quien ya usa algo, y orbiq no tiene
+  a nadie.
+
+## Outcome
+
+- Changes: `negocio.ts` da nombre al negocio (`D-005`). La cabecera es una banda de acento con
+  marca, nombre, navegación y el tema como píldora. El fondo y la tarjeta se invirtieron —fondo
+  cálido, tarjeta blanca— con cada ratio medido. La casilla lleva precio dominante y existencias en
+  píldora, en su propia línea. La barra del total se acotó al mismo hueco que la cuadrícula reserva.
+- Files: `src/domain/negocio.ts`, `src/app/globals.css`, `src/app/(protegido)/{layout.tsx,venta.tsx}`,
+  `src/ui/{boton.tsx,cifras.tsx,iconos.tsx,selector-tema.tsx}`, `docs/project/design-handoff.md`,
+  `e2e/{tema.spec.ts,venta.spec.ts}`
+- Baseline result: `npm test` 69/69 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
+  `build` ok.
+- Final result: `npm test` 69/69 · `typecheck` clean · `lint` clean · `build` ok · `harness-lint`
+  clean · `test:e2e` **92/92**.
+- Decisions recorded: ninguna nueva.
+- Follow-up: `NEGOCIO.nombre` dice «Mi tienda», un marcador visible hasta que haya cliente. Lo que
+  falta de dirección en catálogo, ficha e historial va a `T-024`.
+
+## Review
+
+- **Dos criterios no sobrevivieron al código; los dos se llevaron al estudio antes de implementar.**
+  Uno daba por hecho un «nombre del negocio» inexistente en el esquema —lo que hay es el del dueño—;
+  se resolvió con una constante, como la moneda. El otro pedía forzar el claro ignorando
+  `prefers-color-scheme`: exigía borrar una prueba de `T-007` y pisa una preferencia que el dueño ya
+  expresó. La evidencia citada al proponerlo respaldaba lo que orbiq ya tenía. Retirado.
 - **Los colores se buscaron sobre una rejilla, no se eligieron.** Los del lienzo daban `surface`
   sobre `bg` a 1.11 y 1.15, bajo el umbral de 1.18 de `aspecto.spec.ts` — la trampa de `T-010`.
-  `warning` se oscureció a `#8A4A08`: se medía contra blanco y el fondo dejó de serlo.
-- **La cabecera costó tres intentos y los tres se midieron.** Con iconos desbordaba a lo ancho
-  (472 px en 360, `T-022`). En dos filas, a lo alto: el primer producto del catálogo caía en 761
-  con 740 de pantalla, bajo el pliegue. Queda en una fila.
-- **Se miró en pantalla y estaba mal.** Capturar las pantallas reales destapó tres defectos que la
-  suite no veía: «Salir» **blanco sobre blanco** —la variante secundaria heredaba el color de la
-  banda en vez de fijar el suyo—, «117 en existencia» inflando la casilla, y el nombre truncado a
-  «Mi ti…». Corregidos. **91/91 estaba en verde con el botón invisible**: un cambio visual se
-  valida mirando.
-- **Un intento descartado:** meter «Salir» en el menú para ganar sitio rompía dos helpers y tres
-  pruebas de `sesion.spec.ts` por siete píxeles. Se revirtió y los píxeles salieron de los huecos.
-  Cuando un cambio cosmético pide reescribir pruebas de comportamiento, el cambio es el que falla.
-- **Se actualizaron los colores esperados de `e2e/tema.spec.ts`.** No es ablandarla —sigue
-  comparando colores exactos— sino que la tabla del handoff cambió a propósito, y **la
-  especificación se actualizó primero**. Aun así son valores esperados cambiados por quien
-  implementa.
-- **El estudio avisó de que faltaba diseño, y era cierto.** Se habían aplicado los tokens y la
-  jerarquía, pero no la composición del lienzo: faltaban la píldora de existencias, el encabezado
-  «Más vendidos · Catálogo ›», la marca de la cabecera, la sombra de la barra y el radio de 12.
-  Todo eso estaba aprobado y no se había llevado al código. Ya está.
-- **La navegación salió de la banda porque el lienzo nunca la tuvo ahí.** Con marca, nombre,
-  Catálogo, Ventas, Tema y Salir en una fila de 360 px el nombre se truncaba a «Mi…». El catálogo
-  se alcanza desde la cuadrícula —donde tiene sentido buscar lo que no está entre los frecuentes— y
-  tenerlo además arriba era decirlo dos veces.
-- **Defecto reportado por el estudio y corregido aquí:** con el carrito lleno no se podía llegar al
-  final de la cuadrícula. La cuadrícula reservaba un hueco **fijo** para la barra del total, pero la
-  barra crece con el carrito — con ocho artículos medía 379 px contra 304 reservados, y esos 75 px
-  tapaban las últimas casillas sin que se pudiera desplazar más. Ahora el hueco y el tope de la
-  barra son el mismo número. Medido antes y después, y la prueba cae con el código viejo.
-- **La prueba nueva destapó una fragilidad ajena y se arregló de paso:** sembrar ocho productos
-  vendidos desplazó de la cuadrícula a «Galleta ancha», que otra prueba sembraba **sin ventas** y
-  daba por visible. Es la familia de `T-018`; se le aplicó el mismo remedio. Sexta manifestación.
-- **Segundo aviso del estudio sobre el diseño, y también acertado:** el control del tema era un
-  enlace subrayado —«se ve como de los 2000»— y el panel no decía cuál opción estaba puesta. El
-  lienzo mostraba una píldora con icono y yo había dejado un enlace. Ahora es píldora, el panel se
-  levanta con sombra sobre `surface` y el tema activo lleva su visto. «Ventas» pierde el subrayado
-  y no gana píldora: navega, no acciona — y así cabe el nombre del negocio, que es lo primero que
-  se sacrifica cuando esta fila se llena.
-- **Otro defecto de la píldora, encontrado mirando:** «-2 en existencia» se partía en dos renglones
-  dentro del chip. Compacta, el aviso va corto —«Debe 2», «Agotado»— y entero. Sigue siendo texto,
-  que es lo que la regla exige; lo que no puede es comunicarse solo por color.
-- **La suite volvió a 92/92 y a un minuto**, desde los 87 de 91 y 3,2 minutos de `T-022`. Aquellos
-  fallos eran latencia contra Neon. El defecto de aislamiento sigue ahí sin manifestarse hoy.
+- **La cabecera costó tres intentos, medidos:** con iconos desbordaba a lo ancho (472 px en 360);
+  en dos filas, a lo alto (el primer producto del catálogo caía en 761 con 740 de pantalla).
+- **Lo que solo se vio mirando, y el estudio tuvo que pedirlo tres veces:** «Salir» salía blanco
+  sobre blanco, las existencias inflaban la casilla, el nombre se truncaba, faltaba media
+  composición del lienzo, el tema seguía siendo un enlace subrayado, y la barra del total tapaba el
+  final de la cuadrícula con el carrito lleno. **91/91 estaba en verde con el botón invisible.** En
+  un cambio visual el verde no es evidencia.
+- **Un intento descartado:** meter «Salir» en el menú rompía dos helpers y tres pruebas de
+  `sesion.spec.ts` por siete píxeles. Cuando un cambio cosmético pide reescribir pruebas de
+  comportamiento, el cambio es el que falla.
+- **Se actualizaron los colores esperados de `e2e/tema.spec.ts`** — no ablandándola: sigue
+  comparando colores exactos, y la especificación se actualizó primero.
+- La suite quedó en 92/92. El defecto de aislamiento va por la séptima manifestación y sigue sin
+  tarea.
 
 ## Validation
 
