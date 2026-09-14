@@ -1,0 +1,45 @@
+{
+  "artboards": [
+    { "file": "Hoy.dc.html", "title": "Hoy", "x": 0, "y": 0, "w": 390, "h": 844 },
+    { "file": "Main.dc.html", "title": "Claro — por defecto", "x": 510, "y": 0, "w": 390, "h": 844 },
+    { "file": "Oscuro.dc.html", "title": "Oscuro — a un toque", "x": 1020, "y": 0, "w": 390, "h": 844 }
+  ],
+  "annotations": [
+    {
+      "id": "hoy",
+      "x": 0,
+      "y": -186,
+      "w": 390,
+      "text": "HOY — recreado desde src/ui/ con los valores exactos.\n\nNombre, precio y existencias pesan casi lo mismo. Las casillas parecen texto entre hilos porque surface está a 1.23:1 del fondo. Sin cabecera, sin identidad, sin un solo icono."
+    },
+    {
+      "id": "claro",
+      "x": 510,
+      "y": -186,
+      "w": 390,
+      "text": "CLARO — el que viene por defecto.\n\nPor evidencia, no por gusto: presbicia, astigmatismo y miopía empeoran con texto claro sobre fondo oscuro (efecto de halo). Y en un local con luz de día entrando, la pupila dilatada cuesta más de enfocar. Para gente mayor, este es el que abre.\n\nPrecio a 24 px y nombre a 17: la jerarquía la hace el tamaño, no el color."
+    },
+    {
+      "id": "oscuro",
+      "x": 1020,
+      "y": -186,
+      "w": 390,
+      "text": "OSCURO — el mismo diseño, no otro.\n\nMismo esqueleto, mismos tamaños, misma posición de todo: el tema solo redefine color. Existe porque algunas personas con catarata sí leen mejor así, y porque la variación individual es enorme.\n\nContraste subido respecto al boceto B: aquellos grises sobre tarjeta oscura no aguantaban vista cansada."
+    },
+    {
+      "id": "legibilidad",
+      "x": 510,
+      "y": 900,
+      "w": 900,
+      "text": "PASADA DE LEGIBILIDAD — lo que cambió respecto a los bocetos\n\nNombre 13 → 17 px · Precio 20 → 24 px · Existencias 11 → 14 px · Nada por debajo de 14 px.\nCasilla de 142 px de alto y botones de cantidad de 44 px, muy por encima del mínimo táctil.\n\nLas existencias van en su propia línea bajo el precio, no al lado: compartiendo fila, «Quedan 3» se partía y el 3 caía debajo de la palabra. Ahora tienen el ancho entero de la casilla.\n\nMe equivoqué en una cuenta: dije que con texto grande la cuadrícula bajaría de seis casillas a cuatro. Caben las seis — 142 px de casilla, tres filas, sin desplazar.\n\nCada icono lleva su palabra al lado: Cámara, Catálogo, Tema, Cobrar. Para este público eso deja de ser buena práctica y pasa a ser requisito."
+    },
+    {
+      "id": "pendiente",
+      "x": 0,
+      "y": 900,
+      "w": 390,
+      "text": "Sigue en pie la pila de fuentes del sistema. Casi toda la fealdad se arreglaba con jerarquía, peso y color — no hizo falta gastar 40-100 kB en una fuente web."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
