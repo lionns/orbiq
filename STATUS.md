@@ -12,7 +12,6 @@ Harness `0.9.0` · profile `team`
 | [T-021](docs/tasks/T-021-escala-para-vista-cansada.md) | `ready` | Que una persona de setenta años lea la pantalla sin acercársela a la cara. El dueño de una tienda de barrio no tiene veinticinco años, y hoy el nombre del producto, su precio y sus existencias pesan casi lo mismo y se leen al mismo tamaño. |
 | [T-022](docs/tasks/T-022-iconografia-que-acompana-a-la-palabra.md) | `ready` | Que las acciones se reconozcan de un vistazo sin dejar de leerse. Hoy no hay un solo icono en la aplicación, así que toda la jerarquía visual descansa en el peso del texto y cada acción cuesta leerla entera. |
 | [T-023](docs/tasks/T-023-la-venta-con-identidad-y-jerarquia.md) | `ready` | Que la pantalla de venta deje de leerse como un formulario sin estilar. Hoy no hay cabecera ni marca, `surface` está a 1.23:1 del fondo —así que las casillas parecen texto entre hilos— y el precio no destaca sobre el nombre. |
-| [T-020](docs/tasks/T-020-una-linea-por-decision-de-color.md) | `review` | Que cambiar el color de marca de un cliente sea editar un valor y no tres. Hoy la paleta clara está escrita una vez y la oscura dos veces literalmente, y olvidar una de las tres no falla: ese tema se queda con el color viejo y nadie se entera. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -31,10 +30,11 @@ Harness `0.9.0` · profile `team`
 | [T-017](docs/tasks/T-017-buscar-durante-la-venta.md) | `done` | Que el dueño cobre algo que no está en la cuadrícula y no trae código —granel, pan, huevos— sin salir de la venta. Hoy tiene que irse al catálogo, y al volver ha perdido lo que llevaba. |
 | [T-018](docs/tasks/T-018-la-cuadricula-no-decide-si-la-prueba-pasa.md) | `done` | Que `venta.spec.ts` deje de depender de que un producto recién sembrado quepa en las 24 casillas de la cuadrícula. Hoy la prueba del saldo negativo pasa sola y falla con la suite completa, que es la peor forma de fallar: la próxima vez que se ponga roja de verdad, nadie va a creerle. |
 | [T-019](docs/tasks/T-019-el-dia-de-una-venta-lo-decide-el-negocio.md) | `done` | Que una venta de las nueve de la noche aparezca en el cierre de caja de ese día y no en el del siguiente. Hoy el corte del día lo pone la zona de la base (UTC) mientras la hora de cada venta se escribe en la del servidor, así que las últimas cinco horas de cada jornada se listan bajo el día equivocado con su hora correcta al lado. |
+| [T-020](docs/tasks/T-020-una-linea-por-decision-de-color.md) | `done` | Que cambiar el color de marca de un cliente sea editar un valor y no tres. Hoy la paleta clara está escrita una vez y la oscura dos veces literalmente, y olvidar una de las tres no falla: ese tema se queda con el color viejo y nadie se entera. |
 
 ## Next
 
-**T-020** (`review`) — Que cambiar el color de marca de un cliente sea editar un valor y no tres. Hoy la paleta clara está escrita una vez y la oscura dos veces literalmente, y olvidar una de las tres no falla: ese tema se queda con el color viejo y nadie se entera.
+**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
 
 ## Open decisions
 
@@ -42,10 +42,10 @@ None. All decisions are accepted or superseded.
 
 ## Journal — last 5
 
+- 2026-09-13 | T-020 | done | la paleta se declara una vez y los temas solo eligen cuál rige | 4 files | test 69/69, e2e 87/87 | D-005,D-007
 - 2026-09-13 | T-019 | done | el día de una venta lo decide el negocio, no el servidor | 11 files | test 69/69, e2e 87/87, también con TZ=Asia/Tokyo y TZ=UTC | D-005
 - 2026-09-13 | T-018 | done | la prueba del saldo negativo deja de depender de la cuadrícula | 4 files | test 65/65, e2e 86/86 en dos pasadas | D-006
 - 2026-09-13 | T-017 | done | buscar un producto por nombre o código durante la venta | 9 files | test 65/65, e2e 87/87 tras T-018 y T-019 | D-001,D-009
 - 2026-09-08 | T-014 | done | historial de ventas, con detalle y anulación | 17 files | test 49/49, e2e 70/70, db:verify 5/5 | D-002,D-001
-- 2026-09-08 | T-013 | done | la ficha del producto informa antes de dejar editar | 7 files | test 49/49, e2e 61/61 | D-007
 
 Full history: [`JOURNAL.md`](JOURNAL.md) · decisions: [`docs/decisions/`](docs/decisions/README.md)

@@ -1,7 +1,7 @@
 ---
 id: T-020
 title: Una línea por decisión de color
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -120,8 +120,10 @@ implements: [FR-010, AC-X01]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-13
+- Firmado con el criterio de aceptación reescrito a la vista: lo cambió quien implementó, y el
+  motivo está en `## Review`.
 
 ## Trace
 

@@ -21,3 +21,4 @@
 2026-09-13 | T-017 | done | buscar un producto por nombre o código durante la venta | 9 files | test 65/65, e2e 87/87 tras T-018 y T-019 | D-001,D-009
 2026-09-13 | T-018 | done | la prueba del saldo negativo deja de depender de la cuadrícula | 4 files | test 65/65, e2e 86/86 en dos pasadas | D-006
 2026-09-13 | T-019 | done | el día de una venta lo decide el negocio, no el servidor | 11 files | test 69/69, e2e 87/87, también con TZ=Asia/Tokyo y TZ=UTC | D-005
+2026-09-13 | T-020 | done | la paleta se declara una vez y los temas solo eligen cuál rige | 4 files | test 69/69, e2e 87/87 | D-005,D-007
