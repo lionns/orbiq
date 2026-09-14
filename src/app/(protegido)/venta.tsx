@@ -18,6 +18,7 @@ import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
 import { Cantidad, Existencias, Precio } from "@/ui/cifras";
+import { Icono } from "@/ui/iconos";
 import { ObjetivoDeEscaneo } from "@/ui/objetivo-de-escaneo";
 import { altaRapida, buscarEnVenta, confirmarVenta } from "./acciones";
 
@@ -278,8 +279,11 @@ function VentaEnCurso({
           disabled={vacio || enviando}
           data-testid="confirmar"
           tamano="alto"
-          className="shrink-0 px-6"
+          className="shrink-0 gap-2 px-6"
         >
+          {/* El icono cambia con el estado, como el texto: reintentar no es confirmar. Mientras
+              guarda no hay ninguno — un glifo que aparece y desaparece bajo el dedo distrae. */}
+          {enviando ? null : <Icono nombre={estado === "falloDeRed" ? "reintentar" : "cobrar"} />}
           {enviando ? "Guardando…" : estado === "falloDeRed" ? "Reintentar" : "Confirmar"}
         </Boton>
       </div>

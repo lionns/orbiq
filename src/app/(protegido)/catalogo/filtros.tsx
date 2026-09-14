@@ -1,6 +1,7 @@
 import { ESTADOS, type FiltrosCatalogo } from "@/domain/filtros";
 import { Boton, BotonEnlace } from "@/ui/boton";
 import { Campo, CLASE_CONTROL } from "@/ui/campo";
+import { Icono } from "@/ui/iconos";
 import { BuscadorPorCodigo } from "./buscador-por-codigo";
 
 const ETIQUETA: Record<(typeof ESTADOS)[number], string> = {
@@ -37,7 +38,8 @@ export function Filtros({
           aria-label="Buscar en el catálogo"
           className={CLASE_CONTROL}
         />
-        <Boton type="submit" className="shrink-0">
+        <Boton type="submit" className="shrink-0 gap-1.5">
+          <Icono nombre="buscar" />
           Buscar
         </Boton>
         <BuscadorPorCodigo />

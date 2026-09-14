@@ -22,6 +22,9 @@ export default async function LayoutProtegido({ children }: { children: React.Re
     <div className="min-h-dvh">
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <span className="flex items-center gap-4">
+          {/* Sin iconos: la navegación son tres enlaces y a 360 px el glifo de cada uno saca la
+              cabecera de la pantalla — medido en `T-022`, 472 px de ancho. La cabecera se rediseña
+              en `T-023` y allí se vuelve a mirar. */}
           <Link href="/" className="font-medium">
             Vender
           </Link>

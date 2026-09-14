@@ -1,7 +1,7 @@
 ---
 id: T-022
 title: Iconografía que acompaña a la palabra
-status: ready
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -39,14 +39,14 @@ implements: [FR-010, AC-X02]
 
 ## Acceptance Criteria
 
-- [ ] CUANDO se renderiza cualquier pantalla EL SISTEMA DEBE mostrar cada icono junto a un texto
+- [x] CUANDO se renderiza cualquier pantalla EL SISTEMA DEBE mostrar cada icono junto a un texto
       visible que diga lo mismo.
-- [ ] Ningún icono es el único contenido de un control interactivo.
-- [ ] Los iconos no son anunciados por un lector de pantalla, y el nombre accesible de cada control
+- [x] Ningún icono es el único contenido de un control interactivo.
+- [x] Los iconos no son anunciados por un lector de pantalla, y el nombre accesible de cada control
       sigue siendo el que tenía antes de esta tarea.
-- [ ] El paquete que llega al navegador crece solo por los iconos que se usan: importar ocho no
+- [x] El paquete que llega al navegador crece solo por los iconos que se usan: importar ocho no
       trae el catálogo entero.
-- [ ] `npm run build` sigue en verde y la aplicación sigue arrancando sin JavaScript en las
+- [x] `npm run build` sigue en verde y la aplicación sigue arrancando sin JavaScript en las
       pantallas que hoy funcionan sin él (`T-005`, `T-007`).
 
 ## Verification
@@ -72,14 +72,45 @@ implements: [FR-010, AC-X02]
 
 ## Outcome
 
-- Changes:
-- Files:
-- Baseline result:
-- Final result:
-- Decisions recorded:
-- Follow-up:
+- Changes: `src/ui/iconos.tsx` concentra el set y la regla —`Icono` es decorativo y siempre va
+  junto a texto—. Entran en las acciones: cámara/cerrar, buscar, y confirmar/reintentar, este
+  último cambiando de glifo con el estado. `e2e/iconos.spec.ts` fija que ninguno quede sin palabra
+  y que ninguno lo anuncie un lector de pantalla.
+- Files: `src/ui/iconos.tsx`, `src/ui/objetivo-de-escaneo.tsx`, `src/app/(protegido)/venta.tsx`,
+  `src/app/(protegido)/catalogo/filtros.tsx`, `e2e/iconos.spec.ts`, `package.json`
+- Baseline result: `npm test` 69/69 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
+  `build` ok.
+- Final result: `npm test` 69/69 · `typecheck` clean · `lint` clean · `build` ok · `harness-lint`
+  clean · `test:e2e` **87 de 91, y los 4 que fallan cambian en cada pasada**. No son de esta tarea:
+  verificado guardando los cambios y corriendo sobre `HEAD`, donde fallan igual. Ver `## Review`.
+- Decisions recorded: ninguna nueva.
+- Follow-up: la tarea queda en `review` y no en `done` porque `test:e2e` es un control final y está
+  en rojo. Lo que lo pone rojo es el aislamiento de la suite, que necesita su tarea — y es el quinto
+  aviso.
 
 ## Review
+
+- **La cabecera se quedó sin iconos, y es un recorte medido.** Los puse en los tres enlaces de
+  navegación, en Tema y en Salir; a 360 px el documento pasó a **472 px de ancho** y tumbó veinte
+  pruebas. No es que quedaran feos: no caben. Se quitaron los cinco y la cuadrícula de acciones se
+  quedó con los que sí aportan. La cabecera del lienzo —nombre del negocio y tema— es otra cosa y
+  la construye `T-023`; allí se vuelve a mirar si un icono cabe.
+- **El sacudido de árbol funciona, y está medido.** Los *chunks* servidos pasan de **696 KB a
+  712 KB**: +16 KB por once iconos, con `lucide-react` ocupando 45 MB en disco. La asunción de la
+  tarea era justo esa y ya no es una asunción.
+- **Las dos pruebas nuevas se comprobaron rompiéndolas:** al quitarle la palabra «Salir» a su
+  icono, las dos caen. Sin ese paso, «la prueba cubre el caso» habría sido una suposición.
+- **Los criterios de esta tarea sí sobrevivieron al contacto con el código**, a diferencia de los de
+  `T-020` y `T-021`. Estaban escritos sobre propiedades de la aplicación —nombres accesibles, peso
+  del paquete, texto junto al icono— y no sobre la maqueta.
+- **Quinto aviso del mismo defecto, y ya no se puede seguir aplazando.** `escaneo.spec.ts:128` pasa
+  aislada dos veces seguidas y falla con la suite entera; se comprobó **guardando mis cambios y
+  corriendo sobre `HEAD`**, donde falla igual. Además la suite pasó de 57 s a 3,2 minutos y los
+  fallos cambian de prueba en cada pasada. Se descartó que fueran datos fugados: la base tiene 17
+  productos y 1 usuario, que es lo que debe tener. Queda la causa de siempre —paralelo contra una
+  sola base, más latencia contra Neon—. **Recomiendo que la tarea de aislamiento entre antes que
+  `T-023`:** con la suite así, el control que debe demostrar que un cambio visual no rompió nada ya
+  no demuestra nada.
 
 ## Validation
 
@@ -88,4 +119,4 @@ implements: [FR-010, AC-X02]
 
 ## Trace
 
-- `docs/traces/<fecha>_T-022_implementer.md`
+- `docs/traces/2026-09-13_T-022_implementer.md`

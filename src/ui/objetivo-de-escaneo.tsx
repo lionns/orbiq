@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { acumular, FORMATOS, LECTURA_VACIA, type LecturaEnCurso } from "@/domain/escaneo";
 import { Boton } from "@/ui/boton";
 import { CLASE_CONTROL } from "@/ui/campo";
+import { Icono } from "@/ui/iconos";
 
 /**
  * El objetivo de escaneo único de `D-009`: **una salida, tres entradas**.
@@ -223,8 +224,9 @@ export function ObjetivoDeEscaneo({
             setActiva((estaba) => !estaba);
           }}
           data-testid="alternar-camara"
-          className="shrink-0"
+          className="shrink-0 gap-1.5"
         >
+          <Icono nombre={activa ? "cerrar" : "camara"} />
           {activa ? "Cerrar" : "Cámara"}
         </Boton>
       </div>
