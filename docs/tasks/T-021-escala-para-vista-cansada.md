@@ -1,7 +1,7 @@
 ---
 id: T-021
 title: Escala tipográfica para vista cansada
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -122,8 +122,10 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-13
+- Firmado con el segundo criterio reescrito a la vista, y con el aviso de que las tareas se
+  escribieron mirando el lienzo y no el código.
 
 ## Trace
 
