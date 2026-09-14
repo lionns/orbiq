@@ -104,7 +104,11 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
 
   return (
     <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_22rem] lg:gap-6">
-      <section className="px-4 pb-[19rem] pt-4 lg:pb-8" aria-label="Productos">
+      {/* `pb-72` reserva exactamente lo que la barra puede llegar a medir: el mismo `72` que la
+          acota abajo. Eran dos números distintos —304 px de hueco contra una barra que con ocho
+          artículos llegaba a 379— y los 75 px de diferencia tapaban el final de la cuadrícula sin
+          que se pudiera desplazar más. Lo fija `e2e/venta.spec.ts`. */}
+      <section className="px-4 pb-72 pt-4 lg:pb-8" aria-label="Productos">
         <div className="mb-4">
           <ObjetivoDeEscaneo
             onCodigo={alEscanear}
@@ -235,9 +239,13 @@ function VentaEnCurso({
     // No usa `BarraInferior` porque en pantalla grande deja de estar fija y pasa a ser una columna.
     <aside
       aria-label="Venta en curso"
-      className="fixed inset-x-0 bottom-0 border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:rounded-card lg:border lg:border-border lg:shadow-none"
+      // `max-h-72` es el tope, y es el mismo `72` que la cuadrícula reserva arriba. En pantalla
+      // grande deja de estar fija y no necesita tope.
+      className="fixed inset-x-0 bottom-0 flex max-h-72 flex-col border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:max-h-none lg:rounded-card lg:border lg:border-border lg:shadow-none"
     >
-      <ul className="max-h-[38vh] overflow-y-auto px-4" data-testid="venta-en-curso">
+      {/* `min-h-0` no sobra: sin él un hijo flexible no encoge por debajo de su contenido y la
+          lista empuja el total fuera de la barra en vez de desplazarse dentro. */}
+      <ul className="min-h-0 flex-1 overflow-y-auto px-4" data-testid="venta-en-curso">
         {carrito.articulos.map((a) => (
           <li key={a.productoId} className="flex items-center gap-3 py-2">
             <span className="min-w-0 flex-1">
@@ -279,7 +287,7 @@ function VentaEnCurso({
         </div>
       ) : null}
 
-      <div className="flex items-center gap-4 border-t border-border p-4">
+      <div className="flex shrink-0 items-center gap-4 border-t border-border p-4">
         <span className="flex-1">
           <span className="block text-text-muted">
             Total · {unidades(carrito)} {unidades(carrito) === 1 ? "artículo" : "artículos"}

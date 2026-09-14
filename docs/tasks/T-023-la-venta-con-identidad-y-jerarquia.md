@@ -84,7 +84,15 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
   Catálogo, Ventas, Tema y Salir en una fila de 360 px el nombre se truncaba a «Mi…». El catálogo
   se alcanza desde la cuadrícula —donde tiene sentido buscar lo que no está entre los frecuentes— y
   tenerlo además arriba era decirlo dos veces.
-- **La suite volvió a 91/91 y a un minuto**, desde los 87 de 91 y 3,2 minutos de `T-022`. Aquellos
+- **Defecto reportado por el estudio y corregido aquí:** con el carrito lleno no se podía llegar al
+  final de la cuadrícula. La cuadrícula reservaba un hueco **fijo** para la barra del total, pero la
+  barra crece con el carrito — con ocho artículos medía 379 px contra 304 reservados, y esos 75 px
+  tapaban las últimas casillas sin que se pudiera desplazar más. Ahora el hueco y el tope de la
+  barra son el mismo número. Medido antes y después, y la prueba cae con el código viejo.
+- **La prueba nueva destapó una fragilidad ajena y se arregló de paso:** sembrar ocho productos
+  vendidos desplazó de la cuadrícula a «Galleta ancha», que otra prueba sembraba **sin ventas** y
+  daba por visible. Es la familia de `T-018`; se le aplicó el mismo remedio. Sexta manifestación.
+- **La suite volvió a 92/92 y a un minuto**, desde los 87 de 91 y 3,2 minutos de `T-022`. Aquellos
   fallos eran latencia contra Neon. El defecto de aislamiento sigue ahí sin manifestarse hoy.
 
 ## Validation

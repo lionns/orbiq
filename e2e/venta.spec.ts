@@ -248,8 +248,44 @@ test("tocar dos veces suma, y se puede corregir la cantidad sin rehacer la venta
   await expect(page.getByTestId("confirmar")).toBeDisabled();
 });
 
+/**
+ * Reportado por el estudio: «cuando selecciono muchos productos no puedo bajar del todo en la lista,
+ * queda por detrás». La cuadrícula reservaba un hueco fijo para la barra del total, pero la barra
+ * crece con el carrito: con ocho artículos medía 379 px contra 304 reservados, y esos 75 px de
+ * diferencia tapaban el final de la cuadrícula sin que se pudiera desplazar más.
+ */
+test("con el carrito lleno se sigue llegando al final de la cuadrícula", async ({ page }) => {
+  // Ocho productos **vendidos**, para que entren en la cuadrícula por donde ella ordena (`T-018`).
+  const suyos = await sembrar(
+    Array.from({ length: 8 }, (_, i) => ({ nombre: `Carga${i}`, precio: 1000 + i, existencias: 40 })),
+  );
+  for (const p of suyos) {
+    await registrarVenta(nuevoId(), [{ productoId: p!.id, cantidad: 30 - suyos.indexOf(p) }], dueno.id);
+  }
+
+  await page.setViewportSize({ width: 360, height: 740 });
+  await entrarComo(page, dueno);
+  for (const p of suyos) await tocar(page, p!.id);
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(page.getByTestId("total")).toBeVisible();
+
+  const medido = await page.evaluate(() => {
+    const todas = [...document.querySelectorAll('[data-testid^="casilla-"]')];
+    const ultima = todas[todas.length - 1]!.getBoundingClientRect();
+    const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
+    return { fondoUltima: ultima.bottom, techoBarra: barra.top };
+  });
+  // Nada de la cuadrícula puede quedar debajo de la barra cuando ya no se puede desplazar más.
+  expect(medido.fondoUltima).toBeLessThanOrEqual(medido.techoBarra);
+});
+
 test("a 360 px el total se ve siempre y nada del flujo de venta vive arriba", async ({ page }) => {
-  const [galleta] = await sembrar([{ nombre: "Galleta ancha", precio: 2500, existencias: 12 }]);
+  // Se llega a la cuadrícula vendiendo, no sembrando: ordena por lo más vendido y corta en 24, así
+  // que un producto sin ventas se cae de ella en cuanto la base tiene datos. Mismo remedio que
+  // `T-018` aplicó a su vecina, y lo destapó la prueba del carrito lleno de aquí arriba.
+  const [galleta] = await sembrar([{ nombre: "Galleta ancha", precio: 2500, existencias: 42 }]);
+  await registrarVenta(nuevoId(), [{ productoId: galleta!.id, cantidad: 30 }], dueno.id);
   await page.setViewportSize({ width: 360, height: 740 });
   await entrarComo(page, dueno);
   await tocar(page, galleta!.id);
