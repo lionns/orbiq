@@ -1,4 +1,5 @@
 import { ETIQUETA_TEMA, TEMAS, type Tema } from "@/domain/tema";
+import { Icono } from "./iconos";
 import { Boton } from "./boton";
 
 /**
@@ -21,15 +22,19 @@ export function SelectorDeTema({
   return (
     <details className="relative">
       <summary
-        className="flex min-h-12 cursor-pointer list-none items-center px-2 underline"
+        // Píldora y no enlace subrayado: sobre la banda de acento, el subrayado se lee como un
+        // documento de hace veinte años. El velo sale de `accent-text`, así que sirve en los dos
+        // temas sin inventar un token.
+        className="flex min-h-12 cursor-pointer list-none items-center gap-1.5 rounded-button bg-accent-text/15 px-2.5 font-medium"
         data-testid="abrir-tema"
       >
+        <Icono nombre="tema" />
         Tema
       </summary>
       {/* Un solo panel absoluto: abrirlo no puede empujar la navegación ni la lista de abajo. El
           formulario del tema y lo que cuelgue debajo son hermanos — un formulario dentro de otro no
           es HTML válido, y salir es su propio envío. */}
-      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-1 rounded-card border border-border-strong bg-bg p-2 text-text">
+      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-1 rounded-card border border-border bg-surface p-2 text-text shadow-[0_8px_24px_rgba(28,25,23,0.18)]">
         <form action={accion} className="flex flex-col gap-1">
         {TEMAS.map((tema) => (
           <Boton
@@ -40,8 +45,13 @@ export function SelectorDeTema({
             variante={tema === actual ? "principal" : "secundario"}
             aria-current={tema === actual ? "true" : undefined}
             data-testid={`tema-${tema}`}
-            className="justify-start whitespace-nowrap"
+            className="justify-start gap-2 whitespace-nowrap"
           >
+            {/* El elegido lleva su visto: el relleno solo no dice cuál está puesto cuando se mira
+                de reojo, y es lo primero que se busca al abrir esto. */}
+            <span className="grid size-5 shrink-0 place-items-center">
+              {tema === actual ? <Icono nombre="cobrar" className="size-5" /> : null}
+            </span>
             {ETIQUETA_TEMA[tema]}
           </Boton>
         ))}

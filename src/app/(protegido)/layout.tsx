@@ -26,7 +26,7 @@ export default async function LayoutProtegido({ children }: { children: React.Re
           21 px de alto y empujaba el primer producto del catálogo bajo el pliegue (medido: 761 con
           740 de pantalla). A lo ancho, el nombre trunca en vez de empujar: un negocio con nombre
           largo no puede sacar la navegación de la pantalla. */}
-      <header className="flex items-center gap-2 bg-accent px-3 py-1.5 text-accent-text">
+      <header className="flex items-center gap-1.5 bg-accent px-3 py-1.5 text-accent-text">
         {/* El nombre **es** el enlace a vender: tener además un «Vender» al lado decía lo mismo
             dos veces y costaba sitio que aquí no sobra. */}
         <Link href="/" className="flex min-w-0 flex-1 items-center gap-2 font-semibold">
@@ -42,7 +42,10 @@ export default async function LayoutProtegido({ children }: { children: React.Re
             ir a buscar lo que no está entre los frecuentes — y tenerlo además aquí era decirlo dos
             veces y costaba el nombre del negocio, que se truncaba a «Mi…». */}
         <nav className="shrink-0">
-          <Link href="/ventas" className="underline">
+          {/* Sin píldora y sin subrayado: «Ventas» navega, no acciona. La píldora se reserva para
+              lo que abre algo —el tema—, y así además cabe el nombre del negocio, que es lo
+              primero que se sacrifica cuando esta fila se llena. */}
+          <Link href="/ventas" className="flex min-h-12 items-center px-1 font-medium">
             Ventas
           </Link>
         </nav>

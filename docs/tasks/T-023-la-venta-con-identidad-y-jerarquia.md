@@ -92,6 +92,15 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
 - **La prueba nueva destapó una fragilidad ajena y se arregló de paso:** sembrar ocho productos
   vendidos desplazó de la cuadrícula a «Galleta ancha», que otra prueba sembraba **sin ventas** y
   daba por visible. Es la familia de `T-018`; se le aplicó el mismo remedio. Sexta manifestación.
+- **Segundo aviso del estudio sobre el diseño, y también acertado:** el control del tema era un
+  enlace subrayado —«se ve como de los 2000»— y el panel no decía cuál opción estaba puesta. El
+  lienzo mostraba una píldora con icono y yo había dejado un enlace. Ahora es píldora, el panel se
+  levanta con sombra sobre `surface` y el tema activo lleva su visto. «Ventas» pierde el subrayado
+  y no gana píldora: navega, no acciona — y así cabe el nombre del negocio, que es lo primero que
+  se sacrifica cuando esta fila se llena.
+- **Otro defecto de la píldora, encontrado mirando:** «-2 en existencia» se partía en dos renglones
+  dentro del chip. Compacta, el aviso va corto —«Debe 2», «Agotado»— y entero. Sigue siendo texto,
+  que es lo que la regla exige; lo que no puede es comunicarse solo por color.
 - **La suite volvió a 92/92 y a un minuto**, desde los 87 de 91 y 3,2 minutos de `T-022`. Aquellos
   fallos eran latencia contra Neon. El defecto de aislamiento sigue ahí sin manifestarse hoy.
 
