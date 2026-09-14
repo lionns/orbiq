@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icono } from "@/ui/iconos";
 import { categoriasExistentes } from "@/domain/catalogo";
 import { FormularioProducto } from "./formulario";
 
@@ -15,7 +16,8 @@ export default async function NuevoProducto({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-6">
-      <Link href="/catalogo" className="text-text-muted underline">
+      <Link href="/catalogo" className="flex items-center gap-1.5 font-medium text-text-muted">
+        <Icono nombre="volver" />
         Volver al catálogo
       </Link>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">Nuevo producto</h1>

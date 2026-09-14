@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Icono } from "./iconos";
 
 /**
  * Una acción que existe pero no se impone. El mismo patrón que ya usan los filtros del catálogo y
@@ -22,7 +23,7 @@ export function SeccionPlegable({
   return (
     <details
       open={abierta}
-      className="rounded-card border border-border-strong bg-surface"
+      className="group rounded-card border border-border-strong bg-surface"
       {...resto}
     >
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 p-4 font-medium">
@@ -32,9 +33,10 @@ export function SeccionPlegable({
             <span className="block font-normal text-text-muted">{descripcion}</span>
           ) : null}
         </span>
-        {/* Gira al abrir: dice que hay algo debajo sin depender del color. */}
-        <span aria-hidden className="text-text-muted transition-transform">
-          ▾
+        {/* Gira al abrir: dice que hay algo debajo sin depender del color. El glifo sale del set
+            y no del carácter «▾», que cada navegador dibuja a su manera y desentona con el resto. */}
+        <span className="text-text-muted transition-transform group-open:rotate-90">
+          <Icono nombre="siguiente" />
         </span>
       </summary>
       <div className="border-t border-border p-4">{children}</div>

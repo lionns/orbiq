@@ -10,6 +10,7 @@ import { formatearPrecio } from "@/domain/moneda";
 import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
+import { Icono } from "@/ui/iconos";
 import { SeccionPlegable } from "@/ui/seccion-plegable";
 import { Cantidad, Existencias, Precio } from "@/ui/cifras";
 import { cambiarEstado } from "./acciones";
@@ -36,13 +37,16 @@ export default async function HistorialDeProducto({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-6">
-      <Link href="/catalogo" className="text-text-muted underline">
+      <Link href="/catalogo" className="flex items-center gap-1.5 font-medium text-text-muted">
+        <Icono nombre="volver" />
         Volver al catálogo
       </Link>
 
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">{libro.producto.nombre}</h1>
       <p className="mt-1 flex items-baseline gap-3">
-        <Precio valor={libro.producto.precio} className="font-medium" />
+        {/* Misma jerarquía que la cuadrícula (`T-021`): es la pantalla donde se va a comprobar un
+            precio, así que el precio manda y las existencias son la nota. */}
+        <Precio valor={libro.producto.precio} className="text-2xl font-semibold" />
         <Existencias cantidad={libro.saldoMaterializado} />
         {!libro.producto.activo ? <span className="text-text-muted">· desactivado</span> : null}
       </p>
@@ -174,10 +178,11 @@ function FilaDelHistorial({ evento: e }: { evento: EventoDelProducto }) {
       {e.ventaId ? (
         <Link
           href={`/ventas/${e.ventaId}`}
-          className="mt-1 block text-text-muted underline"
+          className="mt-1 flex items-center gap-1 font-medium text-accent"
           data-testid="de-una-venta"
         >
           Ver la venta
+          <Icono nombre="siguiente" />
         </Link>
       ) : null}
     </li>
