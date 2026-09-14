@@ -23,3 +23,4 @@
 2026-09-13 | T-019 | done | el día de una venta lo decide el negocio, no el servidor | 11 files | test 69/69, e2e 87/87, también con TZ=Asia/Tokyo y TZ=UTC | D-005
 2026-09-13 | T-020 | done | la paleta se declara una vez y los temas solo eligen cuál rige | 4 files | test 69/69, e2e 87/87 | D-005,D-007
 2026-09-13 | T-021 | done | jerarquía por tamaño en la cuadrícula y suelo tipográfico con prueba | 8 files | test 69/69, e2e 89/89 | D-007
+2026-09-14 | T-022 | done | iconos que acompañan a la palabra, con el peso del paquete medido | 7 files | test 69/69, e2e 92/92 | D-003,D-007

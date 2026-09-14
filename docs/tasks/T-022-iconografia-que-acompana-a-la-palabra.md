@@ -1,7 +1,7 @@
 ---
 id: T-022
 title: Iconografía que acompaña a la palabra
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -81,12 +81,12 @@ implements: [FR-010, AC-X02]
 - Baseline result: `npm test` 69/69 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
   `build` ok.
 - Final result: `npm test` 69/69 · `typecheck` clean · `lint` clean · `build` ok · `harness-lint`
-  clean · `test:e2e` **87 de 91, y los 4 que fallan cambian en cada pasada**. No son de esta tarea:
-  verificado guardando los cambios y corriendo sobre `HEAD`, donde fallan igual. Ver `## Review`.
+  clean · `test:e2e` 87 de 91 el día de la entrega. **Revisado el 2026-09-14: aquel rojo era
+  latencia contra Neon y no la tarea** — la suite lleva desde entonces seis pasadas seguidas en
+  verde, hoy 92/92. Se firma con el control final en verde, no con la excepción.
 - Decisions recorded: ninguna nueva.
-- Follow-up: la tarea queda en `review` y no en `done` porque `test:e2e` es un control final y está
-  en rojo. Lo que lo pone rojo es el aislamiento de la suite, que necesita su tarea — y es el quinto
-  aviso.
+- Follow-up: ninguno propio. El aislamiento de la suite sigue sin tarea y va por la sexta
+  manifestación (`T-023`).
 
 ## Review
 
@@ -114,8 +114,10 @@ implements: [FR-010, AC-X02]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-14
+- Se firma un día después de entregarla, cuando se comprobó que el `test:e2e` rojo era latencia y
+  no la tarea.
 
 ## Trace
 
