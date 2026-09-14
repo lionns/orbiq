@@ -9,6 +9,7 @@
   - checks: baseline verde; final `npm test` 69/69, typecheck, lint, build, harness-lint limpios,
     `test:e2e` 92/92 en dos pasadas
   - assumptions: ninguna
-  - blockers: ninguno
+  - blockers: el estudio rechazó el aspecto resultante y la tarea se revirtió entera. Vuelve a
+    `ready`. El defecto fue de método: no se acordó cómo iban a verse los cambios antes de hacerlos
   - mirado antes de darlo por hecho: capturas de ficha, catálogo y ventas en los dos temas, revisadas
     antes de cerrar y no después de que el estudio lo devolviera

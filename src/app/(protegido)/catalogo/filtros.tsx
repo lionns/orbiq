@@ -45,13 +45,8 @@ export function Filtros({
         <BuscadorPorCodigo />
       </div>
 
-      <details open={acotado} className="group mt-3">
-        {/* Mismo trato que `SeccionPlegable`: es un desplegable, no un enlace, y el subrayado lo
-            hacía parecer lo segundo. */}
-        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-1.5 py-3 font-medium">
-          <span className="text-text-muted transition-transform group-open:rotate-90">
-            <Icono nombre="siguiente" />
-          </span>
+      <details open={acotado} className="mt-3">
+        <summary className="min-h-12 cursor-pointer list-none py-3 underline">
           Filtros{acotado ? " (activos)" : ""}
         </summary>
 

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Icono } from "@/ui/iconos";
 import { notFound } from "next/navigation";
 import { detalleDeVenta } from "@/domain/venta";
 import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
@@ -25,8 +24,7 @@ export default async function Venta({ params }: { params: Promise<{ id: string }
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-6">
-      <Link href="/ventas" className="flex items-center gap-1.5 font-medium text-text-muted">
-        <Icono nombre="volver" />
+      <Link href="/ventas" className="text-text-muted underline">
         Volver a las ventas
       </Link>
 

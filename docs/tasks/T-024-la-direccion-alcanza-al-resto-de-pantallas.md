@@ -1,7 +1,7 @@
 ---
 id: T-024
 title: La dirección alcanza al resto de las pantallas
-status: review
+status: ready
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -41,14 +41,14 @@ Y lo que aparezca al recorrer **catálogo** y **alta de producto**, que tampoco 
 
 ## Acceptance Criteria
 
-- [x] CUANDO el dueño abre la ficha de un producto EL SISTEMA DEBE mostrar el precio más grande que
+- [ ] CUANDO el dueño abre la ficha de un producto EL SISTEMA DEBE mostrar el precio más grande que
       las existencias, con la misma jerarquía que la cuadrícula.
-- [x] Ningún enlace de navegación de la aplicación se distingue **solo** por subrayado: llevan
+- [ ] Ningún enlace de navegación de la aplicación se distingue **solo** por subrayado: llevan
       icono, píldora o peso, como los de la venta.
-- [x] CUANDO una sección plegable está cerrada EL SISTEMA DEBE indicarlo con un glifo propio y no
+- [ ] CUANDO una sección plegable está cerrada EL SISTEMA DEBE indicarlo con un glifo propio y no
       con el marcador nativo del navegador.
-- [x] A 360 px el encabezado de cada día del historial cabe en una línea con su total alineado.
-- [x] Las cinco pantallas se recorren en los dos temas sin que ningún control deje de distinguirse
+- [ ] A 360 px el encabezado de cada día del historial cabe en una línea con su total alineado.
+- [ ] Las cinco pantallas se recorren en los dos temas sin que ningún control deje de distinguirse
       de su fondo (`aspecto.spec.ts`), y sin texto por debajo de 14 px (`tipografia.spec.ts`).
 
 ## Verification
@@ -73,34 +73,30 @@ Y lo que aparezca al recorrer **catálogo** y **alta de producto**, que tampoco 
 
 ## Outcome
 
-- Changes: en la ficha el precio pasa a 24 y manda, como en la cuadrícula. Los tres enlaces de
-  volver llevan flecha en vez de subrayado. `SeccionPlegable` y «Filtros» cambian el carácter «▾»
-  del navegador por el glifo del set, que gira al abrir. El encabezado del día usa `dateStyle:
-  "long"`: el día de la semana delante lo partía en dos renglones a 360 px.
-- Files: `src/ui/seccion-plegable.tsx`, `src/app/(protegido)/catalogo/{filtros.tsx,[id]/page.tsx,nuevo/page.tsx}`,
-  `src/app/(protegido)/ventas/{page.tsx,[id]/page.tsx}`, `src/app/(protegido)/venta.tsx`
-- Baseline result: `npm test` 69/69 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
-  `build` ok.
-- Final result: el mismo comando en verde · `test:e2e` **92/92 en dos pasadas**.
-- Decisions recorded: ninguna nueva.
-- Follow-up: ninguno propio.
+- **Implementada, enseñada y rechazada por el estudio el 2026-09-14. Revertida entera.** El código
+  vuelve a lo que había al firmar `T-023`; la tarea vuelve a `ready` con sus criterios sin marcar.
+- Lo que se llegó a construir, por si se retoma: precio dominante en la ficha, flecha en los tres
+  enlaces de volver, glifo propio y giratorio en `SeccionPlegable` y «Filtros», y encabezado del día
+  en `long` para que quepa en una línea. Está en el commit `b494d08` y se puede recuperar entero.
+- Final result antes de revertir: `npm test` 69/69 · `test:e2e` 92/92 en dos pasadas · typecheck,
+  lint, build y harness-lint limpios. **El verde no era el problema.**
+- Decisions recorded: ninguna.
+- Follow-up: los cuatro hallazgos del § Scope siguen siendo ciertos —los vimos los dos en las
+  capturas—, pero la forma de resolverlos no se acordó con el estudio antes de escribirla. Retomarla
+  exige enseñar el aspecto **antes** de implementarlo, no después.
 
 ## Review
 
-- **Los cuatro hallazgos venían de mirar capturas, no de razonar**, y esta vez la captura se hizo
-  **antes** de dar nada por terminado — que es lo que `T-023` costó aprender a base de tres
-  devoluciones del estudio.
-- **Un subrayado se queda, a propósito.** «Darlo de alta» vive dentro de una frase, y ahí el
-  subrayado es la convención correcta para marcar un enlace en prosa. Los otros cuatro eran
-  navegación o desplegables disfrazados de enlace.
-- **«Filtros» no era un enlace y lo parecía.** Es un desplegable, así que recibe el mismo trato que
-  `SeccionPlegable`: glifo que gira, sin subrayado. La incoherencia venía de que cada uno se
-  escribió por su lado.
-- **La fecha se acortó, el dato no.** `full` daba «lunes, 14 de septiembre de 2026» y partía el
-  encabezado dejando el total colgando; `long` da «14 de septiembre de 2026» en una línea. El día
-  sigue siendo inconfundible, que es lo que se mira al cerrar la caja.
-- Tocar `SeccionPlegable` alcanza a pantallas fuera del título de la tarea. Era el riesgo escrito, y
-  por eso `aspecto.spec.ts` y `tipografia.spec.ts` eran obligatorias aquí: las dos pasan.
+- **El fallo no fue de ejecución, fue de método.** Los criterios se cumplieron y las pruebas
+  pasaron; lo que no se hizo fue acordar **cómo iban a verse** los cambios antes de hacerlos. En
+  `T-023` había un lienzo validado que servía de contrato; aquí no había ninguno, y la tarea se
+  escribió describiendo problemas en vez de soluciones. «Que lleven icono, píldora o peso» es una
+  restricción, no un diseño.
+- **La lección de `T-023` se aplicó a medias.** Se capturó y se miró antes de entregar —eso sí
+  mejoró— pero mirar sirve para encontrar defectos, no para acordar una dirección. Lo segundo pasa
+  por enseñar antes de construir.
+- Revertir costó una orden porque todo el cambio vivía en un commit y en `src/`. Que fuera barato
+  deshacerlo es lo único que salió bien de esta tarea, y no fue casualidad.
 
 ## Validation
 

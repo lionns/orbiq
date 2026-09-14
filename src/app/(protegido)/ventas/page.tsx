@@ -10,10 +10,7 @@ export const dynamic = "force-dynamic";
 // `d.dia` ya viene siendo una fecha del negocio, así que solo hay que escribirla: se ancla a
 // mediodía UTC y se formatea en UTC para que ninguna zona la corra un día. La **hora** de cada
 // venta sí es un instante, y esa se escribe en la zona del negocio o contradice a su encabezado.
-// `long` y no `full`: el día de la semana delante partía el encabezado en dos renglones a 360 px
-// y dejaba el total colgando, desalineado. Se acorta el formato, nunca el dato — la fecha sigue
-// siendo inconfundible.
-const dia = new Intl.DateTimeFormat("es-CO", { dateStyle: "long", timeZone: "UTC" });
+const dia = new Intl.DateTimeFormat("es-CO", { dateStyle: "full", timeZone: "UTC" });
 const hora = new Intl.DateTimeFormat("es-CO", { timeStyle: "short", timeZone: ZONA_DEL_NEGOCIO });
 
 /** `YYYY-MM-DD` o nada. Una fecha inventada en la dirección se ignora, no tumba la pantalla. */

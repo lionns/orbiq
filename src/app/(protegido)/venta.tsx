@@ -164,7 +164,7 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
               <span className="font-medium text-text-muted">Más vendidos</span>
               <Link
                 href="/catalogo"
-                className="flex items-center gap-1 font-medium text-accent"
+                className="flex items-center gap-1 font-medium text-accent underline"
               >
                 Catálogo
                 <Icono nombre="siguiente" />
