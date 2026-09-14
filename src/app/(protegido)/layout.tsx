@@ -5,6 +5,7 @@ import { COOKIE_TEMA, leerTema } from "@/domain/tema";
 import { sesionActual } from "@/domain/session";
 import { NEGOCIO } from "@/domain/negocio";
 import { Boton } from "@/ui/boton";
+import { Icono } from "@/ui/iconos";
 import { SelectorDeTema } from "@/ui/selector-tema";
 import { elegirTema } from "@/app/acciones-tema";
 import { salir } from "../acceso/acciones";
@@ -28,13 +29,19 @@ export default async function LayoutProtegido({ children }: { children: React.Re
       <header className="flex items-center gap-2 bg-accent px-3 py-1.5 text-accent-text">
         {/* El nombre **es** el enlace a vender: tener además un «Vender» al lado decía lo mismo
             dos veces y costaba sitio que aquí no sobra. */}
-        <Link href="/" className="min-w-0 flex-1 truncate font-semibold">
-          {NEGOCIO.nombre}
+        <Link href="/" className="flex min-w-0 flex-1 items-center gap-2 font-semibold">
+          {/* El glifo va dentro de un cuadro claro para separarse del acento: sobre la banda, un
+              trazo del mismo color se pierde. Lleva el nombre al lado, así que la regla de
+              `T-022` se cumple. */}
+          <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-surface text-accent">
+            <Icono nombre="vender" className="size-4" />
+          </span>
+          <span className="truncate">{NEGOCIO.nombre}</span>
         </Link>
-        <nav className="flex shrink-0 items-center gap-2">
-          <Link href="/catalogo" className="underline">
-            Catálogo
-          </Link>
+        {/* Solo «Ventas». El catálogo se alcanza desde la cuadrícula, que es donde tiene sentido
+            ir a buscar lo que no está entre los frecuentes — y tenerlo además aquí era decirlo dos
+            veces y costaba el nombre del negocio, que se truncaba a «Mi…». */}
+        <nav className="shrink-0">
           <Link href="/ventas" className="underline">
             Ventas
           </Link>

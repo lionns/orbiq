@@ -122,7 +122,10 @@ Base 4. Escala: `4 · 8 · 12 · 16 · 24 · 32 · 48`. `16` es el margen latera
 
 ### Radius
 
-`0` (nada) · `8` (tarjetas, campos) · `12` (botones grandes) · `9999` (píldoras de cantidad).
+`0` (nada) · `12` (tarjetas, campos y botones grandes) · `9999` (píldoras).
+
+Las tarjetas pasaron de `8` a `12` el 2026-09-13 (`T-023`): con el fondo cálido y la tarjeta
+blanca, la esquina de 8 se leía dura contra el nuevo contraste.
 
 ### Elevation
 

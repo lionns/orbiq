@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -151,8 +152,23 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
             Todavía no hay productos. Da de alta el primero en el catálogo para empezar a vender.
           </p>
         ) : (
-          // `auto-rows-fr` iguala el alto de todas las filas; sin él, una fila cuyos nombres caben
-          // en una línea encoge y la cuadrícula queda dentada.
+          <>
+          {/* Dice qué es esta rejilla y por dónde se sale de ella. Sin esto, la cuadrícula era una
+              parrilla sin nombre y el catálogo solo se alcanzaba desde la cabecera. */}
+          {!buscando ? (
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className="font-medium text-text-muted">Más vendidos</span>
+              <Link
+                href="/catalogo"
+                className="flex items-center gap-1 font-medium text-accent underline"
+              >
+                Catálogo
+                <Icono nombre="siguiente" />
+              </Link>
+            </div>
+          ) : null}
+          {/* `auto-rows-fr` iguala el alto de todas las filas; sin él, una fila cuyos nombres caben
+              en una línea encoge y la cuadrícula queda dentada. */}
           <ul className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {mostrando.map((c) => (
               <li key={c.id}>
@@ -183,6 +199,7 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
               </li>
             ))}
           </ul>
+          </>
         )}
       </section>
 
@@ -218,7 +235,7 @@ function VentaEnCurso({
     // No usa `BarraInferior` porque en pantalla grande deja de estar fija y pasa a ser una columna.
     <aside
       aria-label="Venta en curso"
-      className="fixed inset-x-0 bottom-0 border-t border-border bg-bg lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:border lg:border-border lg:rounded-card"
+      className="fixed inset-x-0 bottom-0 border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:rounded-card lg:border lg:border-border lg:shadow-none"
     >
       <ul className="max-h-[38vh] overflow-y-auto px-4" data-testid="venta-en-curso">
         {carrito.articulos.map((a) => (

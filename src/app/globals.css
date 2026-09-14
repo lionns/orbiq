@@ -104,7 +104,7 @@
      regla sobre `body`, para que sea la utilidad `font-sans` y no CSS suelto. */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  --radius-card: 8px;
+  --radius-card: 12px;
   --radius-button: 12px;
 }
 

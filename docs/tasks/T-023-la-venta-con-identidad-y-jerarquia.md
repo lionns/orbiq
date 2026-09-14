@@ -76,6 +76,14 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
   comparando colores exactos— sino que la tabla del handoff cambió a propósito, y **la
   especificación se actualizó primero**. Aun así son valores esperados cambiados por quien
   implementa.
+- **El estudio avisó de que faltaba diseño, y era cierto.** Se habían aplicado los tokens y la
+  jerarquía, pero no la composición del lienzo: faltaban la píldora de existencias, el encabezado
+  «Más vendidos · Catálogo ›», la marca de la cabecera, la sombra de la barra y el radio de 12.
+  Todo eso estaba aprobado y no se había llevado al código. Ya está.
+- **La navegación salió de la banda porque el lienzo nunca la tuvo ahí.** Con marca, nombre,
+  Catálogo, Ventas, Tema y Salir en una fila de 360 px el nombre se truncaba a «Mi…». El catálogo
+  se alcanza desde la cuadrícula —donde tiene sentido buscar lo que no está entre los frecuentes— y
+  tenerlo además arriba era decirlo dos veces.
 - **La suite volvió a 91/91 y a un minuto**, desde los 87 de 91 y 3,2 minutos de `T-022`. Aquellos
   fallos eran latencia contra Neon. El defecto de aislamiento sigue ahí sin manifestarse hoy.
 

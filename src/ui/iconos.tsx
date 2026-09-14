@@ -1,5 +1,6 @@
 import {
   ArrowLeft,
+  ChevronRight,
   Camera,
   Check,
   LogOut,
@@ -38,6 +39,7 @@ export const ICONOS = {
   cerrar: X,
   tema: SunMoon,
   volver: ArrowLeft,
+  siguiente: ChevronRight,
   salir: LogOut,
 } as const;
 

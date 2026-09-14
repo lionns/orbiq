@@ -53,7 +53,9 @@ export function Existencias({
   return (
     <span
       data-alerta={alerta ? "" : undefined}
-      className={`tabular-nums ${
+      // Píldora y no texto suelto: es lo que la separa del precio sin tener que encogerla. El
+      // relleno sale de `bg`, que sobre una tarjeta `surface` es exactamente el chip del lienzo.
+      className={`inline-flex rounded-full bg-bg px-2 py-0.5 font-medium tabular-nums ${
         alerta ? "text-danger" : "text-text-muted"
       } ${className}`}
       {...resto}
