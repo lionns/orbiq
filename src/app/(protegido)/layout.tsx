@@ -25,13 +25,13 @@ export default async function LayoutProtegido({ children }: { children: React.Re
           21 px de alto y empujaba el primer producto del catálogo bajo el pliegue (medido: 761 con
           740 de pantalla). A lo ancho, el nombre trunca en vez de empujar: un negocio con nombre
           largo no puede sacar la navegación de la pantalla. */}
-      <header className="flex items-center gap-3 bg-accent px-4 py-1.5 text-accent-text">
+      <header className="flex items-center gap-2 bg-accent px-3 py-1.5 text-accent-text">
         {/* El nombre **es** el enlace a vender: tener además un «Vender» al lado decía lo mismo
             dos veces y costaba sitio que aquí no sobra. */}
         <Link href="/" className="min-w-0 flex-1 truncate font-semibold">
           {NEGOCIO.nombre}
         </Link>
-        <nav className="flex shrink-0 items-center gap-3">
+        <nav className="flex shrink-0 items-center gap-2">
           <Link href="/catalogo" className="underline">
             Catálogo
           </Link>
@@ -39,10 +39,13 @@ export default async function LayoutProtegido({ children }: { children: React.Re
             Ventas
           </Link>
         </nav>
+        {/* Se intentó meter «Salir» dentro del menú para que el nombre cupiera. Costaba un helper
+            compartido y tres pruebas de sesión —salir dejaba de verse al cargar— a cambio de siete
+            píxeles. Salen más barato de los huecos. */}
         <span className="flex shrink-0 items-center gap-1">
           <SelectorDeTema actual={tema} accion={elegirTema} />
           <form action={salir}>
-            <Boton type="submit" variante="secundario">
+            <Boton type="submit" variante="secundario" className="px-3">
               Salir
             </Boton>
           </form>

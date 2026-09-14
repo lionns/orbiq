@@ -31,12 +31,22 @@ export function Precio({
 export function Existencias({
   cantidad,
   alertarEnCero = false,
+  compacto = false,
   className = "",
   ...resto
 }: {
   cantidad: number;
   /** En la venta, cero ya merece aviso: se está por vender algo que el conteo dice que no hay. */
   alertarEnCero?: boolean;
+  /**
+   * En la cuadrícula, donde el precio manda y el sitio se paga caro. «117 en existencia» a 16 px
+   * inflaba la casilla y competía con el precio.
+   *
+   * **La alerta conserva las palabras**: es donde el texto hace falta, porque es el estado que no
+   * puede comunicarse solo por color (`design-handoff.md` § Accessibility Notes). Un saldo sano se
+   * lee con el número solo.
+   */
+  compacto?: boolean;
   className?: string;
 } & { "data-testid"?: string }) {
   const alerta = alertarEnCero ? cantidad <= 0 : cantidad < 0;
@@ -48,7 +58,7 @@ export function Existencias({
       } ${className}`}
       {...resto}
     >
-      {cantidad} en existencia
+      {compacto && !alerta ? cantidad : `${cantidad} en existencia`}
     </span>
   );
 }

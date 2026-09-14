@@ -177,7 +177,7 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
                       Se vio en la maqueta a 390 px antes de escribirlo aquí. */}
                   <span className="flex flex-col items-start gap-1">
                     <Precio valor={c.precio} className="text-2xl font-semibold" />
-                    <Existencias cantidad={c.existencias} alertarEnCero />
+                    <Existencias cantidad={c.existencias} alertarEnCero compacto />
                   </span>
                 </button>
               </li>

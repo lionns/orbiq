@@ -26,11 +26,11 @@ export function SelectorDeTema({
       >
         Tema
       </summary>
-      <form
-        action={accion}
-        // Absoluto: abrirlo no puede empujar la navegación ni la lista de abajo.
-        className="absolute right-0 z-10 mt-1 flex flex-col gap-1 rounded-card border border-border-strong bg-bg p-2"
-      >
+      {/* Un solo panel absoluto: abrirlo no puede empujar la navegación ni la lista de abajo. El
+          formulario del tema y lo que cuelgue debajo son hermanos — un formulario dentro de otro no
+          es HTML válido, y salir es su propio envío. */}
+      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-1 rounded-card border border-border-strong bg-bg p-2 text-text">
+        <form action={accion} className="flex flex-col gap-1">
         {TEMAS.map((tema) => (
           <Boton
             key={tema}
@@ -45,7 +45,8 @@ export function SelectorDeTema({
             {ETIQUETA_TEMA[tema]}
           </Boton>
         ))}
-      </form>
+        </form>
+      </div>
     </details>
   );
 }

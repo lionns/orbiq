@@ -30,7 +30,9 @@ export const VARIANTES = {
    * que es la inversión más barata y no necesita un token nuevo.
    */
   secundario:
-    "border border-border-strong bg-surface active:bg-bg disabled:opacity-50",
+    // `text-text` no sobra: sin él el botón hereda el color de quien lo contenga, y dentro de la
+    // banda de acento salía blanco sobre blanco — invisible. Un relleno propio necesita su tinta.
+    "border border-border-strong bg-surface text-text active:bg-bg disabled:opacity-50",
 } as const;
 
 export type Variante = keyof typeof VARIANTES;

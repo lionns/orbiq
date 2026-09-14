@@ -89,7 +89,8 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
   que es lo que hace que una casilla se lea como objeto. Las existencias bajan a su propia línea
   bajo el precio.
 - Files: `src/domain/negocio.ts`, `src/app/globals.css`, `src/app/(protegido)/layout.tsx`,
-  `src/app/(protegido)/venta.tsx`, `docs/project/design-handoff.md`, `e2e/tema.spec.ts`
+  `src/app/(protegido)/venta.tsx`, `src/ui/{boton.tsx,cifras.tsx,selector-tema.tsx}`,
+  `docs/project/design-handoff.md`, `e2e/tema.spec.ts`
 - Baseline result: `npm test` 69/69 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
   `build` ok.
 - Final result: `npm test` 69/69 · `typecheck` clean · `lint` clean · `build` ok · `harness-lint`
@@ -127,6 +128,18 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
   valores esperados hecho por quien implementa.
 - **El enlace «Vender» desapareció** porque el nombre del negocio ya lleva a la misma pantalla.
   Tener los dos era decir lo mismo dos veces y costaba sitio donde no sobra.
+- **Se miró en pantalla y estaba mal, así que se arregló.** Capturar las pantallas reales destapó
+  tres cosas que ninguna prueba veía: el botón «Salir» salía **blanco sobre blanco** —la variante
+  secundaria heredaba el color de la banda de acento en vez de fijar el suyo—; «117 en existencia»
+  a 16 px inflaba la casilla y competía con el precio; y el nombre del negocio se truncaba a
+  «Mi ti…», que es perder justo aquello para lo que existe la banda. Las tres corregidas: la
+  variante secundaria fija `text-text`, las existencias tienen modo compacto en la cuadrícula —la
+  alerta conserva las palabras, que es donde hacen falta— y la cabecera aprieta huecos.
+- **Un intento descartado, y el motivo:** se probó a meter «Salir» dentro del menú para que el
+  nombre cupiera. Rompía `entrarComo`, `entrarPorPantalla` y tres pruebas de `sesion.spec.ts`
+  —salir dejaba de verse al cargar— a cambio de siete píxeles. Se revirtió y los píxeles salieron
+  de los huecos. Cuando un cambio cosmético empieza a pedir que se reescriban pruebas de
+  comportamiento, el cambio es el que está mal.
 - **La suite volvió a 91/91 y a un minuto**, desde los 87 de 91 y 3,2 minutos de `T-022`. Los
   fallos de entonces no eran de aquella tarea ni de esta: eran latencia contra Neon. El defecto de
   aislamiento sigue ahí sin manifestarse hoy, y sigue mereciendo su tarea.

@@ -11,6 +11,10 @@
     `test:e2e` 91/91 en dos pasadas
   - assumptions: `NEGOCIO.nombre` es un marcador visible hasta que haya un cliente real
   - blockers: ninguno
+  - mirado en pantalla, no solo en verde: capturas de las cinco pantallas en los dos temas. Tres
+    defectos que ninguna prueba veía — «Salir» blanco sobre blanco, existencias inflando la casilla,
+    nombre truncado a «Mi ti…» —. Corregidos. Se descartó meter «Salir» en el menú: rompía dos
+    helpers y tres pruebas de sesión por siete píxeles
   - verificado, no deducido: los colores del lienzo daban surface/bg 1.11 y 1.15, bajo el umbral de
     1.18; el par final se buscó sobre una rejilla. La cabecera de dos filas dejaba el primer
     producto del catálogo en 761 con 740 de pantalla — bajo el pliegue.
