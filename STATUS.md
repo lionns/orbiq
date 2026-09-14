@@ -9,7 +9,6 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
-| [T-023](docs/tasks/T-023-la-venta-con-identidad-y-jerarquia.md) | `review` | Que la pantalla de venta deje de leerse como un formulario sin estilar. Hoy no hay cabecera ni marca, `surface` está a 1.23:1 del fondo —así que las casillas parecen texto entre hilos— y el precio no destaca sobre el nombre. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -31,10 +30,11 @@ Harness `0.9.0` · profile `team`
 | [T-020](docs/tasks/T-020-una-linea-por-decision-de-color.md) | `done` | Que cambiar el color de marca de un cliente sea editar un valor y no tres. Hoy la paleta clara está escrita una vez y la oscura dos veces literalmente, y olvidar una de las tres no falla: ese tema se queda con el color viejo y nadie se entera. |
 | [T-021](docs/tasks/T-021-escala-para-vista-cansada.md) | `done` | Que una persona de setenta años lea la pantalla sin acercársela a la cara. El dueño de una tienda de barrio no tiene veinticinco años, y hoy el nombre del producto, su precio y sus existencias pesan casi lo mismo y se leen al mismo tamaño. |
 | [T-022](docs/tasks/T-022-iconografia-que-acompana-a-la-palabra.md) | `done` | Que las acciones se reconozcan de un vistazo sin dejar de leerse. Hoy no hay un solo icono en la aplicación, así que toda la jerarquía visual descansa en el peso del texto y cada acción cuesta leerla entera. |
+| [T-023](docs/tasks/T-023-la-venta-con-identidad-y-jerarquia.md) | `done` | Que la pantalla de venta deje de leerse como un formulario sin estilar. Hoy no hay cabecera ni marca, `surface` está a 1.23:1 del fondo —así que las casillas parecen texto entre hilos— y el precio no destaca sobre el nombre. |
 
 ## Next
 
-**T-023** (`review`) — Que la pantalla de venta deje de leerse como un formulario sin estilar. Hoy no hay cabecera ni marca, `surface` está a 1.23:1 del fondo —así que las casillas parecen texto entre hilos— y el precio no destaca sobre el nombre.
+**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
 
 ## Open decisions
 
@@ -42,10 +42,10 @@ None. All decisions are accepted or superseded.
 
 ## Journal — last 5
 
+- 2026-09-14 | T-023 | done | identidad, paleta invertida y jerarquía en la venta, con la barra acotada | 14 files | test 69/69, e2e 92/92 | D-007,D-009
 - 2026-09-14 | T-022 | done | iconos que acompañan a la palabra, con el peso del paquete medido | 11 files | test 69/69, e2e 92/92 | D-003,D-007
 - 2026-09-13 | T-021 | done | jerarquía por tamaño en la cuadrícula y suelo tipográfico con prueba | 8 files | test 69/69, e2e 89/89 | D-007
 - 2026-09-13 | T-020 | done | la paleta se declara una vez y los temas solo eligen cuál rige | 4 files | test 69/69, e2e 87/87 | D-005,D-007
 - 2026-09-13 | T-019 | done | el día de una venta lo decide el negocio, no el servidor | 11 files | test 69/69, e2e 87/87, también con TZ=Asia/Tokyo y TZ=UTC | D-005
-- 2026-09-13 | T-018 | done | la prueba del saldo negativo deja de depender de la cuadrícula | 4 files | test 65/65, e2e 86/86 en dos pasadas | D-006
 
 Full history: [`JOURNAL.md`](JOURNAL.md) · decisions: [`docs/decisions/`](docs/decisions/README.md)

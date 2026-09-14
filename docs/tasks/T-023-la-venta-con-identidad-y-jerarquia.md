@@ -1,7 +1,7 @@
 ---
 id: T-023
 title: La venta con identidad y jerarquía
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -106,8 +106,13 @@ implements: [FR-010, NFR-003, US-010, AC-X01]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-14
+- Firmada tras recorrerla en pantalla. El estudio devolvió la tarea dos veces —faltaba la
+  composición del lienzo, y el control del tema seguía siendo un enlace subrayado— y una tercera
+  con un defecto de uso: la barra del total tapaba el final de la cuadrícula.
+- Catálogo, ficha e historial heredaron sin romperse, que era el riesgo aceptado. Lo que les falta
+  de dirección va a `T-024`, no aquí.
 
 ## Trace
 
