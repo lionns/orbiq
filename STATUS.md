@@ -9,10 +9,10 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
-| [T-020](docs/tasks/T-020-una-linea-por-decision-de-color.md) | `ready` | Que cambiar el color de marca de un cliente sea editar un valor y no tres. Hoy la paleta clara está escrita una vez y la oscura dos veces literalmente, y olvidar una de las tres no falla: ese tema se queda con el color viejo y nadie se entera. |
 | [T-021](docs/tasks/T-021-escala-para-vista-cansada.md) | `ready` | Que una persona de setenta años lea la pantalla sin acercársela a la cara. El dueño de una tienda de barrio no tiene veinticinco años, y hoy el nombre del producto, su precio y sus existencias pesan casi lo mismo y se leen al mismo tamaño. |
 | [T-022](docs/tasks/T-022-iconografia-que-acompana-a-la-palabra.md) | `ready` | Que las acciones se reconozcan de un vistazo sin dejar de leerse. Hoy no hay un solo icono en la aplicación, así que toda la jerarquía visual descansa en el peso del texto y cada acción cuesta leerla entera. |
 | [T-023](docs/tasks/T-023-la-venta-con-identidad-y-jerarquia.md) | `ready` | Que la pantalla de venta deje de leerse como un formulario sin estilar. Hoy no hay cabecera ni marca, `surface` está a 1.23:1 del fondo —así que las casillas parecen texto entre hilos— y el precio no destaca sobre el nombre. |
+| [T-020](docs/tasks/T-020-una-linea-por-decision-de-color.md) | `review` | Que cambiar el color de marca de un cliente sea editar un valor y no tres. Hoy la paleta clara está escrita una vez y la oscura dos veces literalmente, y olvidar una de las tres no falla: ese tema se queda con el color viejo y nadie se entera. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -34,7 +34,7 @@ Harness `0.9.0` · profile `team`
 
 ## Next
 
-**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
+**T-020** (`review`) — Que cambiar el color de marca de un cliente sea editar un valor y no tres. Hoy la paleta clara está escrita una vez y la oscura dos veces literalmente, y olvidar una de las tres no falla: ese tema se queda con el color viejo y nadie se entera.
 
 ## Open decisions
 

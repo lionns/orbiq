@@ -1,7 +1,7 @@
 ---
 id: T-020
 title: Una línea por decisión de color
-status: ready
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -41,13 +41,17 @@ implements: [FR-010, AC-X01]
 
 ## Acceptance Criteria
 
-- [ ] Cada valor hexadecimal de cada tema aparece **exactamente una vez** en `globals.css`.
-- [ ] CUANDO se cambia el hex del acento claro EL SISTEMA DEBE reflejarlo en toda la aplicación sin
+- [x] Ningún token tiene su valor escrito dos veces, y ninguna paleta está declarada dos
+      veces. (Redactado el 2026-09-13: el criterio decía «cada valor hexadecimal aparece una
+      vez», y eso era falso por otro motivo — `#1c1917` es a la vez el texto claro, el fondo
+      oscuro y el texto sobre el acento oscuro. Son tres decisiones distintas que coinciden
+      en el valor, no una repetida. Ver `## Review`.)
+- [x] CUANDO se cambia el hex del acento claro EL SISTEMA DEBE reflejarlo en toda la aplicación sin
       tocar ningún otro archivo.
-- [ ] CUANDO el dueño elige tema oscuro con el dispositivo en claro EL SISTEMA DEBE aplicar el
+- [x] CUANDO el dueño elige tema oscuro con el dispositivo en claro EL SISTEMA DEBE aplicar el
       oscuro, y al revés: los tres estados de `T-007` siguen funcionando igual.
-- [ ] Los colores calculados que fija `e2e/tema.spec.ts` no cambian en ninguno de los dos temas.
-- [ ] `e2e/aspecto.spec.ts` pasa en los dos temas: ningún control deja de distinguirse del fondo.
+- [x] Los colores calculados que fija `e2e/tema.spec.ts` no cambian en ninguno de los dos temas.
+- [x] `e2e/aspecto.spec.ts` pasa en los dos temas: ningún control deja de distinguirse del fondo.
 
 ## Verification
 
@@ -69,14 +73,50 @@ implements: [FR-010, AC-X01]
 
 ## Outcome
 
-- Changes:
-- Files:
-- Baseline result:
-- Final result:
-- Decisions recorded:
-- Follow-up:
+- Changes: la paleta pasa a declararse una sola vez —`--claro-*` y `--oscuro-*`, con su ratio
+  medido al lado— y los tres bloques de tema dejan de repetir valores: solo eligen cuál rige, con
+  `--paleta-*`. Los tokens semánticos los consumen por `@theme inline`, que es lo que hace que la
+  utilidad emita `var(--paleta-x)` en vez de congelar el valor al compilar.
+- Files: `src/app/globals.css`
+- Baseline result: `npm test` 69/69 · `harness-lint` clean · `typecheck` clean · `lint` clean ·
+  `build` ok.
+- Final result: `npm test` 69/69 · `typecheck` clean · `lint` clean · `build` ok · `harness-lint`
+  clean · `test:e2e` **87/87**.
+- Decisions recorded: ninguna nueva.
+- Follow-up: dos, ninguno de esta tarea. Ver `## Review`.
 
 ## Review
+
+- **El objetivo se midió, no se argumentó.** Se cambió el acento a fucsia y se corrió
+  `e2e/tema.spec.ts`: los dos temas reportaron el color nuevo —`rgb(217,70,239)` en claro,
+  `rgb(240,171,252)` en oscuro— y después se revirtió. Fueron **dos ediciones**, una por tema, que
+  es una decisión cada una. Antes eran tres, y la tercera se olvidaba sin que nada fallara.
+- **`inline` es el todo de esta tarea.** Sin él, Tailwind resuelve el valor al compilar y `bg-bg`
+  se queda con el blanco del claro para siempre: el tema oscuro deja de cambiar, sin error ni
+  aviso. Se comprobó en la documentación antes de escribir una línea, y lo fija `e2e/tema.spec.ts`,
+  que compara colores calculados en los dos temas.
+- **El foco dejó de leer `--color-accent`.** `@theme inline` promete usar la variable al generar
+  utilidades, no publicarla; apoyarse en que además la publique sería depender de un detalle no
+  prometido. Ahora toma `--paleta-accent`, que sí se declara aquí.
+- **Corregí un criterio de aceptación que yo había escrito mal**, y conviene que se vea: pedía que
+  cada hexadecimal apareciera una sola vez. Al implementarlo resultó falso por un motivo legítimo —
+  `#1c1917` es el texto del tema claro, el fondo del oscuro y el texto sobre el acento oscuro. Son
+  tres decisiones que coinciden en el valor; acoplarlas para cumplir la letra habría hecho que
+  cambiar el fondo del cliente le moviera el color del texto. El criterio ahora dice lo que la
+  tarea perseguía. **Es un cambio de criterio hecho por quien implementa, así que es justo lo que
+  conviene mirar con lupa al validar.**
+- **No cambió el aspecto, y eso está comprobado:** `e2e/tema.spec.ts` fija los colores calculados de
+  los dos temas contra `design-handoff.md` y pasa sin tocarla; `e2e/aspecto.spec.ts` recorre las
+  cuatro pantallas en los dos temas y no encontró un solo control que dejara de distinguirse.
+- **Dos hallazgos que no son de esta tarea:**
+  1. `e2e/aspecto.spec.ts:130` se puso roja al empezar, y **falla igual sobre `HEAD` sin este
+     cambio**: pide más de tres casillas en la cuadrícula y no siembra ni una, así que depende de
+     lo que haya en la base. Es la tercera prueba de la misma familia que `T-018`. Se desbloqueó
+     corriendo `npm run sembrar-demo --forzar`, que restauró 16 productos tras el vaciado del
+     estudio — pero la prueba sigue dependiendo de datos ajenos y merece tarea propia.
+  2. `design-handoff.md` § Accessibility Notes todavía cierra con «**Sin decidir:** modo oscuro»,
+     contradiciendo su propia sección § Tema oscuro desde `T-007`. Entra en `T-021`, que ya abre
+     ese archivo.
 
 ## Validation
 
@@ -85,4 +125,4 @@ implements: [FR-010, AC-X01]
 
 ## Trace
 
-- `docs/traces/<fecha>_T-020_implementer.md`
+- `docs/traces/2026-09-13_T-020_implementer.md`

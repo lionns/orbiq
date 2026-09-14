@@ -1,19 +1,101 @@
 @import "tailwindcss";
 
-/* Tokens de design-handoff.md § Design Tokens. Cada ratio de contraste está medido, no estimado.
-   Este bloque es el tema claro y también la base: el oscuro solo redefine los colores, nunca los
-   tamaños ni los radios. */
-@theme {
-  --color-bg: #ffffff;
-  --color-surface: #e9e7e4; /* 1.23:1 sobre bg — se distingue como panel */
-  --color-border: #d6d3d1; /* 1.49:1 — solo separadores, nunca borde de un control */
-  --color-border-strong: #7c756f; /* 4.53:1 sobre bg y 3.67:1 sobre surface */
-  --color-text: #1c1917; /* 17.49:1 */
-  --color-text-muted: #57534e; /* 7.63:1 */
-  --color-accent: #0f766e; /* 5.47:1 */
-  --color-accent-text: #ffffff;
-  --color-danger: #b91c1c; /* 6.47:1 */
-  --color-warning: #a16207; /* 4.92:1 */
+/* La paleta de `design-handoff.md` § Design Tokens, con cada ratio medido y no estimado.
+
+   **Cada valor aparece una sola vez.** Antes la clara estaba escrita una vez y la oscura dos —en la
+   consulta de medio y en el selector explícito—, así que cambiar el color de un cliente eran tres
+   ediciones y olvidar una no fallaba: ese tema se quedaba con el color viejo y nadie se enteraba.
+   Aquí los valores se declaran; más abajo los temas solo eligen cuál rige. */
+:root {
+  /* Tema claro. Ratios contra `--claro-bg`. */
+  --claro-bg: #ffffff;
+  --claro-surface: #e9e7e4; /* 1.23:1 sobre bg — se distingue como panel */
+  --claro-border: #d6d3d1; /* 1.49:1 — solo separadores, nunca borde de un control */
+  --claro-border-strong: #7c756f; /* 4.53:1 sobre bg y 3.67:1 sobre surface */
+  --claro-text: #1c1917; /* 17.49:1 */
+  --claro-text-muted: #57534e; /* 7.63:1 */
+  --claro-accent: #0f766e; /* 5.47:1 */
+  --claro-accent-text: #ffffff;
+  --claro-danger: #b91c1c; /* 6.47:1 */
+  --claro-warning: #a16207; /* 4.92:1 */
+
+  /* Tema oscuro. Ratios contra `--oscuro-bg`. */
+  --oscuro-bg: #1c1917; /* no es negro puro: en OLED el negro absoluto emborrona al desplazar */
+  --oscuro-surface: #332f2b; /* 1.32:1 sobre bg */
+  --oscuro-border: #44403c; /* 1.70:1 — solo separadores, nunca borde de un control */
+  --oscuro-border-strong: #8e8781; /* 4.94:1 sobre bg y 3.75:1 sobre surface */
+  --oscuro-text: #fafaf9; /* 16.74:1 */
+  --oscuro-text-muted: #a8a29e; /* 6.93:1 */
+  --oscuro-accent: #14b8a6; /* 7.03:1 */
+  /* Oscuro y no blanco: blanco sobre este acento da 2.49:1 y no se lee. Es el par que más
+     fácilmente se hereda mal del tema claro, y por eso hay una prueba que fija los dos. */
+  --oscuro-accent-text: #1c1917; /* 7.03:1 sobre el acento */
+  --oscuro-danger: #f87171; /* 6.32:1 */
+  --oscuro-warning: #fbbf24; /* 10.48:1 */
+
+  /* Qué tema rige. Sin elegir nada, el claro. */
+  --paleta-bg: var(--claro-bg);
+  --paleta-surface: var(--claro-surface);
+  --paleta-border: var(--claro-border);
+  --paleta-border-strong: var(--claro-border-strong);
+  --paleta-text: var(--claro-text);
+  --paleta-text-muted: var(--claro-text-muted);
+  --paleta-accent: var(--claro-accent);
+  --paleta-accent-text: var(--claro-accent-text);
+  --paleta-danger: var(--claro-danger);
+  --paleta-warning: var(--claro-warning);
+}
+
+/* Los dos selectores que hacen falta porque hay tres estados y no dos: elegir claro, elegir oscuro,
+   y no elegir. Sin `:not([data-theme="light"])`, quien pide claro con el sistema en oscuro se
+   quedaría oscuro.
+
+   Ninguno repite un valor: los dos remapean a la misma paleta declarada arriba. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paleta-bg: var(--oscuro-bg);
+    --paleta-surface: var(--oscuro-surface);
+    --paleta-border: var(--oscuro-border);
+    --paleta-border-strong: var(--oscuro-border-strong);
+    --paleta-text: var(--oscuro-text);
+    --paleta-text-muted: var(--oscuro-text-muted);
+    --paleta-accent: var(--oscuro-accent);
+    --paleta-accent-text: var(--oscuro-accent-text);
+    --paleta-danger: var(--oscuro-danger);
+    --paleta-warning: var(--oscuro-warning);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paleta-bg: var(--oscuro-bg);
+  --paleta-surface: var(--oscuro-surface);
+  --paleta-border: var(--oscuro-border);
+  --paleta-border-strong: var(--oscuro-border-strong);
+  --paleta-text: var(--oscuro-text);
+  --paleta-text-muted: var(--oscuro-text-muted);
+  --paleta-accent: var(--oscuro-accent);
+  --paleta-accent-text: var(--oscuro-accent-text);
+  --paleta-danger: var(--oscuro-danger);
+  --paleta-warning: var(--oscuro-warning);
+}
+
+/* `inline` no es un detalle de estilo: es lo que hace que esto funcione.
+
+   Con `@theme` a secas, Tailwind resuelve el valor al compilar y `bg-bg` quedaría con el blanco del
+   tema claro para siempre — el cambio de tema en tiempo de ejecución no la alcanzaría, sin error ni
+   aviso. Con `inline`, la utilidad emite `var(--paleta-bg)` y se resuelve al pintar, que es donde
+   el tema ya está decidido. */
+@theme inline {
+  --color-bg: var(--paleta-bg);
+  --color-surface: var(--paleta-surface);
+  --color-border: var(--paleta-border);
+  --color-border-strong: var(--paleta-border-strong);
+  --color-text: var(--paleta-text);
+  --color-text-muted: var(--paleta-text-muted);
+  --color-accent: var(--paleta-accent);
+  --color-accent-text: var(--paleta-accent-text);
+  --color-danger: var(--paleta-danger);
+  --color-warning: var(--paleta-warning);
 
   --text-total: 2.5rem; /* 40px — el número que se mira mientras se cobra */
 
@@ -24,40 +106,6 @@
 
   --radius-card: 8px;
   --radius-button: 12px;
-}
-
-/* Tema oscuro. Los ratios son contra `--color-bg: #1c1917` y están medidos uno por uno.
-
-   Dos reglas y no una porque hay tres estados, no dos: elegir claro, elegir oscuro, y no elegir.
-   Sin `:not([data-theme="light"])`, quien pide claro con el sistema en oscuro se quedaría oscuro. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg: #1c1917;
-    --color-surface: #332f2b; /* 1.32:1 sobre bg */
-    --color-border: #44403c; /* 1.70:1 — solo separadores, nunca borde de un control */
-    --color-border-strong: #8e8781; /* 4.94:1 sobre bg y 3.75:1 sobre surface */
-    --color-text: #fafaf9; /* 16.74:1 */
-    --color-text-muted: #a8a29e; /* 6.93:1 */
-    --color-accent: #14b8a6; /* 7.03:1 */
-    /* Oscuro, no blanco: blanco sobre este acento da 2.49:1 y no se lee. Es el par que más
-       fácilmente se hereda mal del tema claro. */
-    --color-accent-text: #1c1917; /* 7.03:1 sobre el acento */
-    --color-danger: #f87171; /* 6.32:1 */
-    --color-warning: #fbbf24; /* 10.48:1 */
-  }
-}
-
-:root[data-theme="dark"] {
-  --color-bg: #1c1917;
-  --color-surface: #332f2b;
-  --color-border: #44403c;
-  --color-border-strong: #8e8781;
-  --color-text: #fafaf9;
-  --color-text-muted: #a8a29e;
-  --color-accent: #14b8a6;
-  --color-accent-text: #1c1917;
-  --color-danger: #f87171;
-  --color-warning: #fbbf24;
 }
 
 /* Lo que sigue es lo único que no puede ser una clase de Tailwind, y cada regla dice por qué.
@@ -73,9 +121,12 @@ textarea {
 }
 
 /* Por qué no es una clase: es una garantía, no un estilo. Un lector de código de barras es un
-   teclado, y sin foco visible no se sabe dónde va a escribir (`AC-X02`). */
+   teclado, y sin foco visible no se sabe dónde va a escribir (`AC-X02`).
+
+   Toma el acento de la paleta y no del token semántico: `@theme inline` no promete publicar
+   `--color-accent` como variable, solo usarla al generar utilidades. */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--paleta-accent);
   outline-offset: 2px;
 }
 
