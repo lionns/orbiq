@@ -105,6 +105,14 @@
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --radius-card: 12px;
+
+  /* Lo que puede llegar a medir la barra de la venta, dicho una vez y usado en dos sitios: el tope
+     de la barra y el hueco que la cuadrícula le reserva.
+
+     Proporcional y no fijo: 18rem en una pantalla de 740 px es cómodo, pero en una de 560 son más
+     de la mitad y la cuadrícula se queda sin sitio. `dvh` sigue a la barra del navegador cuando se
+     encoge, que es lo que en un teléfono real dejaba la última fila debajo. */
+  --alto-barra-venta: min(18rem, 42dvh);
   --radius-button: 12px;
 }
 

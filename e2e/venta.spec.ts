@@ -263,7 +263,9 @@ test("con el carrito lleno se sigue llegando al final de la cuadrícula", async 
     await registrarVenta(nuevoId(), [{ productoId: p!.id, cantidad: 30 - suyos.indexOf(p) }], dueno.id);
   }
 
-  await page.setViewportSize({ width: 360, height: 740 });
+  // 560 de alto: un teléfono corto con la barra del navegador desplegada, que es donde la barra de
+  // la venta llegaba a comerse más de la mitad de la pantalla.
+  await page.setViewportSize({ width: 360, height: 560 });
   await entrarComo(page, dueno);
   for (const p of suyos) await tocar(page, p!.id);
 
@@ -274,10 +276,15 @@ test("con el carrito lleno se sigue llegando al final de la cuadrícula", async 
     const todas = [...document.querySelectorAll('[data-testid^="casilla-"]')];
     const ultima = todas[todas.length - 1]!.getBoundingClientRect();
     const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
-    return { fondoUltima: ultima.bottom, techoBarra: barra.top };
+    return { fondoUltima: ultima.bottom, techoBarra: barra.top, altoBarra: barra.height,
+             pantalla: window.innerHeight };
   });
-  // Nada de la cuadrícula puede quedar debajo de la barra cuando ya no se puede desplazar más.
-  expect(medido.fondoUltima).toBeLessThanOrEqual(medido.techoBarra);
+  // Con holgura, no al ras. Reservar exactamente lo que mide la barra daba cero píxeles de margen:
+  // en el navegador de prueba cuadraba y en un teléfono real —donde la barra del navegador encoge
+  // lo visible— la última fila quedaba debajo. El estudio lo reportó dos veces.
+  expect(medido.techoBarra - medido.fondoUltima).toBeGreaterThanOrEqual(16);
+  // Y la barra no puede quedarse con media pantalla: la cuadrícula es la razón de estar aquí.
+  expect(medido.altoBarra).toBeLessThan(medido.pantalla / 2);
 });
 
 test("a 360 px el total se ve siempre y nada del flujo de venta vive arriba", async ({ page }) => {

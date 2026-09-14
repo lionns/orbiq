@@ -10,6 +10,7 @@ Harness `0.9.0` · profile `team`
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
 | [T-024](docs/tasks/T-024-la-direccion-alcanza-al-resto-de-pantallas.md) | `ready` | Que la ficha del producto y el historial de ventas se vean diseñados y no heredados. Heredaron la paleta y los componentes de T-023 sin romperse, pero se nota que nadie las miró: el precio no manda donde se va a comprobar un precio, y quedan subrayados del look que el estudio ya rechazó. |
+| [T-025](docs/tasks/T-025-la-barra-de-la-venta-deja-sitio.md) | `review` | Que en un teléfono real se llegue al último producto de la cuadrícula con el carrito lleno. La barra del total reservaba exactamente lo que medía, así que la última fila quedaba a cero píxeles del borde: en el navegador de prueba cuadraba y en un teléfono de verdad quedaba debajo. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -35,7 +36,7 @@ Harness `0.9.0` · profile `team`
 
 ## Next
 
-**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
+**T-025** (`review`) — Que en un teléfono real se llegue al último producto de la cuadrícula con el carrito lleno. La barra del total reservaba exactamente lo que medía, así que la última fila quedaba a cero píxeles del borde: en el navegador de prueba cuadraba y en un teléfono de verdad quedaba debajo.
 
 ## Open decisions
 

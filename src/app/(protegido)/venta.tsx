@@ -104,11 +104,14 @@ export function PantallaDeVenta({ casillas }: { casillas: CasillaDeVenta[] }) {
 
   return (
     <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_22rem] lg:gap-6">
-      {/* `pb-72` reserva exactamente lo que la barra puede llegar a medir: el mismo `72` que la
-          acota abajo. Eran dos números distintos —304 px de hueco contra una barra que con ocho
-          artículos llegaba a 379— y los 75 px de diferencia tapaban el final de la cuadrícula sin
-          que se pudiera desplazar más. Lo fija `e2e/venta.spec.ts`. */}
-      <section className="px-4 pb-72 pt-4 lg:pb-8" aria-label="Productos">
+      {/* El hueco es el tope de la barra **más una holgura**. Reservar exactamente lo que mide
+          dejaba la última fila a cero píxeles del borde: en Chromium cuadraba, y en un teléfono de
+          verdad —donde la barra del navegador encoge lo visible— quedaba debajo. La holgura es
+          barata; el defecto costó dos reportes. Lo fija `e2e/venta.spec.ts`. */}
+      <section
+        className="px-4 pt-4 pb-[calc(var(--alto-barra-venta)+2rem)] lg:pb-8"
+        aria-label="Productos"
+      >
         <div className="mb-4">
           <ObjetivoDeEscaneo
             onCodigo={alEscanear}
@@ -239,9 +242,9 @@ function VentaEnCurso({
     // No usa `BarraInferior` porque en pantalla grande deja de estar fija y pasa a ser una columna.
     <aside
       aria-label="Venta en curso"
-      // `max-h-72` es el tope, y es el mismo `72` que la cuadrícula reserva arriba. En pantalla
-      // grande deja de estar fija y no necesita tope.
-      className="fixed inset-x-0 bottom-0 flex max-h-72 flex-col border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:max-h-none lg:rounded-card lg:border lg:border-border lg:shadow-none"
+      // El tope sale del mismo token que el hueco de arriba. En pantalla grande deja de estar fija
+      // y no necesita tope.
+      className="fixed inset-x-0 bottom-0 flex max-h-[var(--alto-barra-venta)] flex-col border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:max-h-none lg:rounded-card lg:border lg:border-border lg:shadow-none"
     >
       {/* `min-h-0` no sobra: sin él un hijo flexible no encoge por debajo de su contenido y la
           lista empuja el total fuera de la barra en vez de desplazarse dentro. */}
