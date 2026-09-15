@@ -393,3 +393,65 @@ test("el botón de confirmar se queda dentro de la barra con un total de seis ci
     expect(medido.anchoBoton).toBeGreaterThan(150);
   }
 });
+
+/**
+ * Preguntado por el estudio: «¿el total y el botón no deberían estar siempre visibles?». Lo estaban
+ * en celular —la barra va fija abajo, con tope desde `T-025`— y no en computador: la columna no
+ * tenía tope, así que crecía con el carrito hasta 1447 px y el total caía en y=1344 sobre una
+ * pantalla de 900. `sticky` no lo alcanza cuando la tarjeta es más alta que la ventana.
+ */
+test("en computador el total sigue a la vista con el carrito más largo que la pantalla", async ({
+  page,
+}) => {
+  const suyos = await sembrar(
+    Array.from({ length: 20 }, (_, i) => ({
+      nombre: `Columna${i}`,
+      precio: 1000 + i * 137,
+      existencias: 60,
+    })),
+  );
+  // Vendidos, para que entren en la cuadrícula por donde ella ordena (`T-018`).
+  for (const [i, p] of suyos.entries()) {
+    await registrarVenta(nuevoId(), [{ productoId: p!.id, cantidad: 50 - i }], dueno.id);
+  }
+
+  // 900 de alto es una pantalla de escritorio holgada; 768, el portátil corriente. El defecto
+  // aparecía en las dos, porque no dependía de la pantalla sino de que la columna no tuviera tope.
+  for (const [ancho, alto] of [
+    [1280, 900],
+    [1366, 768],
+  ] as const) {
+    await page.setViewportSize({ width: ancho, height: alto });
+    await entrarComo(page, dueno);
+    for (const p of suyos) await tocar(page, p!.id);
+    await expect(page.getByTestId("total")).toBeVisible();
+
+    const medido = await page.evaluate(() => {
+      const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
+      const boton = document.querySelector('[data-testid="confirmar"]')!.getBoundingClientRect();
+      const total = document.querySelector('[data-testid="total"]')!.getBoundingClientRect();
+      const lista = document.querySelector('[data-testid="venta-en-curso"]')!;
+      return {
+        altoBarra: Math.round(barra.height),
+        pantalla: window.innerHeight,
+        totalDentro: total.top >= 0 && total.bottom <= window.innerHeight,
+        botonDentro: boton.top >= 0 && boton.bottom <= window.innerHeight,
+        fueraPorAbajo: Math.round(boton.bottom - window.innerHeight),
+        listaSeDesplaza: lista.scrollHeight > lista.clientHeight,
+      };
+    });
+
+    // Enteros dentro de la ventana, sin desplazar la página: es lo que se mira mientras se cobra.
+    expect(
+      medido.totalDentro,
+      `a ${ancho}×${alto} el total no cabe en la ventana`,
+    ).toBe(true);
+    expect(
+      medido.botonDentro,
+      `a ${ancho}×${alto} el botón se sale ${medido.fueraPorAbajo} px por abajo`,
+    ).toBe(true);
+    // Y lo que cede es la lista, que se desplaza por dentro — no el total, que se queda.
+    expect(medido.altoBarra).toBeLessThanOrEqual(medido.pantalla);
+    expect(medido.listaSeDesplaza, "la lista no está desplazándose por dentro").toBe(true);
+  }
+});

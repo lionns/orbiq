@@ -237,14 +237,18 @@ function VentaEnCurso({
   const vacio = estaVacio(carrito);
 
   return (
-    // Fija abajo en celular, columna propia en pantalla grande. El total no se pierde de vista en
-    // ningún tamaño (design-handoff.md § Responsive Behavior, AC-X01).
+    // Fija abajo en celular, columna propia en pantalla grande. El total y su botón están a la
+    // vista mientras se cobra, en los dos tamaños (design-handoff.md § Responsive Behavior, AC-X01).
     // No usa `BarraInferior` porque en pantalla grande deja de estar fija y pasa a ser una columna.
     <aside
       aria-label="Venta en curso"
-      // El tope sale del mismo token que el hueco de arriba. En pantalla grande deja de estar fija
-      // y no necesita tope.
-      className="fixed inset-x-0 bottom-0 flex max-h-[var(--alto-barra-venta)] flex-col border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:max-h-none lg:rounded-card lg:border lg:border-border lg:shadow-none"
+      // Dos topes, uno por tamaño, y ninguno sobra. En celular sale del token que comparte con el
+      // hueco de la cuadrícula. En computador es la ventana menos los 16 px de `top-4` arriba y
+      // otros tantos abajo: **sin tope, la columna crecía con el carrito** —1447 px con veinte
+      // productos— y el total caía fuera de la pantalla, donde `sticky` ya no lo alcanza porque la
+      // tarjeta es más alta que la ventana. Con tope, quien se desplaza es la lista de adentro y el
+      // total se queda abajo, clavado.
+      className="fixed inset-x-0 bottom-0 flex max-h-[var(--alto-barra-venta)] flex-col border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:max-h-[calc(100dvh-2rem)] lg:rounded-card lg:border lg:border-border lg:shadow-none"
     >
       {/* `min-h-0` no sobra: sin él un hijo flexible no encoge por debajo de su contenido y la
           lista empuja el total fuera de la barra en vez de desplazarse dentro. */}
