@@ -53,23 +53,24 @@ export function Existencias({
   return (
     <span
       data-alerta={alerta ? "" : undefined}
-      // Píldora y no texto suelto: es lo que la separa del precio sin tener que encogerla. El
-      // relleno sale de `bg`, que sobre una tarjeta `surface` es exactamente el chip del lienzo.
-      className={`inline-flex whitespace-nowrap rounded-full bg-bg px-2 py-0.5 font-medium tabular-nums ${
-        alerta ? "text-danger" : "text-text-muted"
+      // Píldora y no texto suelto: es lo que la separa del precio sin tener que encogerla. La alerta
+      // lleva el rojo suave de Cobalto; un saldo sano, el fondo de la página sobre la tarjeta.
+      // `max-w-full` + `truncate`: una etiqueta nunca sale de su casilla, por estrecha que sea.
+      className={`inline-block max-w-full truncate rounded-full px-2.5 py-0.5 font-semibold tabular-nums ${
+        alerta ? "bg-danger-soft text-danger" : "bg-bg text-text-muted"
       } ${className}`}
       {...resto}
     >
-      {/* Compacta, el aviso va corto o no cabe: «-2 en existencia» se parte en dos renglones
-          dentro de la píldora. Sigue siendo texto, que es lo que pide la regla — lo que no puede
-          es comunicarse solo por color. */}
-      {!compacto
-        ? `${cantidad} en existencia`
-        : cantidad < 0
-          ? `Debe ${Math.abs(cantidad)}`
-          : cantidad === 0
-            ? "Agotado"
-            : cantidad}
+      {/* «Conteo en -2» y no «Debe 2»: en una tienda de barrio «debe» es fiado, y se leía como un
+          cliente que debe dos. Lo que dice es que el conteo no cuadra (`.diseno/cobalto`, punto 12).
+          Sigue siendo texto, que es lo que pide la regla: no puede comunicarse solo por color. */}
+      {cantidad < 0
+        ? `Conteo en ${cantidad}`
+        : cantidad === 0 && (alerta || compacto)
+          ? "Agotado"
+          : compacto
+            ? cantidad
+            : `Hay ${cantidad}`}
     </span>
   );
 }

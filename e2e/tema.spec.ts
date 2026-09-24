@@ -21,8 +21,8 @@ test.afterAll(async () => {
 const fondoDe = (page: import("@playwright/test").Page) =>
   page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
-const CLARO = "rgb(239, 234, 227)";
-const OSCURO = "rgb(28, 25, 23)";
+const CLARO = "rgb(232, 235, 244)";
+const OSCURO = "rgb(13, 15, 28)";
 
 async function elegir(page: import("@playwright/test").Page, tema: string) {
   await page.getByTestId("abrir-tema").click();
@@ -133,21 +133,21 @@ test("el tema también se elige desde las pantallas del negocio, y a 360 px no d
  */
 const TOKENS = {
   claro: {
-    fondo: "rgb(239, 234, 227)",
-    texto: "rgb(28, 25, 23)",
-    apagado: "rgb(87, 83, 78)",
-    acento: "rgb(15, 118, 110)",
+    fondo: "rgb(232, 235, 244)",
+    texto: "rgb(18, 21, 42)",
+    apagado: "rgb(80, 86, 111)",
+    acento: "rgb(47, 71, 214)",
     textoDelAcento: "rgb(255, 255, 255)",
-    bordeFuerte: "rgb(124, 117, 111)",
+    bordeFuerte: "rgb(118, 123, 149)",
   },
   oscuro: {
-    fondo: "rgb(28, 25, 23)",
-    texto: "rgb(250, 250, 249)",
-    apagado: "rgb(168, 162, 158)",
-    acento: "rgb(20, 184, 166)",
-    // Oscuro, no blanco: blanco sobre el acento da 2.49:1 (`T-007` § Review).
-    textoDelAcento: "rgb(28, 25, 23)",
-    bordeFuerte: "rgb(142, 135, 129)",
+    fondo: "rgb(13, 15, 28)",
+    texto: "rgb(238, 240, 251)",
+    apagado: "rgb(161, 167, 196)",
+    acento: "rgb(131, 151, 255)",
+    // Oscuro, no blanco: blanco sobre el acento de Cobalto no llega a 3:1 (`T-007` § Review).
+    textoDelAcento: "rgb(13, 15, 28)",
+    bordeFuerte: "rgb(125, 131, 163)",
   },
 } as const;
 

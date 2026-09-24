@@ -1,7 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Geist } from "next/font/google";
 import { cookies } from "next/headers";
 import { atributosDeTema, COOKIE_TEMA, leerTema } from "@/domain/tema";
 import "./globals.css";
+
+/**
+ * Geist, autoalojada: `next/font` la descarga al compilar y la sirve desde nuestro origen, así que el
+ * navegador no le pide nada a Google y el texto no salta al cargar. Solo latín: es lo que se escribe.
+ * Se publica como variable y la usa `--font-sans` en `globals.css`.
+ */
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Orbiq",
@@ -21,8 +29,8 @@ export const viewport: Viewport = {
   // servidor (`T-007`), que es otra cosa: quien fuerza claro con el teléfono en oscuro ve la barra
   // oscura. Es lo correcto: la barra es del sistema, no de la pantalla.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
-    { media: "(prefers-color-scheme: dark)", color: "#1C1917" },
+    { media: "(prefers-color-scheme: light)", color: "#E8EBF4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D0F1C" },
   ],
 };
 
@@ -35,7 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const tema = leerTema((await cookies()).get(COOKIE_TEMA)?.value);
 
   return (
-    <html lang="es" {...atributosDeTema(tema)}>
+    <html lang="es" className={geist.variable} {...atributosDeTema(tema)}>
       <body className="bg-bg font-sans text-text">{children}</body>
     </html>
   );

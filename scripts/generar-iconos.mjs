@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { deflateSync } from "node:zlib";
 
 // `accent` y `accent-text` del tema claro. El acento es el único color saturado del producto.
-const FONDO = [0x0f, 0x76, 0x6e];
+const FONDO = [0x2f, 0x47, 0xd6];
 const MARCA = [0xff, 0xff, 0xff];
 
 const TABLA_CRC = Array.from({ length: 256 }, (_, n) => {

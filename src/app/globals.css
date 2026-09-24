@@ -7,31 +7,35 @@
    ediciones y olvidar una no fallaba: ese tema se quedaba con el color viejo y nadie se enteraba.
    Aquí los valores se declaran; más abajo los temas solo eligen cuál rige. */
 :root {
-  /* Tema claro. Ratios contra `--claro-bg`. */
-  --claro-bg: #efeae3; /* fondo cálido: la tarjeta blanca se levanta de él a 1.20:1 */
-  --claro-surface: #ffffff; /* 1.20:1 sobre bg — ahora sí se lee como tarjeta */
-  --claro-border: #d9d2c8; /* 1.25:1 — solo separadores, nunca borde de un control */
-  --claro-border-strong: #7c756f; /* 3.79:1 sobre bg y 4.53:1 sobre surface */
-  --claro-text: #1c1917; /* 14.61:1 sobre bg, 17.49:1 sobre surface */
-  --claro-text-muted: #57534e; /* 6.38:1 sobre bg, 7.63:1 sobre surface */
-  --claro-accent: #0f766e; /* 4.57:1 sobre bg */
-  --claro-accent-text: #ffffff; /* 5.47:1 sobre el acento */
-  --claro-danger: #b91c1c; /* 6.47:1 sobre surface */
-  --claro-warning: #8a4a08; /* 6.85:1 sobre surface — más oscuro que antes: el fondo dejó de ser blanco */
+  /* Tema claro, Cobalto (`.diseno/cobalto/README.md`, validado el 2026-09-24). */
+  --claro-bg: #e8ebf4; /* la tarjeta blanca se levanta de él a 1.19:1 — por encima del 1.18 de aspecto.spec */
+  --claro-surface: #ffffff;
+  --claro-border: #dcdfec; /* solo separadores, nunca borde de un control */
+  --claro-border-strong: #767b95; /* 4.17:1 sobre surface */
+  --claro-text: #12152a; /* 18.0:1 sobre surface */
+  --claro-text-muted: #50566f; /* 6.07:1 sobre bg */
+  --claro-accent: #2f47d6; /* 5.89:1 sobre bg */
+  --claro-accent-text: #ffffff; /* 7.02:1 sobre el acento */
+  --claro-accent-soft: #e3e7fc; /* el acento sobre él: 5.71:1 */
+  --claro-danger: #b42318; /* 6.57:1 sobre surface */
+  --claro-danger-soft: #fbe4e1; /* danger sobre él: 5.41:1 */
+  --claro-warning: #8a4a08; /* 6.85:1 sobre surface */
 
-  /* Tema oscuro. Ratios contra `--oscuro-bg`. */
-  --oscuro-bg: #1c1917; /* no es negro puro: en OLED el negro absoluto emborrona al desplazar */
-  --oscuro-surface: #2e2926; /* 1.22:1 sobre bg */
-  --oscuro-border: #443d38; /* 1.64:1 — solo separadores, nunca borde de un control */
-  --oscuro-border-strong: #8e8781; /* 4.94:1 sobre bg y 4.06:1 sobre surface */
-  --oscuro-text: #fafaf9; /* 16.74:1 sobre bg, 13.76:1 sobre surface */
-  --oscuro-text-muted: #a8a29e; /* 6.93:1 sobre bg, 5.70:1 sobre surface */
-  --oscuro-accent: #14b8a6; /* 7.03:1 sobre bg */
-  /* Oscuro y no blanco: blanco sobre este acento da 2.49:1 y no se lee. Es el par que más
-     fácilmente se hereda mal del tema claro, y por eso hay una prueba que fija los dos. */
-  --oscuro-accent-text: #1c1917; /* 7.03:1 sobre el acento */
-  --oscuro-danger: #f87171; /* 5.20:1 sobre surface */
-  --oscuro-warning: #fbbf24; /* 8.61:1 sobre surface */
+  /* Tema oscuro, Cobalto. Ratios contra `--oscuro-bg` salvo que se diga. */
+  --oscuro-bg: #0d0f1c; /* no es negro puro: en OLED el negro absoluto emborrona al desplazar */
+  --oscuro-surface: #1c2038; /* 1.19:1 sobre bg */
+  --oscuro-border: #262a44; /* solo separadores, nunca borde de un control */
+  --oscuro-border-strong: #7d83a3; /* 4.30:1 sobre surface */
+  --oscuro-text: #eef0fb; /* 14.1:1 sobre surface */
+  --oscuro-text-muted: #a1a7c4; /* 8.02:1 sobre bg */
+  --oscuro-accent: #8397ff; /* 7.11:1 sobre bg */
+  /* Oscuro y no blanco: blanco sobre este acento no llega a 3:1. Es el par que más fácilmente se
+     hereda mal del tema claro, y por eso hay una prueba que fija los dos. */
+  --oscuro-accent-text: #0d0f1c; /* 7.11:1 sobre el acento */
+  --oscuro-accent-soft: #222a57; /* el acento sobre él: 5.10:1 */
+  --oscuro-danger: #f97066; /* 5.74:1 sobre surface */
+  --oscuro-danger-soft: #3b1c1a; /* danger sobre él: 5.51:1 */
+  --oscuro-warning: #fbbf24;
 
   /* Qué tema rige. Sin elegir nada, el claro. */
   --paleta-bg: var(--claro-bg);
@@ -42,7 +46,9 @@
   --paleta-text-muted: var(--claro-text-muted);
   --paleta-accent: var(--claro-accent);
   --paleta-accent-text: var(--claro-accent-text);
+  --paleta-accent-soft: var(--claro-accent-soft);
   --paleta-danger: var(--claro-danger);
+  --paleta-danger-soft: var(--claro-danger-soft);
   --paleta-warning: var(--claro-warning);
 }
 
@@ -61,7 +67,11 @@
     --paleta-text-muted: var(--oscuro-text-muted);
     --paleta-accent: var(--oscuro-accent);
     --paleta-accent-text: var(--oscuro-accent-text);
+  --paleta-accent-soft: var(--oscuro-accent-soft);
+    --paleta-accent-soft: var(--oscuro-accent-soft);
     --paleta-danger: var(--oscuro-danger);
+  --paleta-danger-soft: var(--oscuro-danger-soft);
+    --paleta-danger-soft: var(--oscuro-danger-soft);
     --paleta-warning: var(--oscuro-warning);
   }
 }
@@ -75,7 +85,9 @@
   --paleta-text-muted: var(--oscuro-text-muted);
   --paleta-accent: var(--oscuro-accent);
   --paleta-accent-text: var(--oscuro-accent-text);
+  --paleta-accent-soft: var(--oscuro-accent-soft);
   --paleta-danger: var(--oscuro-danger);
+  --paleta-danger-soft: var(--oscuro-danger-soft);
   --paleta-warning: var(--oscuro-warning);
 }
 
@@ -94,17 +106,21 @@
   --color-text-muted: var(--paleta-text-muted);
   --color-accent: var(--paleta-accent);
   --color-accent-text: var(--paleta-accent-text);
+  --color-accent-soft: var(--paleta-accent-soft);
   --color-danger: var(--paleta-danger);
+  --color-danger-soft: var(--paleta-danger-soft);
   --color-warning: var(--paleta-warning);
 
   --text-total: 2.5rem; /* 40px — el número que se mira mientras se cobra */
 
-  /* Pila de sistema, sin fuente web: una tipografía descargada son 40-100 kB por datos móviles
-     antes de que se vea el primer precio (design-handoff.md § Typography). Como token y no como
-     regla sobre `body`, para que sea la utilidad `font-sans` y no CSS suelto. */
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Geist, autoalojada por `next/font` en `layout.tsx`: se sirve desde nuestro origen y se descarga
+     una vez. La pila de sistema queda detrás por si la fuente no llega (design-handoff.md §
+     Typography). Como token y no como regla sobre `body`, para que sea la utilidad `font-sans`. */
+  --font-sans: var(--font-geist), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  --radius-card: 12px;
+  /* Radios de Cobalto: 16 botones y campos, 24 tarjetas, 28 el bloque de color de Inicio. */
+  --radius-card: 24px;
+  --radius-bloque: 28px;
 
   /* Lo que puede llegar a medir la barra de la venta, dicho una vez y usado en dos sitios: el tope
      de la barra y el hueco que la cuadrícula le reserva.
@@ -113,7 +129,7 @@
      de la mitad y la cuadrícula se queda sin sitio. `dvh` sigue a la barra del navegador cuando se
      encoge, que es lo que en un teléfono real dejaba la última fila debajo. */
   --alto-barra-venta: min(18rem, 42dvh);
-  --radius-button: 12px;
+  --radius-button: 16px;
 }
 
 /* Lo que sigue es lo único que no puede ser una clase de Tailwind, y cada regla dice por qué.

@@ -67,6 +67,6 @@ test("la barra de estado sigue al tema del dispositivo, en los dos", async ({ pa
 
   // Los valores son los `bg` de design-handoff.md § Color. Si alguien cambia el token y no esto,
   // la barra de estado queda de un color que ya no existe en el producto.
-  await expect(claro).toHaveAttribute("content", "#FFFFFF");
-  await expect(oscuro).toHaveAttribute("content", "#1C1917");
+  await expect(claro).toHaveAttribute("content", "#E8EBF4");
+  await expect(oscuro).toHaveAttribute("content", "#0D0F1C");
 });

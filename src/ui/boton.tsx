@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
+// `active:translate-y-px` es la respuesta al toque en menos de 100 ms que pide el handoff: el botón se
+// hunde un píxel. Solo `transform`, que no mueve nada alrededor ni reordena lo que se está tocando.
 const BASE =
-  "inline-flex items-center justify-center rounded-button px-4 font-medium";
+  "inline-flex items-center justify-center gap-2 rounded-button px-4 font-semibold transition-transform active:translate-y-px";
 
 /**
  * Los 48 px de área táctil de `design-handoff.md` § Touch Targets, aquí y no repartidos por cinco
@@ -16,23 +18,31 @@ export const TAMANOS = {
   normal: "min-h-12",
   /** Para el botón que se toca cien veces al día. */
   alto: "min-h-14",
+  /** Cobrar: el más grande de la pantalla, porque es el que termina cada venta. */
+  cobro: "min-h-16 text-xl",
 } as const;
 
 export type Tamano = keyof typeof TAMANOS;
 
 export const VARIANTES = {
   /** La acción principal de la pantalla. Solo una por pantalla. */
-  principal:
-    "bg-accent text-accent-text disabled:opacity-50",
+  principal: "bg-accent text-accent-text disabled:opacity-50",
   /**
    * Todo lo demás. Lleva relleno además de borde: un contorno de 1 px sobre el mismo fondo de la
    * página no se lee como botón, y en oscuro menos todavía. Al pulsarlo cae al fondo de la página,
    * que es la inversión más barata y no necesita un token nuevo.
    */
   secundario:
-    // `text-text` no sobra: sin él el botón hereda el color de quien lo contenga, y dentro de la
-    // banda de acento salía blanco sobre blanco — invisible. Un relleno propio necesita su tinta.
+    // `text-text` no sobra: sin él el botón hereda el color de quien lo contenga, y dentro de un
+    // bloque de acento salía blanco sobre blanco — invisible. Un relleno propio necesita su tinta.
     "border border-border-strong bg-surface text-text active:bg-bg disabled:opacity-50",
+  /**
+   * Una acción de apoyo junto a la principal —Escanear al lado de Cobrar—. El relleno de acento
+   * suave la distingue del fondo sin competir con la principal.
+   */
+  suave: "bg-accent-soft text-text disabled:opacity-50",
+  /** Lo que borra: Vaciar. El rojo suave lo separa de todo lo demás sin gritar. */
+  peligro: "bg-danger-soft text-danger disabled:opacity-50",
 } as const;
 
 export type Variante = keyof typeof VARIANTES;

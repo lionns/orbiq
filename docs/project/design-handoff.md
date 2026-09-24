@@ -14,49 +14,55 @@ tenga identidad, se reemplazan los valores y las reglas siguen sirviendo.
 
 ### Color
 
-Neutros más un acento. El acento es el único color saturado del flujo de venta, y existe para que
-"Confirmar" no se confunda con nada más.
+Neutros más un acento. El acento es el único color saturado del producto, y existe para que la
+acción principal —Cobrar— no se confunda con nada más.
 
-Revisados el 2026-09-13 (`T-023`). **El fondo y la tarjeta se invirtieron**: antes el fondo era
-blanco y la tarjeta un gris que a 1.23:1 apenas se veía; ahora el fondo es cálido y la tarjeta es
-blanca, que es lo que hace que una casilla se lea como objeto y no como texto entre hilos.
+Revisados el 2026-09-24 (`T-029`): la dirección **Cobalto**, validada por el estudio en el lienzo
+que vive en `.diseno/cobalto/`. Sustituye a la paleta cálida de `T-023`. Hay dos tokens nuevos,
+`accent-soft` y `danger-soft`: rellenos suaves para acciones de apoyo (Escanear) y para lo que
+borra o alerta (Vaciar, «Agotado»), sin competir con el acento.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `bg` | `#EFEAE3` | Fondo cálido. La tarjeta blanca se levanta de él a 1.20:1 |
-| `surface` | `#FFFFFF` | Relleno de tarjetas, campos y botones secundarios. **1.20:1 sobre `bg`** |
-| `border` | `#D9D2C8` | Separadores decorativos. 1.25:1 — **no vale para el borde de un control** |
-| `border-strong` | `#7C756F` | Borde de campos y botones. 3.79:1 sobre `bg` y **4.53:1 sobre `surface`** |
-| `text` | `#1C1917` | Texto principal — 14.61:1 sobre `bg`, 17.49:1 sobre `surface` |
-| `text-muted` | `#57534E` | Secundario — 6.38:1 sobre `bg`, 7.63:1 sobre `surface` |
-| `accent` | `#0F766E` | Banda de identidad y acción de cobrar. 4.57:1 sobre `bg` |
-| `accent-text` | `#FFFFFF` | Sobre `accent`. 5.47:1 |
-| `danger` | `#B91C1C` | Anular, existencias negativas. 6.47:1 sobre `surface` |
-| `warning` | `#8A4A08` | Se está acabando. 6.85:1 sobre `surface`. **Más oscuro que antes**: el fondo dejó de ser blanco y el ámbar viejo se quedaba corto |
+| `bg` | `#E8EBF4` | Fondo. La tarjeta blanca se levanta de él a **1.19:1** |
+| `surface` | `#FFFFFF` | Tarjetas, campos y botones secundarios |
+| `border` | `#DCDFEC` | Separadores decorativos. **No vale para el borde de un control** |
+| `border-strong` | `#767B95` | Borde de campos y botones. **4.17:1 sobre `surface`** |
+| `text` | `#12152A` | Texto principal — 18.0:1 sobre `surface` |
+| `text-muted` | `#50566F` | Secundario — 6.07:1 sobre `bg` |
+| `accent` | `#2F47D6` | Cobrar, la navegación activa, el bloque de Inicio. 5.89:1 sobre `bg` |
+| `accent-text` | `#FFFFFF` | Sobre `accent`. 7.02:1 |
+| `accent-soft` | `#E3E7FC` | Relleno de apoyo. `accent` sobre él: 5.71:1 |
+| `danger` | `#B42318` | Anular, vaciar, existencias negativas. 6.57:1 sobre `surface` |
+| `danger-soft` | `#FBE4E1` | Relleno de alerta. `danger` sobre él: 5.41:1 |
+| `warning` | `#8A4A08` | Se conserva. Ninguna pantalla de Cobalto lo usa hoy |
 
 #### Tema oscuro
 
-Añadido el 2026-09-07 (`T-007`). Los ratios son contra `bg: #1C1917` y están medidos uno por uno,
-igual que los del claro. Los tamaños, la escala y los radios no cambian: el tema solo redefine
-color.
+Los tamaños, la escala y los radios no cambian: el tema solo redefine color.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `bg` | `#1C1917` | Fondo. No es negro puro: en OLED el negro absoluto emborrona el texto al desplazar |
-| `surface` | `#2E2926` | Relleno de tarjetas, campos y botones secundarios. 1.22:1 sobre `bg` |
-| `border` | `#44403C` | Separadores decorativos. 1.70:1 — **no vale para el borde de un control** |
-| `border-strong` | `#8E8781` | Borde de campos y botones. 4.94:1 sobre `bg` y **4.06:1 sobre `surface`** |
-| `text` | `#FAFAF9` | Texto principal — 16.74:1 sobre `bg`, 13.76:1 sobre `surface` |
-| `text-muted` | `#A8A29E` | Secundario — 6.93:1 sobre `bg`, 5.70:1 sobre `surface` |
-| `accent` | `#14B8A6` | Acción de confirmar. 7.03:1 sobre `bg` |
-| `accent-text` | `#1C1917` | Sobre `accent`. 7.03:1 |
-| `danger` | `#F87171` | Anular, existencias negativas. 5.20:1 sobre `surface` |
-| `warning` | `#FBBF24` | Se está acabando. 8.61:1 sobre `surface` |
+| `bg` | `#0D0F1C` | Fondo. No es negro puro: en OLED el negro absoluto emborrona el texto al desplazar |
+| `surface` | `#1C2038` | 1.19:1 sobre `bg` |
+| `border` | `#262A44` | Separadores decorativos |
+| `border-strong` | `#7D83A3` | Borde de campos y botones. 4.30:1 sobre `surface` |
+| `text` | `#EEF0FB` | 14.1:1 sobre `surface` |
+| `text-muted` | `#A1A7C4` | 8.02:1 sobre `bg` |
+| `accent` | `#8397FF` | 7.11:1 sobre `bg` |
+| `accent-text` | `#0D0F1C` | Sobre `accent`. 7.11:1 |
+| `accent-soft` | `#222A57` | `accent` sobre él: 5.10:1 |
+| `danger` | `#F97066` | 5.74:1 sobre `surface` |
+| `danger-soft` | `#3B1C1A` | `danger` sobre él: 5.51:1 |
+| `warning` | `#FBBF24` | Se conserva |
 
-**`accent-text` cambia de color entre temas y es lo único que lo hace.** En claro es blanco (5.47:1
-sobre el acento); en oscuro tiene que ser oscuro, porque blanco sobre `#14B8A6` da **2.49:1** y no
-se lee. Es el par que más fácilmente se hereda mal al añadir un tema oscuro, y por eso hay una
-prueba que fija los dos.
+**`accent-text` cambia de color entre temas y es lo único que lo hace.** En claro es blanco; en
+oscuro tiene que ser oscuro, porque blanco sobre `#8397FF` no llega a 3:1. Es el par que más
+fácilmente se hereda mal, y por eso hay una prueba que fija los dos (`e2e/tema.spec.ts`).
+
+`bg` claro y `surface` oscuro están un paso más lejos que en el primer lienzo de Cobalto. Con
+aquellos, la tarjeta quedaba a 1.16 y 1.11 del fondo, por debajo del 1.18 que exige
+`e2e/aspecto.spec.ts`.
 
 Tres estados y no dos: claro, oscuro y **no elegir**. Sin elegir manda `prefers-color-scheme`. El
 CSS lo resuelve con `:root:not([data-theme="light"])` dentro de la consulta de medio; sin ese
@@ -86,9 +92,10 @@ Accessibility Notes).
 
 ### Typography
 
-- **Pila de sistema**, sin fuente web. Una tipografía descargada son 40-100 kB por datos móviles
-  antes de que se vea el primer precio (`brief.md` § Constraints). Se revisó el 2026-09-13 al
-  rediseñar y se mantiene: la jerarquía sale del tamaño y del peso, no de la fuente.
+- **Geist**, autoalojada con `next/font` (`T-029`). Sustituye a la pila de sistema que se había
+  elegido para no gastar datos móviles (`brief.md` § Constraints): se sirve desde nuestro origen,
+  en un solo archivo variable, y se descarga **una vez**. Si no llega, detrás queda la pila de
+  sistema, así que nunca se espera a la fuente para ver un precio.
 - Escala: `14 · 16 · 18 · 20 · 24 · 30 · 40`.
 - **14 px es el suelo absoluto** (`T-021`). Por debajo no hay texto en ninguna pantalla.
 - **16 px es el mínimo en cualquier campo de entrada.** Por debajo, iOS hace zoom al enfocar y saca
@@ -122,10 +129,12 @@ Base 4. Escala: `4 · 8 · 12 · 16 · 24 · 32 · 48`. `16` es el margen latera
 
 ### Radius
 
-`0` (nada) · `12` (tarjetas, campos y botones grandes) · `9999` (píldoras).
+`0` (nada) · `16` (botones y campos) · `24` (tarjetas) · `28` (el bloque de color de Inicio) ·
+`9999` (píldoras).
 
-Las tarjetas pasaron de `8` a `12` el 2026-09-13 (`T-023`): con el fondo cálido y la tarjeta
-blanca, la esquina de 8 se leía dura contra el nuevo contraste.
+Cobalto (`T-029`) redondea más que la dirección anterior (`8` y luego `12`): el estudio pidió una
+interfaz «no tan cuadrada». La regla es una sola escala y en todas partes: un control de 16 dentro
+de una tarjeta de 24.
 
 ### Elevation
 

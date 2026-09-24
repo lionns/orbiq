@@ -22,7 +22,7 @@ export function Aviso({
       role="alert"
       aria-live={asertivo ? "assertive" : "polite"}
       className={`text-danger ${
-        conBorde ? "rounded-card border border-danger p-3" : ""
+        conBorde ? "rounded-button border border-danger bg-danger-soft px-4 py-3 font-medium" : ""
       }`}
       {...resto}
     >

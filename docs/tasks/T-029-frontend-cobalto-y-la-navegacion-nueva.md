@@ -1,7 +1,7 @@
 ---
 id: T-029
 title: "Frontend: Cobalto y la navegación nueva"
-status: ready
+status: doing
 profile: team
 harness: 0.9.0
 role: Implementer
