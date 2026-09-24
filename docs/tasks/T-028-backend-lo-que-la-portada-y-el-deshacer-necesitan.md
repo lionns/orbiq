@@ -1,7 +1,7 @@
 ---
 id: T-028
 title: "Backend: lo que la portada y el deshacer necesitan del dominio"
-status: blocked
+status: ready
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -79,12 +79,13 @@ Solo dominio, acciones de servidor y sus pruebas. **Ninguna pantalla**: eso es `
 
 ## Outcome
 
-- Changes: Ninguna implementación; la línea base obligatoria impide empezar.
-- Files: Este registro y `docs/traces/2026-09-24_T-028_implementer.md`.
-- Baseline result: `npm test` falla 2/69 al cargar el WASM de ZXing; tras regenerar `STATUS.md`, `harness-lint` falla por T-025, T-026 y T-027 sin journal; typecheck y lint pasan; build falla porque Turbopack no puede abrir un puerto en este entorno.
-- Final result: No ejecutado; tarea bloqueada antes de implementar.
-- Decisions recorded: Ninguna.
-- Follow-up: Restablecer la línea base y volver a ejecutar los cinco controles antes de T-028.
+- Changes: ninguna todavía. Se bloqueó el 2026-09-24 con la línea base en rojo en el entorno de
+  Codex (ver su trace); `T-030` y el cierre de `T-025`–`T-027` la dejaron en verde, sin red incluida.
+- Files:
+- Baseline result:
+- Final result:
+- Decisions recorded:
+- Follow-up:
 
 ## Review
 
