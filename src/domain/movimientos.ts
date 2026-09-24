@@ -221,5 +221,7 @@ export const ETIQUETA_MOVIMIENTO: Record<Movimiento["tipo"], string> = {
   initial: "Existencias iniciales",
   sale: "Venta",
   sale_void: "Venta anulada",
-  adjustment: "Ajuste",
+  // «Conteo corregido» y no «Ajuste»: es la acción que el dueño hizo, con el nombre que ve al hacerla
+  // («Corregir el conteo», `T-029`).
+  adjustment: "Conteo corregido",
 };

@@ -3,6 +3,8 @@
 import { useActionState } from "react";
 import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
+import { CampoCategoria } from "@/ui/campo-categoria";
+import { Icono } from "@/ui/iconos";
 import { editar, type EstadoEdicion } from "./acciones";
 
 const inicial: EstadoEdicion = { errores: {}, hecho: false };
@@ -19,7 +21,7 @@ export function FormularioEdicion({
   const [estado, accion, enviando] = useActionState(editar.bind(null, productoId), inicial);
 
   return (
-    <form action={accion} className="mt-4 flex flex-col gap-4">
+    <form action={accion} className="flex flex-col gap-5">
       <Campo
         etiqueta="Nombre"
         nombre="nombre"
@@ -34,26 +36,22 @@ export function FormularioEdicion({
         error={estado.errores.precio}
         ayuda="Cambiarlo queda registrado abajo. No toca lo que ya se cobró."
         inputMode="numeric"
+        prefijo="$"
         required
       />
-      <Campo
-        etiqueta="Categoría"
-        nombre="categoria"
-        defaultValue={producto.categoria ?? ""}
+      <CampoCategoria
+        categorias={categorias}
+        valorInicial={producto.categoria ?? ""}
         error={estado.errores.categoria}
-        list="categorias"
       />
-      <datalist id="categorias">
-        {categorias.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
       <Campo
         etiqueta="Código de barras"
         nombre="codigoDeBarras"
         defaultValue={producto.codigoDeBarras ?? ""}
         error={estado.errores.codigoDeBarras}
         inputMode="numeric"
+        icono="escanear"
+        opcional
       />
 
       {estado.hecho ? (
@@ -62,7 +60,14 @@ export function FormularioEdicion({
         </p>
       ) : null}
 
-      <Boton type="submit" variante="principal" disabled={enviando} data-testid="guardar-edicion">
+      <Boton
+        type="submit"
+        variante="principal"
+        tamano="alto"
+        disabled={enviando}
+        data-testid="guardar-edicion"
+      >
+        <Icono nombre="cobrar" />
         {enviando ? "Guardando…" : "Guardar cambios"}
       </Boton>
     </form>

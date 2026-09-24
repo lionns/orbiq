@@ -45,7 +45,8 @@ export const VARIANTES = {
     // y el botón no se distinguía (`aspecto.spec.ts`, `T-010`). El acento contra el fondo da 5.89.
     "border border-accent bg-accent-soft text-text disabled:opacity-50",
   /** Lo que borra: Vaciar. El rojo suave lo separa de todo lo demás sin gritar. */
-  peligro: "bg-danger-soft text-danger disabled:opacity-50",
+  // Con borde, por lo mismo que «suave»: sobre una tarjeta blanca el relleno solo casi no se ve.
+  peligro: "border border-danger bg-danger-soft text-danger disabled:opacity-50",
 } as const;
 
 export type Variante = keyof typeof VARIANTES;

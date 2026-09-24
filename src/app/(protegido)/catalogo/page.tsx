@@ -1,113 +1,50 @@
-import Link from "next/link";
-import { categoriasExistentes, listarCatalogo } from "@/domain/catalogo";
-import {
-  comoDireccion,
-  hayFiltros,
-  leerFiltros,
-  siguienteTanda,
-  type ParametrosCrudos,
-} from "@/domain/filtros";
-import { BarraInferior } from "@/ui/barra-inferior";
-import { BotonEnlace } from "@/ui/boton";
-import { Existencias, Precio } from "@/ui/cifras";
-import { Filtros } from "./filtros";
+import { categoriasExistentes } from "@/domain/catalogo";
+import { comoDireccion, leerFiltros, type ParametrosCrudos } from "@/domain/filtros";
+import { FichaDelProducto } from "./[id]/ficha";
+import { PantallaDeProductos, enPanel } from "./lista";
+import { FormularioProducto } from "./nuevo/formulario";
 
 export const dynamic = "force-dynamic";
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Productos. En computador, la ficha o el alta se abren **al lado** de la lista
+ * (`.diseno/cobalto/U-D-Productos`, `F-D-Nuevo`): la dirección lleva `ficha=` o `nuevo=1` y la
+ * lista conserva sus filtros. En el celular esos enlaces no existen —la ficha y el alta son su
+ * propia pantalla—, así que el panel solo se dibuja a partir de 1024 px.
+ */
 export default async function Catalogo({
   searchParams,
 }: {
-  searchParams: Promise<ParametrosCrudos>;
+  searchParams: Promise<ParametrosCrudos & { ficha?: string; nuevo?: string }>;
 }) {
-  const filtros = leerFiltros(await searchParams);
-  const [{ productos, total, hayMas }, categorias] = await Promise.all([
-    listarCatalogo(filtros),
-    categoriasExistentes(),
-  ]);
-  const acotado = hayFiltros(filtros);
+  const crudos = await searchParams;
+  const filtros = leerFiltros(crudos);
+  const lista = comoDireccion(filtros);
+  const ficha = typeof crudos.ficha === "string" && UUID.test(crudos.ficha) ? crudos.ficha : null;
+  const alta = !ficha && crudos.nuevo === "1";
+  const aqui = ficha ? enPanel(filtros, "ficha", ficha) : alta ? enPanel(filtros, "nuevo", "1") : lista;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-6 pb-28">
-      <h1 className="text-2xl font-semibold tracking-tight">Catálogo</h1>
-
-      <Filtros filtros={filtros} categorias={categorias} acotado={acotado} />
-
-      <p className="mt-4 text-text-muted" data-testid="conteo">
-        {total === 0 ? "Ningún producto" : total === 1 ? "1 producto" : `${total} productos`}
-        {productos.length < total ? ` · mostrando ${productos.length}` : ""}
-      </p>
-
-      {productos.length === 0 ? (
-        <EstadoVacio acotado={acotado} />
-      ) : (
-        <ul className="mt-4 flex flex-col gap-2" data-testid="lista-catalogo">
-          {productos.map((p) => (
-            <li key={p.id}>
-              {/* Toda la tarjeta es el enlace: en un celular, un blanco de 48 px de alto se acierta
-                  y uno de nombre no. */}
-              <Link
-                href={`/catalogo/${p.id}`}
-                data-tarjeta
-                className="flex items-baseline justify-between gap-4 rounded-card border border-border bg-surface p-4"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate font-medium">{p.nombre}</span>
-                  <span className="block text-text-muted">
-                    {p.categoria ?? "Sin categoría"}
-                    {p.codigoDeBarras ? ` · ${p.codigoDeBarras}` : ""}
-                    {p.activo ? "" : " · retirado"}
-                  </span>
-                </span>
-                <span className="flex shrink-0 items-center gap-2">
-                  <span className="text-right">
-                    <Precio valor={p.precio} className="block font-medium" />
-                    <Existencias cantidad={p.existencias} className="block" />
-                  </span>
-                  {/* Sin esto la tarjeta parece una fila de lista y nadie adivina que abre algo.
-                      `aria-hidden` porque el enlace ya se anuncia como enlace. */}
-                  <span aria-hidden className="text-text-muted">
-                    ›
-                  </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Un enlace, no un botón: suma a lo ya visto, conserva los filtros y funciona sin
-          JavaScript. El estado vive en la dirección (`AC-017`, `AC-018`). */}
-      {hayMas ? (
-        <BotonEnlace
-          href={comoDireccion(filtros, { ver: siguienteTanda(filtros) })}
-          data-testid="ver-mas"
-          className="mt-4 w-full"
-        >
-          Ver más
-        </BotonEnlace>
+    <div className="mx-auto max-w-7xl lg:flex lg:items-start">
+      <main className="min-w-0 flex-1">
+        <PantallaDeProductos filtros={filtros} seleccionado={ficha ?? undefined} volverA={aqui} />
+      </main>
+      {ficha ? (
+        <aside className={PANEL} aria-label="Ficha del producto">
+          <FichaDelProducto id={ficha} volver={lista} aqui={aqui} enPanel />
+        </aside>
       ) : null}
-
-      {/* Regla del pulgar: la acción vive abajo, no en el tercio superior. */}
-      <BarraInferior className="p-4">
-        <BotonEnlace
-          href="/catalogo/nuevo"
-          variante="principal"
-          className="mx-auto w-full max-w-2xl"
-        >
-          Nuevo producto
-        </BotonEnlace>
-      </BarraInferior>
-    </main>
+      {alta ? (
+        <aside className={PANEL} aria-label="Nuevo producto">
+          <h2 className="text-2xl font-bold tracking-tight">Nuevo producto</h2>
+          <FormularioProducto categorias={await categoriasExistentes()} cancelar={lista} />
+        </aside>
+      ) : null}
+    </div>
   );
 }
 
-function EstadoVacio({ acotado }: { acotado: boolean }) {
-  // design-handoff.md § Interaction States: el catálogo vacío ofrece dar de alta el primero.
-  return (
-    <p className="mt-8 text-text-muted" data-testid="catalogo-vacio">
-      {acotado
-        ? "Ningún producto cumple lo que buscas. Quita algún filtro."
-        : "Todavía no hay productos. Da de alta el primero para empezar a vender."}
-    </p>
-  );
-}
+const PANEL =
+  "hidden lg:sticky lg:top-6 lg:m-6 lg:block lg:max-h-[calc(100dvh-3rem)] lg:w-110 lg:shrink-0 lg:overflow-y-auto lg:rounded-card lg:border lg:border-border lg:bg-surface lg:p-7";

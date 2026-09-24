@@ -4,15 +4,16 @@
   plegable, nombres de existencias, handoff · test 71/71, `tema` e `instalable` en verde.
 - 2026-09-24 — role: Implementer · bloque 2, navegación: Inicio en `/`, `/vender`, `/ajustes`,
   pestañas y menú lateral, venta guardada · e2e 92/96, los 4 fallos corregidos (38/38).
-- 2026-09-24 — role: Implementer · bloque 3, Vender
-  - did: venta recogida sobre la barra y hoja al abrirla; Escanear y «Cobrar $ N» abajo; cantidad
-    escrita; Vaciar y Deshacer (cobro y vaciado) sin diálogo; F2 y foco en la búsqueda en
-    computador; el campo se vacía tras leer un código. Botón «suave» con borde de acento: sin él
-    quedaba a 1.03:1 del fondo (`aspecto.spec`). Cinco pruebas nuevas
-  - files: `(protegido)/venta.tsx`, `src/ui/{objetivo-de-escaneo,boton}.tsx`,
-    `e2e/{venta,escaneo,escaneo-camara,iconos}.spec.ts`
-  - checks: typecheck, lint, `npm test` 71/71; `test:e2e` 100/100 (2 capturas locales saltadas)
-  - review: la prueba de orden de la cuadrícula perdía su sitio en los 24 más vendidos frente a las
-    vecinas en paralelo; ahora vende 90/60, como resolvió `T-018`. Las de geometría de `T-025`–`T-027`
-    abren la venta antes de medir: recogida, el total va dentro de Cobrar
+- 2026-09-24 — role: Implementer · bloque 3, Vender: venta recogida, Deshacer, Vaciar, cantidad
+  escrita, F2 y lector; botón «suave» con borde (1.03:1 sin él) · e2e 100/100.
+- 2026-09-24 — role: Implementer · bloques 4 y 5, resto de pantallas y formularios
+  - did: Productos con filtros en hoja/panel (radios en píldora, interruptor, «$» dentro); ficha y
+    alta como panel en computador (`?ficha=`, `?nuevo=1`) y pantalla propia en celular; Corregir el
+    conteo en hoja con motivos de un toque; categoría que sugiere; Ventas con atajos, rango y su
+    suma; detalle y acceso. Reglas globales de campo y foco a `@layer base`
+  - files: `catalogo/{page,lista,filtros}`, `catalogo/[id]/{page,ficha,ajuste,edicion}`,
+    `catalogo/nuevo/*`, `ventas/*`, `acceso/*`, `src/ui/{campo,campo-categoria,opciones,…}`
+  - checks: test 71/71, typecheck, lint; e2e 104/104 (3 capturas locales saltadas)
+  - review: la ficha deja el historial antes que las acciones, como pide `T-013`, aunque
+    `U-M-Ficha` las dibujó al revés. `aspecto.spec` mide el contenedor de un campo compuesto
   - blockers: ninguno

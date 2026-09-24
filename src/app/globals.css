@@ -138,10 +138,14 @@
 
 /* Por qué no es una clase: haría falta acordarse de ponerla en cada campo, y olvidarla no falla —
    simplemente iOS hace zoom al enfocar y saca al dueño del flujo con alguien esperando. */
-input,
-select,
-textarea {
-  font-size: 16px;
+/* En `@layer base` y no suelta: así una utilidad puede agrandar un campo —el número de Corregir el
+   conteo va a 30 px (`T-029`)— sin que esta regla le gane. Ninguna clase lo baja de 16. */
+@layer base {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* Por qué no es una clase: es una garantía, no un estilo. Un lector de código de barras es un
@@ -149,9 +153,14 @@ textarea {
 
    Toma el acento de la paleta y no del token semántico: `@theme inline` no promete publicar
    `--color-accent` como variable, solo usarla al generar utilidades. */
-:focus-visible {
-  outline: 2px solid var(--paleta-accent);
-  outline-offset: 2px;
+/* En `@layer base` para que un campo con algo dentro (el «$», un icono) pueda pasarle el anillo a su
+   contenedor, que lo dibuja entero: dos anillos, uno dentro del otro, se leían como un fallo. Ningún
+   otro control lo quita. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--paleta-accent);
+    outline-offset: 2px;
+  }
 }
 
 /* Por qué no es una clase: tiene que alcanzar a todo, incluido lo que traiga una dependencia.

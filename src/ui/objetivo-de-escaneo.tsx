@@ -79,7 +79,10 @@ export function ObjetivoDeEscaneo({
   onCamaraActiva,
   claseBotonCamara = "",
   enfocarEnComputador = false,
+  comoEscanear = false,
 }: {
+  /** El botón dice «Escanear» en vez de «Cámara»: en Productos es lo que se va a hacer con ella. */
+  comoEscanear?: boolean;
   /**
    * Devolver `true` vacía el campo. La venta lo pide cuando lo tecleado era un código que ya entró
    * al carrito: un lector de códigos escribe en este campo, y el siguiente código no puede caer
@@ -279,8 +282,11 @@ export function ObjetivoDeEscaneo({
           variante="suave"
           className={`shrink-0 ${claseBotonCamara}`}
         >
-          <Icono nombre={activa ? "cerrar" : "camara"} />
-          {activa ? "Cerrar" : "Cámara"}
+          <Icono
+            nombre={activa ? "cerrar" : comoEscanear ? "escanear" : "camara"}
+            className={activa ? "" : "text-accent"}
+          />
+          {activa ? "Cerrar" : comoEscanear ? "Escanear" : "Cámara"}
         </Boton>
       </div>
 

@@ -56,10 +56,13 @@ async function revisar(page: Page): Promise<Hallazgo[]> {
       // Casillas y radios quedan fuera: su marco lo dibuja el navegador, no nuestro CSS, así que
       // medirles borde y relleno da un falso positivo. Lo que sí controlamos ahí es `accent-color`.
       'button, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select,' +
-        ' a[class*="rounded-button"], [data-tarjeta]',
+        ' a[class*="rounded-button"], [data-tarjeta], [data-control]',
     );
 
     controles.forEach((el) => {
+      // Un campo con algo dentro —el «$», «Mostrar»— es un solo control: su contenedor lleva el
+      // borde, el relleno y el radio (`T-029`). Lo de dentro se mide como parte de él, no suelto.
+      if (el.parentElement?.closest("[data-control]")) return;
       if (el.offsetParent === null && el.tagName !== "BODY") return; // no está a la vista
       const s = getComputedStyle(el);
       const que = ((el.textContent ?? "").trim().slice(0, 24) || (el as HTMLInputElement).name || el.tagName);

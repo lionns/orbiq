@@ -1,23 +1,47 @@
 import Link from "next/link";
-import { ventasPorDia } from "@/domain/venta";
-import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
+import { ventasDelRango, type VentaDelDia } from "@/domain/venta";
+import { diaDelNegocio, ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
 import { Precio } from "@/ui/cifras";
+import { Icono } from "@/ui/iconos";
 
 export const dynamic = "force-dynamic";
 
 // `d.dia` ya viene siendo una fecha del negocio, así que solo hay que escribirla: se ancla a
 // mediodía UTC y se formatea en UTC para que ninguna zona la corra un día. La **hora** de cada
 // venta sí es un instante, y esa se escribe en la zona del negocio o contradice a su encabezado.
-const dia = new Intl.DateTimeFormat("es-CO", { dateStyle: "full", timeZone: "UTC" });
+const diaLargo = new Intl.DateTimeFormat("es-CO", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+const diaConAno = new Intl.DateTimeFormat("es-CO", { dateStyle: "full", timeZone: "UTC" });
+const diaCorto = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "long", timeZone: "UTC" });
 const hora = new Intl.DateTimeFormat("es-CO", { timeStyle: "short", timeZone: ZONA_DEL_NEGOCIO });
+
+const mediodia = (d: string) => new Date(`${d}T12:00:00Z`);
+const mover = (d: string, dias: number) =>
+  new Date(mediodia(d).getTime() + dias * 86_400_000).toISOString().slice(0, 10);
 
 /** `YYYY-MM-DD` o nada. Una fecha inventada en la dirección se ignora, no tumba la pantalla. */
 const fecha = (v: string | string[] | undefined): string | null => {
   const s = (Array.isArray(v) ? v[0] : v)?.trim() ?? "";
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
 };
+
+/**
+ * El encabezado de un día, en una línea a 360 px (`T-024`, hallazgo 4): sin el año cuando es el
+ * de hoy, y «Hoy»/«Ayer» delante cuando lo son. El día sigue siendo inconfundible.
+ */
+function nombreDelDia(d: string, hoy: string): string {
+  const anoDistinto = d.slice(0, 4) !== hoy.slice(0, 4);
+  const texto = (anoDistinto ? diaConAno : diaLargo).format(mediodia(d));
+  if (d === hoy) return `Hoy, ${texto}`;
+  if (d === mover(hoy, -1)) return `Ayer, ${texto}`;
+  return texto;
+}
 
 export default async function Ventas({
   searchParams,
@@ -26,71 +50,186 @@ export default async function Ventas({
 }) {
   const params = await searchParams;
   const rango = { desde: fecha(params.desde), hasta: fecha(params.hasta) };
-  const dias = await ventasPorDia(rango);
+  const { dias, resumen } = await ventasDelRango(rango);
+
+  // Los atajos (`.diseno/cobalto/F-M-Ventas`): enlaces con su rango en la dirección, así que
+  // funcionan sin JavaScript y se comparten (`AC-018`). La semana empieza el lunes.
+  const hoy = diaDelNegocio(new Date());
+  const diaDeLaSemana = (mediodia(hoy).getUTCDay() + 6) % 7;
+  const atajos = [
+    { nombre: "Hoy", desde: hoy, hasta: hoy },
+    { nombre: "Ayer", desde: mover(hoy, -1), hasta: mover(hoy, -1) },
+    { nombre: "Esta semana", desde: mover(hoy, -diaDeLaSemana), hasta: hoy },
+    { nombre: "Este mes", desde: `${hoy.slice(0, 8)}01`, hasta: hoy },
+  ];
+  const atajo = atajos.find((a) => a.desde === rango.desde && a.hasta === rango.hasta);
+  const otras = params.otras === "1" || Boolean((rango.desde || rango.hasta) && !atajo);
+  const conRango = Boolean(rango.desde || rango.hasta);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Ventas</h1>
+    <main className="mx-auto max-w-6xl px-4 pt-4 pb-6 lg:px-12 lg:pt-10">
+      <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">Ventas</h1>
 
-      {/* GET, como el resto: el rango vive en la dirección y el enlace se comparte (`AC-018`). */}
-      <form className="mt-4 flex items-end gap-2" role="search">
-        <Campo etiqueta="Desde" nombre="desde" type="date" defaultValue={rango.desde ?? ""} />
-        <Campo etiqueta="Hasta" nombre="hasta" type="date" defaultValue={rango.hasta ?? ""} />
-        <Boton type="submit" className="shrink-0">
-          Ver
-        </Boton>
-      </form>
+      <nav aria-label="Fechas" className="mt-4 flex flex-wrap gap-2">
+        {atajos.map((a) => (
+          <Atajo
+            key={a.nombre}
+            href={`/ventas?desde=${a.desde}&hasta=${a.hasta}`}
+            elegido={atajo === a}
+          >
+            {a.nombre}
+          </Atajo>
+        ))}
+        <Atajo href="/ventas?otras=1" elegido={otras} className="lg:hidden">
+          Otras fechas
+        </Atajo>
+      </nav>
 
-      {dias.length === 0 ? (
-        <p className="mt-8 text-text-muted" data-testid="ventas-vacio">
-          No hay ventas en ese rango.
-        </p>
-      ) : (
-        <div className="mt-8 flex flex-col gap-8" data-testid="dias">
-          {dias.map((d) => (
-            <section key={d.dia} aria-labelledby={`dia-${d.dia}`} data-testid={`dia-${d.dia}`}>
-              <h2
-                id={`dia-${d.dia}`}
-                className="flex items-baseline justify-between gap-4 border-b border-border pb-2"
-              >
-                <span className="font-medium">{dia.format(new Date(`${d.dia}T12:00:00Z`))}</span>
-                {/* El número que se mira al cerrar la caja. */}
-                <Precio valor={d.total} className="font-semibold" data-testid={`total-${d.dia}`} />
-              </h2>
+      <div className="mt-5 grid gap-5 lg:grid-cols-3 lg:items-start lg:gap-6">
+        <div className="flex flex-col gap-4 lg:order-2">
+          {/* GET, como el resto: el rango vive en la dirección y el enlace se comparte. En el celular
+              aparece con «Otras fechas»; en computador está siempre, a la derecha. */}
+          <form
+            role="search"
+            className={`flex-col gap-3 rounded-card border border-border bg-surface p-4 lg:flex lg:p-5 ${otras ? "flex" : "hidden"}`}
+          >
+            <h2 className="hidden text-lg font-bold lg:block">Otras fechas</h2>
+            {/* Una debajo de otra y a todo el ancho: lado a lado no cabía la fecha a 360 px. */}
+            <Campo etiqueta="Desde" nombre="desde" type="date" defaultValue={rango.desde ?? ""} />
+            <Campo etiqueta="Hasta" nombre="hasta" type="date" defaultValue={rango.hasta ?? ""} />
+            <Boton type="submit" variante="principal">
+              Ver esas fechas
+            </Boton>
+          </form>
 
-              <ul className="mt-3 flex flex-col gap-2">
-                {d.ventas.map((v) => (
-                  <li key={v.id}>
-                    <Link
-                      href={`/ventas/${v.id}`}
-                      data-tarjeta
-                      data-testid={`venta-${v.id}`}
-                      className="flex items-center justify-between gap-3 rounded-card border border-border bg-surface p-4"
-                    >
-                      <span>
-                        <span className="block font-medium">{hora.format(v.cuando)}</span>
-                        <span className="block text-text-muted">
-                          {v.articulos} {v.articulos === 1 ? "artículo" : "artículos"}
-                          {v.anulada ? " · anulada" : ""}
-                        </span>
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <Precio
-                          valor={v.total}
-                          className={v.anulada ? "line-through text-text-muted" : "font-medium"}
-                        />
-                        <span aria-hidden className="text-text-muted">
-                          ›
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+          {conRango ? (
+            <section
+              className="flex items-center justify-between gap-3 rounded-card bg-accent-soft p-4 lg:flex-col lg:items-start lg:p-5"
+              data-testid="resumen-rango"
+            >
+              <span>
+                <span className="block font-semibold">
+                  {rango.desde && rango.hasta && rango.desde !== rango.hasta
+                    ? `${diaCorto.format(mediodia(rango.desde))} al ${diaCorto.format(mediodia(rango.hasta))}`
+                    : rango.desde || rango.hasta
+                      ? diaCorto.format(mediodia((rango.desde ?? rango.hasta)!))
+                      : ""}
+                </span>
+                <span className="block text-text-muted">
+                  {resumen.numeroVentas} {resumen.numeroVentas === 1 ? "venta" : "ventas"}
+                  {resumen.anuladas
+                    ? `, ${resumen.anuladas} ${resumen.anuladas === 1 ? "anulada" : "anuladas"}`
+                    : ""}
+                </span>
+              </span>
+              <Precio
+                valor={resumen.total}
+                className="text-2xl font-bold tracking-tight text-accent lg:text-3xl"
+              />
             </section>
-          ))}
+          ) : null}
         </div>
-      )}
+
+        {dias.length === 0 ? (
+          <p className="text-text-muted lg:col-span-2" data-testid="ventas-vacio">
+            No hay ventas en ese rango.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-5 lg:col-span-2" data-testid="dias">
+            {dias.map((d) => (
+              <section
+                key={d.dia}
+                aria-labelledby={`dia-${d.dia}`}
+                data-testid={`dia-${d.dia}`}
+                className="overflow-hidden rounded-card border border-border bg-surface"
+              >
+                <h2
+                  id={`dia-${d.dia}`}
+                  className="flex items-center justify-between gap-4 border-b border-border p-4 lg:p-5"
+                >
+                  <span className="min-w-0">
+                    <span className="block font-bold first-letter:uppercase">
+                      {nombreDelDia(d.dia, hoy)}
+                    </span>
+                    <span className="block font-normal text-text-muted">
+                      {d.ventas.length} {d.ventas.length === 1 ? "venta" : "ventas"}
+                    </span>
+                  </span>
+                  {/* El número que se mira al cerrar la caja. */}
+                  <Precio
+                    valor={d.total}
+                    className="shrink-0 text-2xl font-bold tracking-tight"
+                    data-testid={`total-${d.dia}`}
+                  />
+                </h2>
+                <ul className="divide-y divide-border">
+                  {d.ventas.map((v) => (
+                    <li key={v.id}>
+                      <FilaDeVenta venta={v} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        )}
+      </div>
     </main>
+  );
+}
+
+function Atajo({
+  href,
+  elegido,
+  className = "",
+  children,
+}: {
+  href: string;
+  elegido: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={elegido ? "page" : undefined}
+      className={`flex min-h-11 items-center gap-1.5 rounded-full border px-4 font-semibold whitespace-nowrap ${
+        elegido ? "border-accent bg-accent text-accent-text" : "border-border-strong bg-surface"
+      } ${className}`}
+    >
+      {elegido ? <Icono nombre="cobrar" className="size-4" /> : null}
+      {children}
+    </Link>
+  );
+}
+
+function FilaDeVenta({ venta: v }: { venta: VentaDelDia }) {
+  return (
+    <Link
+      href={`/ventas/${v.id}`}
+      data-testid={`venta-${v.id}`}
+      className="flex min-h-16 items-center gap-3 py-2.5 pr-3 pl-4 lg:px-5"
+    >
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-bg text-text-muted">
+        <Icono nombre="ventas" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold tabular-nums">{hora.format(v.cuando)}</span>
+        <span className="block text-text-muted">
+          {v.articulos} {v.articulos === 1 ? "artículo" : "artículos"}
+        </span>
+      </span>
+      {v.anulada ? (
+        <span className="shrink-0 rounded-full bg-danger-soft px-2.5 py-0.5 font-semibold text-danger">
+          Anulada
+        </span>
+      ) : null}
+      <Precio
+        valor={v.total}
+        className={`shrink-0 text-lg ${v.anulada ? "text-text-muted line-through" : "font-semibold"}`}
+        data-testid="precio-venta"
+      />
+      <Icono nombre="siguiente" className="text-text-muted" />
+    </Link>
   );
 }

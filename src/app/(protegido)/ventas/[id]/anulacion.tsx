@@ -13,7 +13,7 @@ export function BotonAnular({ ventaId }: { ventaId: string }) {
   return (
     <form action={accion} className="flex flex-col gap-3">
       {estado.error ? <Aviso data-testid="anular-error">{estado.error}</Aviso> : null}
-      <Boton type="submit" disabled={enviando} data-testid="anular" className="w-full">
+      <Boton type="submit" variante="peligro" disabled={enviando} data-testid="anular" className="w-full">
         {enviando ? "Anulando…" : "Anular esta venta"}
       </Boton>
     </form>

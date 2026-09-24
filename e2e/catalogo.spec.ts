@@ -45,7 +45,7 @@ async function darDeAlta(
   await page.goto("/catalogo/nuevo");
   await page.getByLabel("Nombre").fill(campos.nombre);
   await page.getByLabel("Precio").fill(campos.precio);
-  if (campos.existencias) await page.getByLabel("Existencias iniciales").fill(campos.existencias);
+  if (campos.existencias) await page.getByLabel("Existencias").fill(campos.existencias);
   if (campos.categoria) await page.getByLabel("Categoría").fill(campos.categoria);
   if (campos.codigo) await page.getByLabel("Código de barras").fill(campos.codigo);
   await page.getByRole("button", { name: /Guardar producto|Guardando/ }).click();
@@ -180,9 +180,10 @@ test("la pantalla del catálogo se opera a 360 px sin desbordarse", async ({ pag
   // AC-X01: a 360 px nada empuja la página de lado.
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 
-  // La acción vive abajo, al alcance del pulgar (design-handoff.md § Responsive Behavior).
-  const caja = await page.getByRole("link", { name: "Nuevo producto" }).boundingBox();
-  expect(caja!.y).toBeGreaterThan(740 / 3);
+  // «Nuevo» vive arriba, junto al título (`.diseno/cobalto/U-M-Productos`, validado en `T-029`):
+  // abajo está la barra de secciones, y dar de alta no es parte del flujo de venta, que es lo que la
+  // regla del pulgar protege. Sigue siendo un blanco que se acierta.
+  const caja = await page.getByRole("link", { name: "Nuevo", exact: true }).boundingBox();
   expect(caja!.height).toBeGreaterThanOrEqual(48);
 });
 
@@ -227,7 +228,7 @@ test.describe("acotar y recorrer el catálogo", () => {
     await page.goto(soloMios);
     // AC-016: el conteo es de todos los que cumplen, no de los que se ven.
     await expect(page.getByTestId("conteo")).toContainText("30 productos");
-    await expect(page.getByTestId("conteo")).toContainText("mostrando 24");
+    await expect(page.getByTestId("conteo")).toContainText("se ven 24");
     await expect(page.getByTestId("lista-catalogo").locator("li")).toHaveCount(24);
   });
 
@@ -244,7 +245,7 @@ test.describe("acotar y recorrer el catálogo", () => {
     expect(await page.getByTestId("lista-catalogo").locator("li").first().innerText()).toBe(primero);
     // Y ya no queda nada por mostrar.
     await expect(page.getByTestId("ver-mas")).toHaveCount(0);
-    await expect(page.getByTestId("conteo")).not.toContainText("mostrando");
+    await expect(page.getByTestId("conteo")).not.toContainText("se ven");
   });
 
   test("los tres filtros se combinan y se cumplen a la vez", async ({ page }) => {
@@ -266,13 +267,16 @@ test.describe("acotar y recorrer el catálogo", () => {
     await entrarComo(page, dueno);
     await page.goto(`${soloMios}&existencias=agotados`);
     await expect(page.getByTestId("conteo")).toContainText("1 producto");
-    // En el catálogo, cero es un estado normal y no se pinta de rojo: solo el negativo alerta.
-    await expect(page.getByTestId("lista-catalogo").locator("[data-alerta]")).toHaveCount(0);
+    // Desde Cobalto (`T-029`) el cero también alerta en el catálogo: «Agotado», en rojo, como en
+    // la venta y en Inicio. Antes cada pantalla lo decidía distinto (`src/ui/cifras.tsx`). Cada
+    // fila lleva dos enlaces —celular y computador— y solo uno se ve: se cuentan los visibles.
+    await expect(page.getByTestId("lista-catalogo")).toContainText("Agotado");
+    await expect(page.getByTestId("lista-catalogo").locator("[data-alerta]:visible")).toHaveCount(1);
 
     await page.goto(`${soloMios}&existencias=negativos`);
     await expect(page.getByTestId("conteo")).toContainText("1 producto");
     await expect(page.getByTestId("lista-catalogo")).toContainText("Conteo en -3");
-    await expect(page.getByTestId("lista-catalogo").locator("[data-alerta]")).toHaveCount(1);
+    await expect(page.getByTestId("lista-catalogo").locator("[data-alerta]:visible")).toHaveCount(1);
   });
 
   test("recargar la dirección acotada muestra exactamente lo mismo", async ({ page }) => {
@@ -297,6 +301,9 @@ test.describe("acotar y recorrer el catálogo", () => {
   test("limpiar quita los filtros y vuelve al catálogo entero", async ({ page }) => {
     await entrarComo(page, dueno);
     await page.goto(`${soloMios}&existencias=agotados`);
+    // Los filtros activos se cuentan en su botón; «Limpiar» vive dentro, con ellos.
+    await expect(page.getByTestId("abrir-filtros")).toContainText("1");
+    await page.getByTestId("abrir-filtros").click();
     await page.getByTestId("limpiar-filtros").click();
     await expect(page).toHaveURL(/\/catalogo$/);
   });
@@ -305,10 +312,11 @@ test.describe("acotar y recorrer el catálogo", () => {
     await entrarComo(page, dueno);
     await page.goto("/catalogo");
     await page.getByLabel("Buscar en el catálogo").fill(`Recorrer ${MARCA}`);
-    // Los filtros arrancan plegados cuando no hay ninguno activo.
-    await page.getByRole("group").getByText("Filtros", { exact: false }).click();
-    await page.getByLabel("Existencias").selectOption("negativos");
-    await page.getByRole("button", { name: "Aplicar" }).click();
+    // Los filtros arrancan plegados. Sin listas desplegables: las opciones están a la vista
+    // (`.diseno/cobalto/F-M-Filtros`), y cada una es un radio de verdad dentro del formulario.
+    await page.getByTestId("abrir-filtros").click();
+    await page.getByRole("radio", { name: "En negativo" }).check({ force: true });
+    await page.getByRole("button", { name: "Ver productos" }).click();
 
     await expect(page).toHaveURL(/existencias=negativos/);
     await expect(page.getByTestId("conteo")).toContainText("1 producto");

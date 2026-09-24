@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icono, type NombreDeIcono } from "./iconos";
 
@@ -15,6 +16,8 @@ export function SeccionPlegable({
   abierta = false,
   icono,
   peligro = false,
+  enGrupo = false,
+  hoja,
   ...resto
 }: {
   titulo: string;
@@ -25,11 +28,19 @@ export function SeccionPlegable({
   icono?: NombreDeIcono;
   /** Anular: el título en rojo, porque deshace dinero. */
   peligro?: boolean;
+  /** Sin borde propio: va dentro de una tarjeta que agrupa varias (`divide-y`). */
+  enGrupo?: boolean;
+  /**
+   * En el celular, abierta sube como hoja desde abajo (`.diseno/cobalto/F-M-Conteo`). Cerrar es
+   * volver a esta dirección: el `<details>` no se abre solo, así que la página vuelve cerrada. Sin
+   * JavaScript, igual. En computador sigue abriéndose en su sitio.
+   */
+  hoja?: { cerrar: string };
 } & { "data-testid"?: string }) {
   return (
     <details
       open={abierta}
-      className="group rounded-card border border-border bg-surface"
+      className={`group bg-surface ${enGrupo ? "" : "rounded-card border border-border"}`}
       {...resto}
     >
       {/* `list-none` y el marcador de WebKit oculto: el triangulito del navegador desentonaba con
@@ -54,7 +65,34 @@ export function SeccionPlegable({
           className="text-text-muted transition-transform group-open:rotate-180"
         />
       </summary>
-      <div className="border-t border-border p-4">{children}</div>
+      {hoja ? (
+        <>
+          <Link
+            href={hoja.cerrar}
+            aria-label={`Cerrar ${titulo}`}
+            className="fixed inset-0 z-40 bg-text/40 lg:hidden"
+          />
+          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col gap-4 overflow-y-auto rounded-t-card bg-surface px-4 pt-2 pb-5 lg:static lg:max-h-none lg:rounded-none lg:border-t lg:border-border lg:p-4">
+            <span className="h-1 w-10 shrink-0 self-center rounded-full bg-border lg:hidden" />
+            <div className="flex items-start justify-between gap-3 lg:hidden">
+              <span>
+                <span className="block text-2xl font-bold tracking-tight">{titulo}</span>
+                {descripcion ? <span className="block text-text-muted">{descripcion}</span> : null}
+              </span>
+              <Link
+                href={hoja.cerrar}
+                className="flex min-h-12 shrink-0 items-center gap-1.5 font-semibold text-accent"
+              >
+                <Icono nombre="cerrar" />
+                Cerrar
+              </Link>
+            </div>
+            {children}
+          </div>
+        </>
+      ) : (
+        <div className="border-t border-border p-4">{children}</div>
+      )}
     </details>
   );
 }

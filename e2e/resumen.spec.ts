@@ -91,7 +91,7 @@ test("Inicio y Ventas comparten el día, el total, el deshacer y lo que hay por 
   expect((await resumenDelDia(new Date("2035-01-02T05:00:00Z"))).numeroVentas).toBe(0);
 
   await page.goto("/ventas?desde=2035-01-01&hasta=2035-01-01");
-  await expect(page.getByTestId(`venta-${ventas[3]}`)).toContainText("anulada");
+  await expect(page.getByTestId(`venta-${ventas[3]}`)).toContainText("Anulada");
   await expect(page.getByTestId("total-2035-01-01")).toContainText("6.000");
   const [saldo] = await db.select({ stock: schema.product.stock }).from(schema.product).where(eq(schema.product.id, principal));
   expect(saldo!.stock).toBe(14);

@@ -64,8 +64,8 @@ async function totalDelDia(page: Page): Promise<{ mostrado: number; sumaDeLasVen
     const seccion = document.querySelector(`[data-testid="dia-${dia}"]`)!;
     const filas = [...seccion.querySelectorAll("li a")];
     const sumaDeLasVentas = filas
-      .filter((f) => !f.textContent!.includes("anulada"))
-      .reduce((t, f) => t + numero(f.querySelector("span:last-child span")!.textContent ?? "0"), 0);
+      .filter((f) => !f.textContent!.includes("Anulada"))
+      .reduce((t, f) => t + numero(f.querySelector('[data-testid="precio-venta"]')!.textContent ?? "0"), 0);
     return {
       mostrado: numero(document.querySelector(`[data-testid="total-${dia}"]`)!.textContent ?? "0"),
       sumaDeLasVentas,
@@ -111,7 +111,8 @@ test("el día de una venta lo pone el negocio, no la zona de la base ni la del s
   await entrarComo(page, dueno);
 
   await page.goto("/ventas?desde=2026-02-28&hasta=2026-02-28");
-  await expect(page.getByTestId("dia-2026-02-28")).toContainText("28 de febrero de 2026");
+  // Sin el año cuando es el de hoy: el encabezado cabe en una línea a 360 px (`T-024`, hallazgo 4).
+  await expect(page.getByTestId("dia-2026-02-28")).toContainText("28 de febrero");
   // La hora del negocio, no la de UTC. Sin esto el encabezado y la fila se contradicen.
   await expect(page.getByTestId(`venta-${tarde}`)).toContainText("9:30");
   await expect(page.getByTestId(`venta-${tarde}`)).not.toContainText("2:30");
@@ -205,8 +206,8 @@ test("una venta anulada se ve como anulada y no suma al total del día", async (
   // pruebas registran ventas del mismo día en paralelo, así que «bajó exactamente 22.000» estaría
   // condenado a fallar sin que nada estuviera mal.
   await page.goto(`/ventas?desde=${hoy()}&hasta=${hoy()}`);
-  await expect(page.getByTestId(`venta-${mala}`)).toContainText("anulada");
-  await expect(page.getByTestId(`venta-${buena}`)).not.toContainText("anulada");
+  await expect(page.getByTestId(`venta-${mala}`)).toContainText("Anulada");
+  await expect(page.getByTestId(`venta-${buena}`)).not.toContainText("Anulada");
   const total = await totalDelDia(page);
   expect(total.mostrado).toBe(total.sumaDeLasVentas);
 });

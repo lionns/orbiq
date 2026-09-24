@@ -22,10 +22,9 @@ export function SelectorDeTema({
   return (
     <details className="relative">
       <summary
-        // Píldora y no enlace subrayado: sobre la banda de acento, el subrayado se lee como un
-        // documento de hace veinte años. El velo sale de `accent-text`, así que sirve en los dos
-        // temas sin inventar un token.
-        className="flex min-h-12 cursor-pointer list-none items-center gap-1.5 rounded-button bg-accent-text/15 px-2.5 font-medium"
+        // Un botón secundario como los demás: ya no vive sobre la banda de acento, sino en la
+        // pantalla de acceso, sobre el fondo (`.diseno/cobalto/F-M-Acceso`).
+        className="flex min-h-12 cursor-pointer list-none items-center gap-1.5 rounded-button border border-border-strong bg-surface px-3.5 font-semibold [&::-webkit-details-marker]:hidden"
         data-testid="abrir-tema"
       >
         <Icono nombre="tema" />

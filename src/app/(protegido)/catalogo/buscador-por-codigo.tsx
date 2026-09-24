@@ -30,11 +30,14 @@ export function BuscadorPorCodigo() {
 
   return (
     <>
-      <ObjetivoDeEscaneo onCodigo={alEscanear} conCampo={false} />
+      <ObjetivoDeEscaneo onCodigo={alEscanear} conCampo={false} comoEscanear />
       {noEncontrado ? (
-        <p className="mt-2" role="alert" data-testid="codigo-no-encontrado">
+        <p className="basis-full" role="alert" data-testid="codigo-no-encontrado">
           Ningún producto tiene el código {noEncontrado}.{" "}
-          <a href={`/catalogo/nuevo?codigo=${encodeURIComponent(noEncontrado)}`} className="underline">
+          <a
+            href={`/catalogo/nuevo?codigo=${encodeURIComponent(noEncontrado)}`}
+            className="font-semibold text-accent"
+          >
             Darlo de alta
           </a>
         </p>

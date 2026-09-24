@@ -1,127 +1,161 @@
-import { ESTADOS, type FiltrosCatalogo } from "@/domain/filtros";
+import Link from "next/link";
+import { comoDireccion, type FiltrosCatalogo } from "@/domain/filtros";
 import { Boton, BotonEnlace } from "@/ui/boton";
-import { Campo, CLASE_CONTROL } from "@/ui/campo";
+import { Campo } from "@/ui/campo";
 import { Icono } from "@/ui/iconos";
+import { Interruptor, Opciones } from "@/ui/opciones";
 import { BuscadorPorCodigo } from "./buscador-por-codigo";
 
-const ETIQUETA: Record<(typeof ESTADOS)[number], string> = {
-  todos: "Todas",
-  disponibles: "Con existencias",
-  agotados: "Agotados",
-  negativos: "En negativo",
-};
+const EXISTENCIAS = [
+  { valor: "todos", texto: "Todas" },
+  { valor: "disponibles", texto: "Hay" },
+  { valor: "por-reponer", texto: "Por reponer" },
+  { valor: "agotados", texto: "Agotados" },
+  { valor: "negativos", texto: "En negativo" },
+] as const;
+
+/** Cuántos filtros hay puestos, sin contar la búsqueda: lo que dice el botón «Filtros». */
+function activos(f: FiltrosCatalogo): number {
+  return (
+    (f.categoria ? 1 : 0) +
+    (f.existencias !== "todos" ? 1 : 0) +
+    (f.desde !== null || f.hasta !== null ? 1 : 0) +
+    (f.incluirDesactivados ? 1 : 0)
+  );
+}
 
 /**
  * Un formulario `GET`, no una acción de cliente: acotar tiene que funcionar con la red a medias, y
  * el resultado tiene que quedar en la dirección para poder compartirlo (`AC-018`).
  *
- * Va dentro de un `<details>` que se abre solo cuando ya hay algo acotado. En un celular, cinco
- * campos abiertos siempre empujarían la lista fuera de la pantalla.
+ * Los filtros viven en un `<details>`, que se abre y se cierra sin JavaScript. Abierto, en el
+ * celular es una hoja que sube desde abajo, y en computador un panel a la derecha
+ * (`.diseno/cobalto/F-M-Filtros`, `F-D-Filtros`). Cerrarlo es volver a la misma dirección: el
+ * `<details>` no se abre solo, así que la página vuelve con él cerrado.
  */
 export function Filtros({
   filtros,
   categorias,
-  acotado,
+  volverA,
 }: {
   filtros: FiltrosCatalogo;
   categorias: string[];
-  acotado: boolean;
+  /** Adónde vuelve «Cerrar». Por defecto, la misma lista; con una ficha abierta al lado, la ficha. */
+  volverA?: string;
 }) {
+  const n = activos(filtros);
+  const aqui = volverA ?? comoDireccion(filtros);
+
   return (
-    <form className="mt-4" role="search">
-      <div className="flex flex-wrap gap-2">
-        <input
-          name="q"
-          type="search"
-          defaultValue={filtros.busqueda ?? ""}
-          placeholder="Nombre o código"
-          aria-label="Buscar en el catálogo"
-          className={CLASE_CONTROL}
-        />
-        <Boton type="submit" className="shrink-0 gap-1.5">
-          <Icono nombre="buscar" />
-          Buscar
-        </Boton>
-        <BuscadorPorCodigo />
-      </div>
+    <form className="mt-4 flex flex-col gap-2" role="search">
+      <Campo
+        etiqueta="Buscar en el catálogo"
+        etiquetaOculta
+        nombre="q"
+        type="search"
+        defaultValue={filtros.busqueda ?? ""}
+        placeholder="Nombre o código"
+        icono="buscar"
+        cola={
+          <Boton type="submit" variante="secundario" className="min-h-10 border-0 px-3 text-accent">
+            Buscar
+          </Boton>
+        }
+      />
 
-      <details open={acotado} className="mt-3">
-        <summary className="min-h-12 cursor-pointer list-none py-3 underline">
-          Filtros{acotado ? " (activos)" : ""}
-        </summary>
+      <div className="grid grid-cols-2 gap-2 lg:flex">
+        <div className="flex flex-wrap gap-2 [&>div]:flex-1 [&_button]:w-full lg:[&_button]:w-auto">
+          <BuscadorPorCodigo />
+        </div>
 
-        <div className="flex flex-col gap-3 pt-1">
-          <Campo etiqueta="Categoría" nombre="categoria">
-            <select name="categoria" defaultValue={filtros.categoria ?? ""} className={CLASE_CONTROL}>
-              <option value="">Todas</option>
-              {categorias.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </Campo>
+        <details className="group lg:relative">
+          <summary
+            className="flex min-h-12 cursor-pointer list-none items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-4 font-semibold [&::-webkit-details-marker]:hidden"
+            data-testid="abrir-filtros"
+          >
+            <Icono nombre="filtros" />
+            Filtros
+            {n ? (
+              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-accent px-1.5 text-sm font-bold text-accent-text tabular-nums">
+                {n}
+              </span>
+            ) : null}
+          </summary>
 
-          <Campo etiqueta="Existencias" nombre="existencias">
-            <select name="existencias" defaultValue={filtros.existencias} className={CLASE_CONTROL}>
-              {ESTADOS.map((e) => (
-                <option key={e} value={e}>
-                  {ETIQUETA[e]}
-                </option>
-              ))}
-            </select>
-          </Campo>
-
-          {/* `min-w-0`: el estilo de fábrica de `fieldset` es `min-inline-size: min-content`, que
-              le impide encoger y desborda la pantalla a 360 px. Y el `flex` va en un hijo, porque
-              una `legend` dentro de un contenedor flex no se coloca donde uno espera. */}
-          <fieldset className="min-w-0">
-            <legend className="text-text-muted">Precio</legend>
-            <div className="flex gap-2">
-              <Campo
-                etiqueta="Precio desde"
-                nombre="desde"
-                etiquetaOculta
-                inputMode="numeric"
-                placeholder="Desde"
-                defaultValue={filtros.desde ?? ""}
-              />
-              <Campo
-                etiqueta="Precio hasta"
-                nombre="hasta"
-                etiquetaOculta
-                inputMode="numeric"
-                placeholder="Hasta"
-                defaultValue={filtros.hasta ?? ""}
-              />
+          {/* El velo del celular: tocar fuera cierra, que es volver a la misma dirección. */}
+          <Link
+            href={aqui}
+            aria-label="Cerrar los filtros"
+            className="fixed inset-0 z-40 bg-text/40 lg:hidden"
+          />
+          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col gap-5 overflow-y-auto rounded-t-card bg-surface px-4 pt-2 pb-5 lg:absolute lg:inset-x-auto lg:right-0 lg:bottom-auto lg:mt-2 lg:w-110 lg:rounded-card lg:border lg:border-border lg:p-7 lg:shadow-[0_24px_48px_rgba(15,20,25,0.16)]">
+            <span className="h-1 w-10 self-center rounded-full bg-border lg:hidden" />
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold tracking-tight">Filtros</h2>
+              <Link
+                href={aqui}
+                className="flex min-h-12 items-center gap-1.5 px-1 font-semibold text-accent"
+              >
+                <Icono nombre="cerrar" />
+                Cerrar
+              </Link>
             </div>
-          </fieldset>
 
-          <label className="flex min-h-12 items-center gap-2">
-            <input
-              type="checkbox"
-              name="desactivados"
-              value="1"
-              defaultChecked={filtros.incluirDesactivados}
-              // `accent-accent` pinta la marca con nuestro acento en vez del azul del navegador,
-              // que en tema oscuro canta.
-              className="size-5 accent-accent"
+            <Opciones
+              etiqueta="Existencias"
+              nombre="existencias"
+              opciones={EXISTENCIAS}
+              elegida={filtros.existencias}
             />
-            <span>Incluir los retirados de la venta</span>
-          </label>
+            <Opciones
+              etiqueta="Categoría"
+              nombre="categoria"
+              opciones={[{ valor: "", texto: "Todas" }, ...categorias.map((c) => ({ valor: c, texto: c }))]}
+              elegida={filtros.categoria ?? ""}
+            />
 
-          <div className="flex gap-2">
-            <Boton type="submit" variante="principal" className="flex-1">
-              Aplicar
-            </Boton>
-            {acotado ? (
+            <fieldset className="min-w-0">
+              <legend className="mb-2.5 text-lg font-bold">Precio</legend>
+              <div className="grid grid-cols-2 gap-3">
+                <Campo
+                  etiqueta="Precio desde"
+                  etiquetaOculta
+                  nombre="desde"
+                  inputMode="numeric"
+                  prefijo="$"
+                  placeholder="Desde"
+                  defaultValue={filtros.desde ?? ""}
+                />
+                <Campo
+                  etiqueta="Precio hasta"
+                  etiquetaOculta
+                  nombre="hasta"
+                  inputMode="numeric"
+                  prefijo="$"
+                  placeholder="Hasta"
+                  defaultValue={filtros.hasta ?? ""}
+                />
+              </div>
+            </fieldset>
+
+            <Interruptor
+              etiqueta="Incluir los que ya no se venden"
+              ayuda="Aparecen marcados."
+              nombre="desactivados"
+              marcado={filtros.incluirDesactivados}
+            />
+
+            <div className="grid grid-cols-[1fr_2fr] gap-2">
               <BotonEnlace href="/catalogo" data-testid="limpiar-filtros">
                 Limpiar
               </BotonEnlace>
-            ) : null}
+              <Boton type="submit" variante="principal" tamano="alto">
+                Ver productos
+              </Boton>
+            </div>
           </div>
-        </div>
-      </details>
+        </details>
+      </div>
     </form>
   );
 }

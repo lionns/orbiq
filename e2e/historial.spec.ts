@@ -79,7 +79,7 @@ test("el catálogo lleva al historial, y el historial cuenta lo que pasó", asyn
   await entrarComo(page, dueno);
   await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}`);
   await page.getByRole("link", { name: new RegExp(p.nombre.slice(0, 12)) }).click();
-  await expect(page).toHaveURL(new RegExp(`/catalogo/${p.id}$`));
+  await expect(page).toHaveURL(new RegExp(`/catalogo/${p.id}(\\?|$)`));
 
   // AC-014: tipo, cantidad, motivo y fecha; y la suma coincide con las existencias.
   const historial = page.getByTestId("historial");
@@ -91,7 +91,7 @@ test("el catálogo lleva al historial, y el historial cuenta lo que pasó", asyn
   await expect(historial).toContainText("Ver la venta");
   await expect(page.getByTestId("historial").locator("li").first()).toContainText("Venta");
 
-  await expect(page.getByText("2 movimientos · suman 7")).toBeVisible();
+  await expect(page.getByText("2 movimientos, suman 7")).toBeVisible();
   await expect(page.getByTestId("no-cuadra")).toHaveCount(0);
 });
 
@@ -128,7 +128,7 @@ test("el ajuste escribe la diferencia, no el conteo, y el saldo sale del libro",
 
   await page.reload();
   await expect(page.getByTestId("historial")).toContainText("se rompieron cuatro");
-  await expect(page.getByText("2 movimientos · suman 26")).toBeVisible();
+  await expect(page.getByText("2 movimientos, suman 26")).toBeVisible();
 });
 
 test("si el conteo guardado y el libro no coinciden, la pantalla lo dice", async ({ page }) => {
@@ -243,7 +243,7 @@ test("retirar un producto lo saca de la venta y del catálogo, sin perder su his
   await page.goto(`/catalogo/${p.id}`);
   await abrir(page, "abrir-estado");
   await page.getByTestId("cambiar-estado").click();
-  await expect(page.getByTestId("evento-activacion")).toContainText("Retirado de la venta");
+  await expect(page.getByTestId("evento-activacion")).toContainText("Dejó de venderse");
 
   // AC-022: fuera de la cuadrícula y del catálogo activo…
   await page.goto("/vender");
@@ -253,7 +253,7 @@ test("retirar un producto lo saca de la venta y del catálogo, sin perder su his
 
   // …pero se puede pedir a propósito, y su historia sigue entera.
   await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}&desactivados=1`);
-  await expect(page.getByTestId("lista-catalogo")).toContainText("retirado");
+  await expect(page.getByTestId("lista-catalogo")).toContainText("Ya no se vende");
   await page.goto(`/catalogo/${p.id}`);
   await expect(page.getByTestId("historial")).toContainText("Venta");
   await expect(page.getByTestId("historial")).toContainText("Existencias iniciales");
@@ -270,7 +270,7 @@ test("devolver a la venta lo reactiva, y las dos cosas quedan en el historial", 
   await expect(page.getByTestId("cambiar-estado")).toHaveText("Devolver a la venta");
   await page.getByTestId("cambiar-estado").click();
   await abrir(page, "abrir-estado");
-  await expect(page.getByTestId("cambiar-estado")).toHaveText("Retirar de la venta");
+  await expect(page.getByTestId("cambiar-estado")).toHaveText("Dejar de vender");
 
   await expect(page.getByTestId("evento-activacion")).toHaveCount(2);
   await page.goto("/vender");
@@ -316,7 +316,7 @@ test("la ficha se abre informando, no pidiendo", async ({ page }) => {
   // Las tres acciones existen y dicen lo que hacen sin abrirlas.
   await expect(page.getByTestId("abrir-ajuste")).toContainText("Corregir el conteo");
   await expect(page.getByTestId("abrir-edicion")).toContainText("Editar los datos");
-  await expect(page.getByTestId("abrir-estado")).toContainText("Retirar de la venta");
+  await expect(page.getByTestId("abrir-estado")).toContainText("Dejar de vender");
 });
 
 test("cuando el conteo no cuadra, corregirlo ya viene abierto", async ({ page }) => {
@@ -338,9 +338,10 @@ test("la tarjeta del catálogo indica que lleva a alguna parte", async ({ page }
   await entrarComo(page, dueno);
   await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}`);
 
-  const tarjeta = page.getByTestId("lista-catalogo").locator("[data-tarjeta]").first();
-  // Un enlace de verdad, con su marca visual y un blanco que se acierta con el pulgar.
-  await expect(tarjeta).toHaveText(/›/);
-  const caja = await tarjeta.boundingBox();
+  // Un enlace de verdad, con su marca visual —el chevron, ahora un icono y no un «›» de texto— y
+  // un blanco que se acierta con el pulgar.
+  const fila = page.getByTestId("lista-catalogo").getByRole("link").first();
+  await expect(fila.locator("svg")).toHaveCount(1);
+  const caja = await fila.boundingBox();
   expect(caja!.height).toBeGreaterThanOrEqual(48);
 });
