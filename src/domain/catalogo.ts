@@ -54,6 +54,7 @@ function condiciones(f: FiltrosCatalogo): SQL {
   if (f.existencias === "agotados") partes.push(eq(schema.product.stock, 0));
   // Negativo es lo que el libro dice que se vendió de más: existe porque decidimos permitirlo.
   if (f.existencias === "negativos") partes.push(lt(schema.product.stock, 0));
+  if (f.existencias === "por-reponer") partes.push(lte(schema.product.stock, 0));
 
   return and(...partes)!;
 }

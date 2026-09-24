@@ -1,8 +1,10 @@
 import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { resolverCodigo } from "./catalogo";
+import { listarCatalogo, resolverCodigo, type ProductoDelCatalogo } from "./catalogo";
 import { normalizarCodigo } from "./escaneo";
-import { ZONA_DEL_NEGOCIO } from "./zona";
+import { leerFiltros } from "./filtros";
+import { resumirDias, type ResumenDelRango } from "./resumen";
+import { diaDelNegocio, ZONA_DEL_NEGOCIO } from "./zona";
 
 /** La transacción de Drizzle no es la misma forma que `db`, pero para escribir es intercambiable. */
 type Escritor = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -284,6 +286,41 @@ export async function ventasPorDia(rango: RangoDeFechas): Promise<DiaDeVentas[]>
     porDia.set(f.dia, dia);
   }
   return [...porDia.values()];
+}
+
+/** Una consulta para que la página de Ventas reciba sus días y la suma del mismo rango. */
+export async function ventasDelRango(rango: RangoDeFechas): Promise<{
+  dias: DiaDeVentas[];
+  resumen: ResumenDelRango;
+}> {
+  const dias = await ventasPorDia(rango);
+  return { dias, resumen: resumirDias(dias) };
+}
+
+export type ResumenDelDia = {
+  dia: string;
+  total: number;
+  numeroVentas: number;
+  ultimasVentas: VentaDelDia[];
+  porReponer: { total: number; productos: ProductoDelCatalogo[] };
+};
+
+/** Una llamada del servidor reúne lo que necesita Inicio. El corte y el filtro se comparten. */
+export async function resumenDelDia(instante = new Date()): Promise<ResumenDelDia> {
+  const dia = diaDelNegocio(instante);
+  const [dias, catalogo] = await Promise.all([
+    ventasPorDia({ desde: dia, hasta: dia }),
+    listarCatalogo(leerFiltros({ existencias: "por-reponer" })),
+  ]);
+  const ventas = dias[0]?.ventas ?? [];
+  const resumen = resumirDias(dias);
+  return {
+    dia,
+    total: resumen.total,
+    numeroVentas: resumen.numeroVentas,
+    ultimasVentas: ventas.slice(0, 4),
+    porReponer: { total: catalogo.total, productos: catalogo.productos.slice(0, 3) },
+  };
 }
 
 export type LineaDeLaVenta = {

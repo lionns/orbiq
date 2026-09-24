@@ -1,7 +1,7 @@
 ---
 id: T-028
 title: "Backend: lo que la portada y el deshacer necesitan del dominio"
-status: ready
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -46,24 +46,24 @@ Solo dominio, acciones de servidor y sus pruebas. **Ninguna pantalla**: eso es `
 
 ## Acceptance Criteria
 
-- [ ] CUANDO hoy hay cuatro ventas y una está anulada EL SISTEMA DEBE devolver en el resumen del día
+- [x] CUANDO hoy hay cuatro ventas y una está anulada EL SISTEMA DEBE devolver en el resumen del día
       el total y el número de las tres válidas, y las cuatro en las últimas ventas, la anulada marcada.
-- [ ] CUANDO una venta se registra a las nueve de la noche en la zona del negocio EL SISTEMA DEBE
+- [x] CUANDO una venta se registra a las nueve de la noche en la zona del negocio EL SISTEMA DEBE
       contarla en el resumen de ese día y no en el del siguiente.
-- [ ] CUANDO hay un producto en 0, otro en -2 y uno retirado en -1 EL SISTEMA DEBE contar dos por
+- [x] CUANDO hay un producto en 0, otro en -2 y uno retirado en -1 EL SISTEMA DEBE contar dos por
       reponer, y el filtro «por reponer» del catálogo debe listar esos mismos dos.
-- [ ] CUANDO se pide el resumen de un rango EL SISTEMA DEBE devolver la misma suma que dan los días
+- [x] CUANDO se pide el resumen de un rango EL SISTEMA DEBE devolver la misma suma que dan los días
       de `ventasPorDia` para ese rango, sin contar las anuladas.
-- [ ] CUANDO se llama `deshacerVenta` sobre una venta recién registrada EL SISTEMA DEBE dejarla
+- [x] CUANDO se llama `deshacerVenta` sobre una venta recién registrada EL SISTEMA DEBE dejarla
       anulada, devolver las existencias y registrar el movimiento igual que la anulación del detalle.
-- [ ] CUANDO se llama `deshacerVenta` sin sesión, o sobre una venta ya anulada, EL SISTEMA DEBE
+- [x] CUANDO se llama `deshacerVenta` sin sesión, o sobre una venta ya anulada, EL SISTEMA DEBE
       rechazarlo sin tocar el libro.
 - [ ] CUANDO se deshace una venta desde la pantalla de venta EL SISTEMA DEBE sacarla del resumen del
       día y de la lista de ventas en la siguiente carga (prueba e2e que registra, deshace y comprueba).
 
 ## Verification
 
-- Baseline: `npm test && node scripts/harness-lint.mjs && npm run typecheck && npm run lint && npm run build`
+- Baseline obligatoria: `npm test && node scripts/harness-lint.mjs && npm run typecheck && npm run lint`. Build es opcional aquí (`quality-gates.md` § Baseline).
 - Final: el mismo comando, con `node scripts/harness-status.mjs` antes del lint, más `npm run test:e2e`
 - Task-specific: las pruebas de dominio corren también con `TZ=Asia/Tokyo` y `TZ=UTC`, como en `T-019`
 
@@ -71,6 +71,7 @@ Solo dominio, acciones de servidor y sus pruebas. **Ninguna pantalla**: eso es `
 
 - Suposición: «las cuatro últimas» y «los tres primeros» son los números de los artboards. Si
   `T-029` necesita otros, basta con un parámetro, no con otra consulta.
+- Suposición: `numeroVentas` cuenta las válidas; `anuladas` se informa aparte, igual que en Inicio.
 
 ## Risks
 
@@ -79,15 +80,26 @@ Solo dominio, acciones de servidor y sus pruebas. **Ninguna pantalla**: eso es `
 
 ## Outcome
 
-- Changes: ninguna todavía. Se bloqueó el 2026-09-24 con la línea base en rojo en el entorno de
-  Codex (ver su trace); `T-030` y el cierre de `T-025`–`T-027` la dejaron en verde, sin red incluida.
-- Files:
-- Baseline result:
-- Final result:
-- Decisions recorded:
-- Follow-up:
+- Changes: resumen del día y del rango desde `ventasPorDia`; filtro `por-reponer` (≤0 y activos por defecto); acción `deshacerVenta` compartida con anulación del detalle; pruebas unitarias y de integración escritas.
+- Files: `src/domain/{venta,resumen,catalogo,filtros}.ts`, pruebas de dominio, `src/app/(protegido)/acciones.ts`, `src/app/(protegido)/ventas/[id]/acciones.ts`, `e2e/resumen.spec.ts` y registros.
+- Baseline result: 69/69 tests, harness-lint, typecheck y lint verdes. Build opcional de baseline falló por puerto denegado a Turbopack en este entorno.
+- Final result: `npm test` 71/71, también con `TZ=Asia/Tokyo` y `TZ=UTC` · `typecheck`, `lint`,
+  `harness-lint` limpios · `build` ok · `test:e2e` **95/95**. Build y e2e se corrieron en la revisión,
+  fuera del entorno de Codex, que no deja abrir puertos.
+- Decisions recorded: Ninguna; se siguieron D-001, D-002 y D-006.
+- Follow-up: Ejecutar build y e2e fuera de este entorno; T-029 conecta Deshacer en la pantalla de venta y prueba ese recorrido. Validación humana pendiente.
 
 ## Review
+
+- **La prueba e2e nueva fallaba al correrla** (`por reponer` daba 3, no 2): «Principal» empezaba con
+  10 y las cuatro ventas se llevaban 10, así que quedaba en 0 y también contaba. El dominio estaba
+  bien; la prueba no se había podido ejecutar donde se escribió. Corregido en la revisión (20 de
+  existencias, saldo final 14).
+- **El último criterio queda para `T-029`**, que tiene el suyo: «Deshacer» desde Vender no existe
+  hasta que exista la pantalla. Aquí se prueba la misma acción, `deshacerVenta`, desde el detalle,
+  que ahora pasa por ella; «anular dos veces se rechaza» de `ventas.spec.ts` cubre la venta ya anulada.
+- **Nota para `T-029`:** `por-reponer` no está en `ESTADOS`, porque ese arreglo alimenta las
+  etiquetas del selector actual. Al hacer las píldoras de filtro hay que añadirlo ahí con su nombre.
 
 ## Validation
 

@@ -4,7 +4,7 @@
  * unos parámetros de texto que pueden venir de cualquiera (`D-001`).
  */
 export const ESTADOS = ["todos", "disponibles", "agotados", "negativos"] as const;
-export type EstadoExistencias = (typeof ESTADOS)[number];
+export type EstadoExistencias = (typeof ESTADOS)[number] | "por-reponer";
 
 /** Cuántos productos entran de una vez. Pendiente de validar con un catálogo largo de verdad. */
 export const TANDA = 24;
@@ -40,7 +40,8 @@ function entero(valor: string): number | null {
  */
 export function leerFiltros(params: ParametrosCrudos): FiltrosCatalogo {
   const estadoCrudo = primero(params.existencias) as EstadoExistencias;
-  const existencias = ESTADOS.includes(estadoCrudo) ? estadoCrudo : "todos";
+  const existencias = estadoCrudo === "por-reponer" || ESTADOS.some((estado) => estado === estadoCrudo)
+    ? estadoCrudo : "todos";
 
   let desde = entero(primero(params.desde));
   let hasta = entero(primero(params.hasta));

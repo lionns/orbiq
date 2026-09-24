@@ -50,6 +50,14 @@ describe("leerFiltros", () => {
     expect(leerFiltros({ existencias: "carísimos" }).existencias).toBe("todos");
   });
 
+  it("por reponer sobrevive en la dirección y sigue siendo un filtro", () => {
+    const f = leerFiltros({ existencias: "por-reponer" });
+    expect(hayFiltros(f)).toBe(true);
+    expect(comoDireccion(f)).toBe("/catalogo?existencias=por-reponer");
+    const valor = new URL(comoDireccion(f), "http://local").searchParams.get("existencias")!;
+    expect(leerFiltros({ existencias: valor }).existencias).toBe("por-reponer");
+  });
+
   it("un precio que no es número se ignora", () => {
     const f = leerFiltros({ desde: "hola", hasta: "" });
     expect(f.desde).toBeNull();

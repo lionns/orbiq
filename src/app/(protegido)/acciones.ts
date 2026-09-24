@@ -7,10 +7,12 @@ import { crearProducto, resolverCodigo, type Resuelto, type ResultadoAlta } from
 import { validarAlta } from "@/domain/producto";
 import {
   registrarVenta,
+  anularVenta,
   resolverEntradaDeVenta,
   type EntradaDeVenta,
   type LineaPedida,
   type ResultadoVenta,
+  type ResultadoAnulacion,
 } from "@/domain/venta";
 import { sesionActual } from "@/domain/session";
 
@@ -25,6 +27,21 @@ export async function confirmarVenta(
   // Deja subir el error: la pantalla tiene que poder distinguir «no se guardó» de «se guardó».
   // Un fallo convertido en un valor de éxito es exactamente lo que `AC-015` prohíbe.
   return registrarVenta(ventaId, lineas, sesion.usuarioId);
+}
+
+/** La anulación recién cobrada y la del detalle comparten dominio, sesión y revalidación. */
+export async function deshacerVenta(ventaId: string): Promise<ResultadoAnulacion> {
+  const sesion = await sesionActual(await headers());
+  if (!sesion) redirect("/acceso");
+
+  const resultado = await anularVenta(ventaId, sesion.usuarioId);
+  if (!resultado.ok) return resultado;
+
+  revalidatePath(`/ventas/${ventaId}`);
+  revalidatePath("/ventas");
+  revalidatePath("/");
+  revalidatePath("/catalogo", "layout");
+  return resultado;
 }
 
 /**
