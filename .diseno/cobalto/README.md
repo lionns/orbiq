@@ -19,6 +19,12 @@ Nada de `src/` importa estos archivos. Cada `.dc.html` es un artboard que se abr
 | `U-D-Inicio`, `U-D-Vender`, `U-D-Productos` | Computador: menú lateral, venta en columna, ficha al lado de la lista |
 | `W-Ventas` | Computador: los días como tarjetas y la suma del rango a la derecha |
 | `B-Inicio-oscuro`, `W-Inicio-oscuro`, `W-Vender-oscuro` | Tema oscuro, en celular y computador |
+| `F-M-Piezas` | Los controles de formulario y sus estados: campo, precio, cantidad, opciones, fecha, interruptor |
+| `F-M-Nuevo`, `F-D-Nuevo` | Alta de producto, con la categoría sugiriendo; en computador, en el panel lateral |
+| `F-M-Filtros`, `F-D-Filtros` | Filtros sin listas desplegables, en hoja inferior o en el panel lateral |
+| `F-M-Ventas`, `F-D-Ventas` | Atajos de fechas y rango. En celular, las fechas van una debajo de otra |
+| `F-M-Conteo` | Corregir el conteo con motivos de un toque |
+| `F-M-Acceso` | Acceso con el error arriba y «Mostrar» en la contraseña |
 
 ## Los trece puntos validados
 

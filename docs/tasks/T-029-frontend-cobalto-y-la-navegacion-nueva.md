@@ -54,6 +54,20 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
   vende», «Corregir el conteo» igual en todas partes.
 - Cubre los cuatro hallazgos de `T-024`, que queda `superseded`.
 
+**Formularios** (artboards `F-*`, validados el 2026-09-24)
+- `Campo` con la etiqueta arriba, 52 px de alto y cuatro estados: normal, foco, error y bloqueado.
+  Precio con «$» dentro; código de barras con «Escanear» dentro.
+- Ningún `<select>`: Existencias y Categoría son radios con estilo de píldora, así que funcionan sin
+  JavaScript. «Incluir los que ya no se venden» es un interruptor sobre un checkbox real.
+- Fechas: `input type=date` con el aspecto del resto e icono propio. En celular, una debajo de otra
+  y a todo el ancho. Ventas añade los atajos Hoy, Ayer, Esta semana y Este mes, que son enlaces.
+- Categoría sugiere mientras se escribe y ofrece crear; sin JavaScript, el `datalist` de hoy.
+  Acceso: el error arriba y «Mostrar» en la contraseña.
+- Filtros en una hoja inferior (celular) o en el panel lateral (computador), como el alta.
+- Corregir el conteo en una hoja: cantidad con − y +, la diferencia con el sistema, y motivos de un
+  toque más un detalle opcional. Se guarda como un solo texto («Se dañó: una bolsa rota»), así que
+  el libro no cambia. «Otro» exige el detalle.
+
 ## Out of Scope
 
 - Datos o reglas nuevas en el servidor. Si algo falta, vuelve a `T-028`; no se consulta desde aquí.
@@ -74,10 +88,12 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
       cobrar.
 - [ ] A 360 px, ninguna acción del flujo de venta (Escanear, Cobrar, cantidades) queda en el tercio
       superior de la pantalla.
-- [ ] Ninguna etiqueta de existencias sale de su casilla con «Agotado», «Conteo en -12» o un precio
-      de seis cifras, a 360 px y en la columna de computador.
+- [ ] A 360 px y en computador, nada sale de su control: ni «Conteo en -12» junto a un precio de
+      seis cifras, ni una fecha, ni la etiqueta de un campo.
 - [ ] `aspecto.spec.ts` y `tipografia.spec.ts` en verde en los dos temas, **sin bajar sus umbrales**.
       La prueba que fija `accent-text` por tema se actualiza a los valores nuevos.
+- [ ] CUANDO se filtra el catálogo y se piden fechas en Ventas con JavaScript desactivado EL SISTEMA
+      DEBE aplicar el filtro y el rango igual que hoy, y la dirección resultante debe poder compartirse.
 - [ ] Toda la suite e2e en verde, incluida la venta de tres artículos, uno sin código (`NFR-002`).
 
 ## Verification

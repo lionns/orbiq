@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Formularios · piezas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&amp;display=swap">
+<style>
+body{margin:0;font-family:"Geist",system-ui,sans-serif;color:#12152a}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 360px; height: 1700px; background: #e8ebf4; color: #12152a; font-family: 'Geist',system-ui,sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5;">
+<main style="flex-grow: 1; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 28px;">
+  <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.03em;">Piezas de formulario</h1>
+  <div><h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">Campo de texto</h2><p style="margin: 2px 0 0; color: #50566f; font-size: 15px;">Etiqueta arriba, siempre visible. 52 px de alto, texto de 17.</p></div>
+  <label style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+  <span style="font-weight: 600;">Nombre</span>
+  <span style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 16px; border: 1px solid #767b95;  background: #ffffff; "><span style="flex-grow: 1; min-width: 0; font-size: 17px; color: #50566f;">Como lo pide el cliente</span></span>
+  
+</label>
+  <label style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+  <span style="font-weight: 600;">Nombre</span>
+  <span style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 16px; border: 2px solid #2f47d6; box-shadow: 0 0 0 4px #e3e7fc; background: #ffffff; "><span class="num" style="flex-grow: 1; min-width: 0; font-size: 17px; color: #12152a;">Arroz Diana 500 g<span style="display: inline-block; width: 2px; height: 20px; margin-left: 1px; vertical-align: -4px; background: #2f47d6;"></span></span></span>
+  
+</label>
+  <label style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+  <span style="font-weight: 600;">Precio</span>
+  <span style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 16px; border: 2px solid #b42318; box-shadow: 0 0 0 4px #fbe4e1; background: #ffffff; "><span style="font-size: 17px; font-weight: 600; color: #50566f;">$</span><span style="flex-grow: 1; min-width: 0; font-size: 17px; color: #50566f;">0</span></span>
+  <span style="display: flex; align-items: center; gap: 6px; color: #b42318; font-weight: 500; font-size: 15px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b42318" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>Escribe el precio. Sin él no se puede cobrar.</span>
+</label>
+  <label style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+  <span style="font-weight: 600;">Código de barras</span>
+  <span style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 16px; border: 1px dashed #767b95;  background: #e8ebf4; "><span class="num" style="flex-grow: 1; min-width: 0; font-size: 17px; color: #50566f;">7702511000014</span></span>
+  <span style="color: #50566f; font-size: 15px;">No se cambia: ya tiene ventas registradas.</span>
+</label>
+  <div><h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">Precio y cantidad</h2><p style="margin: 2px 0 0; color: #50566f; font-size: 15px;">El símbolo va dentro del campo. La cantidad se escribe o se ajusta con − y +.</p></div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+    <label style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+  <span style="font-weight: 600;">Precio</span>
+  <span style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 16px; border: 1px solid #767b95;  background: #ffffff; "><span style="font-size: 17px; font-weight: 600; color: #50566f;">$</span><span class="num" style="flex-grow: 1; min-width: 0; font-size: 17px; color: #12152a;">3.500</span></span>
+  
+</label>
+    <label style="display: flex; flex-direction: column; gap: 6px;"><span style="font-weight: 600;">Existencias</span>
+      <span style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; border-radius: 16px; border: 1px solid #767b95; background: #ffffff;">
+        <span style="display: grid; place-items: center; width: 48px; height: 48px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12152a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12h14"/></svg></span><span class="num" style="font-size: 18px; font-weight: 700;">12</span><span style="display: grid; place-items: center; width: 48px; height: 48px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12152a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+      </span></label>
+  </div>
+  <div><h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">Elegir una opción</h2><p style="margin: 2px 0 0; color: #50566f; font-size: 15px;">En vez de una lista desplegable: todas las opciones a la vista, un toque.</p></div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px;"><span style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 9999px; font-weight: 600; white-space: nowrap; background: #ffffff; color: #12152a; border: 1px solid #767b95;">Todas</span><span style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 9999px; font-weight: 600; white-space: nowrap; background: #ffffff; color: #12152a; border: 1px solid #767b95;">Hay</span><span style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 9999px; font-weight: 600; white-space: nowrap; background: #2f47d6; color: #ffffff; border: 1px solid #2f47d6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M20 6 9 17l-5-5"/></svg>Por reponer</span><span style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 9999px; font-weight: 600; white-space: nowrap; background: #ffffff; color: #12152a; border: 1px solid #767b95;">Agotados</span></div>
+  <div><h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">Fecha</h2><p style="margin: 2px 0 0; color: #50566f; font-size: 15px;">Se ve como los demás campos. Al tocarla abre el calendario del teléfono.</p></div>
+  <div style="display: flex; flex-direction: column; gap: 12px;"><label style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+  <span style="font-weight: 600;">Desde</span>
+  <span style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 16px; border: 1px solid #767b95;  background: #ffffff; "><span class="num" style="flex-grow: 1; min-width: 0; font-size: 17px; color: #12152a;">17/09/2026</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></span>
+  
+</label><label style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+  <span style="font-weight: 600;">Hasta</span>
+  <span style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 16px; border: 1px solid #767b95;  background: #ffffff; "><span class="num" style="flex-grow: 1; min-width: 0; font-size: 17px; color: #12152a;">24/09/2026</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></span>
+  
+</label></div>
+  <div><h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">Sí o no</h2><p style="margin: 2px 0 0; color: #50566f; font-size: 15px;">Un interruptor en vez de la casilla del navegador.</p></div>
+  <label style="display: flex; align-items: center; gap: 16px; min-height: 56px;">
+  <span style="flex-grow: 1;"><span style="display: block; font-weight: 600;">Incluir los que ya no se venden</span><span style="display: block; color: #50566f; font-size: 15px;">Aparecen marcados como «Ya no se vende».</span></span><span style="flex-shrink: 0; position: relative; width: 52px; height: 32px; border-radius: 9999px; background: #767b95;"><span style="position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 9999px; background: #ffffff; box-shadow: 0 1px 3px rgba(15,20,25,0.25);"></span></span>
+</label>
+  <label style="display: flex; align-items: center; gap: 16px; min-height: 56px;">
+  <span style="flex-grow: 1;"><span style="display: block; font-weight: 600;">Incluir los que ya no se venden</span><span style="display: block; color: #50566f; font-size: 15px;">Aparecen marcados como «Ya no se vende».</span></span><span style="flex-shrink: 0; position: relative; width: 52px; height: 32px; border-radius: 9999px; background: #2f47d6;"><span style="position: absolute; top: 3px; right: 3px; width: 26px; height: 26px; border-radius: 9999px; background: #ffffff; box-shadow: 0 1px 3px rgba(15,20,25,0.25);"></span></span>
+</label>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":1700}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
