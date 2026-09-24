@@ -1,7 +1,7 @@
 ---
 id: T-027
 title: El total no se va de la pantalla en computador
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -90,8 +90,8 @@ implements: [NFR-003, AC-X01]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Leon
+- Date: 24/09/2026
 
 ## Trace
 

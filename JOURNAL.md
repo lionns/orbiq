@@ -25,3 +25,6 @@
 2026-09-13 | T-021 | done | jerarquía por tamaño en la cuadrícula y suelo tipográfico con prueba | 8 files | test 69/69, e2e 89/89 | D-007
 2026-09-14 | T-022 | done | iconos que acompañan a la palabra, con el peso del paquete medido | 11 files | test 69/69, e2e 92/92 | D-003,D-007
 2026-09-14 | T-023 | done | identidad, paleta invertida y jerarquía en la venta, con la barra acotada | 14 files | test 69/69, e2e 92/92 | D-007,D-009
+2026-09-24 | T-025 | done | la barra de la venta deja holgura a la cuadrícula, medida y no supuesta | 3 files | test 69/69, e2e 92/92 | D-007
+2026-09-24 | T-026 | done | total y botón apilados: ninguno empuja al otro fuera de la barra | 2 files | test 69/69, e2e 93/93 | D-007
+2026-09-24 | T-027 | done | la columna de computador tiene tope y el total queda a la vista | 2 files | test 69/69, e2e 94/94 | D-007

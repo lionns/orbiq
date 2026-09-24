@@ -1,7 +1,7 @@
 ---
 id: T-025
 title: La barra de la venta deja sitio a la cuadrícula
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -88,8 +88,8 @@ implements: [NFR-003, AC-X01]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Leon
+- Date: 24/09/2026
 
 ## Trace
 
