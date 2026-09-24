@@ -15,6 +15,7 @@ implements: [FR-006, US-007, US-013, AC-011, AC-012]
 - `.diseno/cobalto/README.md` y sus artboards: `U-M-Inicio`, `U-D-Inicio`, `U-M-Cobrada`, `W-Ventas`
 - `src/domain/venta.ts` (`ventasPorDia`, `anularVenta`) y `src/domain/catalogo.ts` (`listarCatalogo`)
 - `src/domain/filtros.ts` — los estados de existencias que ya entiende la dirección
+- Todo lo necesario está en el repositorio: la tarea no depende de nada que se haya dicho fuera de él.
 
 ## Scope
 

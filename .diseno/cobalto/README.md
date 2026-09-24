@@ -4,7 +4,15 @@ La dirección visual y de navegación que reemplaza a la de `T-023`. Se validó 
 2026-09-24, pantalla por pantalla y punto por punto, antes de escribir código. Es el contrato de
 `T-028` (lo que el servidor tiene que dar) y de `T-029` (cómo se ve y cómo se navega).
 
-Nada de `src/` importa estos archivos. Cada `.dc.html` es un artboard que se abre por su cuenta.
+Nada de `src/` importa estos archivos. Cada `.dc.html` es un artboard que se abre por su cuenta en
+el navegador. Para compararlo con la aplicación, una captura al mismo tamaño:
+
+```sh
+npx playwright screenshot --viewport-size=360,844 "file://$PWD/.diseno/cobalto/U-M-Inicio.dc.html" artboard.png
+```
+
+Celular a 360 × 844 (algunos son más altos: la altura del artboard lo dice); computador a 1440 × 900.
+Si un artboard y la tabla de tokens de abajo difieren, **manda la tabla**.
 
 ## Qué hay
 
@@ -14,6 +22,8 @@ Nada de `src/` importa estos archivos. Cada `.dc.html` es un artboard que se abr
 | `U-M-Vender` | Celular: la venta recogida en una línea, con Escanear y Cobrar juntos |
 | `U-M-Vender-abierta` | Celular: la venta desplegada, con la cantidad escribiéndose |
 | `U-M-Cobrada` | Celular: justo después de cobrar, con Deshacer |
+| `U-M-Deshecha` | Celular: tras Deshacer, la venta anulada vuelve al carrito para corregirla |
+| `U-M-Vaciada` | Celular: la venta vaciada, con Deshacer en vez de un diálogo |
 | `U-M-Productos`, `U-M-Ficha` | Celular: la lista y la ficha, con los nombres nuevos |
 | `U-M-Ajustes` | Celular: Tema y Salir, fuera de la cabecera |
 | `U-D-Inicio`, `U-D-Vender`, `U-D-Productos` | Computador: menú lateral, venta en columna, ficha al lado de la lista |
@@ -26,7 +36,7 @@ Nada de `src/` importa estos archivos. Cada `.dc.html` es un artboard que se abr
 | `F-M-Conteo` | Corregir el conteo con motivos de un toque |
 | `F-M-Acceso` | Acceso con el error arriba y «Mostrar» en la contraseña |
 
-## Los trece puntos validados
+## Los catorce puntos validados
 
 1. El carrito no se pierde al salir de Vender. 2. Navegación abajo en el celular: Inicio, Vender,
 Ventas, Productos. 3. La venta se recoge en una línea. 4. Escanear y Cobrar juntos, abajo.
@@ -34,7 +44,8 @@ Ventas, Productos. 3. La venta se recoge en una línea. 4. Escanear y Cobrar jun
 Salir en Ajustes. 8. «Cobrar $ N» en vez de «Confirmar». 9. «Productos» en vez de «Catálogo».
 10. «Nuevo producto» fuera del menú. 11. Deshacer justo después de cobrar. 12. «Conteo en -2»,
 «Hay 12», «Agotados», «Dejar de vender». 13. En computador, el lector escribe en la búsqueda sin
-tocar nada y F2 cobra.
+tocar nada y F2 cobra. 14. «Vaciar» borra la venta sin cobrar de una vez, con Deshacer
+en vez de diálogo; va en la cabecera de la venta, lejos de Cobrar.
 
 ## Tokens
 
