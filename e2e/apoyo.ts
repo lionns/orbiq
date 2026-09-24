@@ -77,7 +77,9 @@ async function cookieDeSesion(dueno: DuenoDePrueba): Promise<string> {
  */
 export async function entrarPorPantalla(page: Page, dueno: DuenoDePrueba): Promise<void> {
   await entrar(page, dueno.correo, dueno.clave);
-  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+  // Dentro: la navegación de las secciones aparece. «Salir» ya no vive en la cabecera, sino en
+  // Ajustes (`T-029`, punto 7).
+  await expect(page.getByRole("navigation", { name: "Secciones" }).first()).toBeVisible();
 }
 
 export async function entrarComo(page: Page, dueno: DuenoDePrueba): Promise<void> {
@@ -87,6 +89,8 @@ export async function entrarComo(page: Page, dueno: DuenoDePrueba): Promise<void
   await (page.context() as BrowserContext).addCookies([
     { name: nombre!, value: valor!, domain: "localhost", path: "/" },
   ]);
-  await page.goto("/");
-  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+  // Aterriza en la venta, que es lo que casi todas las pruebas vienen a recorrer. Inicio (`/`) lo
+  // visita quien lo prueba.
+  await page.goto("/vender");
+  await expect(page.getByTestId("sesion-nombre")).toBeAttached();
 }

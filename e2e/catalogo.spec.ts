@@ -80,7 +80,7 @@ test("dar de alta con existencias escribe el libro y el saldo sale de ahí", asy
   const lista = await verSolo(page, nombre);
   await expect(lista).toContainText(nombre);
   await expect(lista).toContainText("3.500");
-  await expect(lista).toContainText("12 en existencia");
+  await expect(lista).toContainText("Hay 12");
   await expect(lista).toContainText(CATEGORIA);
 
   const id = await idDe(nombre);
@@ -271,7 +271,7 @@ test.describe("acotar y recorrer el catálogo", () => {
 
     await page.goto(`${soloMios}&existencias=negativos`);
     await expect(page.getByTestId("conteo")).toContainText("1 producto");
-    await expect(page.getByTestId("lista-catalogo")).toContainText("-3 en existencia");
+    await expect(page.getByTestId("lista-catalogo")).toContainText("Conteo en -3");
     await expect(page.getByTestId("lista-catalogo").locator("[data-alerta]")).toHaveCount(1);
   });
 

@@ -46,7 +46,7 @@ async function textosPequenos(page: Page): Promise<{ que: string; px: number }[]
   }, SUELO);
 }
 
-const PANTALLAS = ["/", "/catalogo", "/catalogo/nuevo", "/ventas"] as const;
+const PANTALLAS = ["/", "/vender", "/catalogo", "/catalogo/nuevo", "/ventas", "/ajustes"] as const;
 
 test("ninguna pantalla escribe por debajo del suelo de 14 px", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });

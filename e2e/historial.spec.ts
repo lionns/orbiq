@@ -246,7 +246,7 @@ test("retirar un producto lo saca de la venta y del catálogo, sin perder su his
   await expect(page.getByTestId("evento-activacion")).toContainText("Retirado de la venta");
 
   // AC-022: fuera de la cuadrícula y del catálogo activo…
-  await page.goto("/");
+  await page.goto("/vender");
   await expect(page.getByTestId(`casilla-${p.id}`)).toHaveCount(0);
   await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}`);
   await expect(page.getByTestId("catalogo-vacio")).toBeVisible();
@@ -273,7 +273,7 @@ test("devolver a la venta lo reactiva, y las dos cosas quedan en el historial", 
   await expect(page.getByTestId("cambiar-estado")).toHaveText("Retirar de la venta");
 
   await expect(page.getByTestId("evento-activacion")).toHaveCount(2);
-  await page.goto("/");
+  await page.goto("/vender");
   await expect(page.getByTestId(`casilla-${p.id}`)).toHaveCount(1);
 });
 

@@ -248,7 +248,7 @@ function VentaEnCurso({
       // productos— y el total caía fuera de la pantalla, donde `sticky` ya no lo alcanza porque la
       // tarjeta es más alta que la ventana. Con tope, quien se desplaza es la lista de adentro y el
       // total se queda abajo, clavado.
-      className="fixed inset-x-0 bottom-0 flex max-h-[var(--alto-barra-venta)] flex-col border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:max-h-[calc(100dvh-2rem)] lg:rounded-card lg:border lg:border-border lg:shadow-none"
+      className="fixed inset-x-0 bottom-19 flex max-h-[var(--alto-barra-venta)] flex-col border-t border-border bg-surface shadow-[0_-8px_22px_rgba(28,25,23,0.07)] lg:sticky lg:top-4 lg:mt-4 lg:h-fit lg:max-h-[calc(100dvh-2rem)] lg:rounded-card lg:border lg:border-border lg:shadow-none"
     >
       {/* `min-h-0` no sobra: sin él un hijo flexible no encoge por debajo de su contenido y la
           lista empuja el total fuera de la barra en vez de desplazarse dentro. */}

@@ -69,7 +69,8 @@ test("entra, la cookie es opaca, y al recargar sigue dentro", async ({ page, con
 
   // D-006: recargar no debe pedir la clave otra vez.
   await page.reload();
-  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByTestId("sesion-nombre")).toHaveText(dueno.nombre);
 });
 
 test("una sesión vencida se trata como ausente, no como inválida", async ({ page }) => {
@@ -90,6 +91,8 @@ test("una sesión vencida se trata como ausente, no como inválida", async ({ pa
 test("salir cierra la sesión en el servidor, no solo en el navegador", async ({ page }) => {
   await entrarPorPantalla(page, dueno);
 
+  // Salir vive en Ajustes (`T-029`, punto 7).
+  await page.goto("/ajustes");
   await page.getByRole("button", { name: "Salir" }).click();
   await expect(page).toHaveURL(/\/acceso$/);
 

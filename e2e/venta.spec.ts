@@ -155,7 +155,7 @@ test("si la red falla, lo dice sin rodeos, no descuenta, y reintentar cobra una 
   await tocar(page, atun!.id, 2);
 
   // La acción de servidor viaja por POST a la misma ruta. Cortarla es el fallo de red real.
-  await page.route("**/", (ruta) =>
+  await page.route("**/vender", (ruta) =>
     ruta.request().method() === "POST" ? ruta.abort("failed") : ruta.continue(),
   );
   await page.getByTestId("confirmar").click();
@@ -167,7 +167,7 @@ test("si la red falla, lo dice sin rodeos, no descuenta, y reintentar cobra una 
   // Y la venta sigue armada: no hay que volver a tocarla.
   await expect(page.getByTestId("total")).toContainText("12.000");
 
-  await page.unroute("**/");
+  await page.unroute("**/vender");
   await page.getByTestId("confirmar").click();
   await expect(page.getByTestId("venta-anterior")).toContainText("12.000");
   expect(await existenciasDe(atun!.id)).toBe(4);

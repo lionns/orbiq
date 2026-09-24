@@ -107,23 +107,26 @@ test("el tema también se elige desde las pantallas del negocio, y a 360 px no d
   await page.setViewportSize({ width: 360, height: 740 });
   await entrarComo(page, dueno);
 
-  // T-023: la cabecera dice de quién es el negocio, y el tema se alcanza desde ahí sin buscarlo.
-  // Antes la aplicación no lo decía en ninguna parte y se sentía prestada.
-  await expect(page.getByRole("link", { name: NEGOCIO.nombre })).toBeVisible();
-  await expect(page.getByTestId("abrir-tema")).toBeVisible();
+  // T-023: la aplicación dice de quién es el negocio. Desde T-029 lo dice Inicio, y el tema vive en
+  // Ajustes, a un toque desde ahí.
+  await page.goto("/");
+  await expect(page.locator("main").getByText(NEGOCIO.nombre)).toBeVisible();
+  await page.getByRole("link", { name: "Ajustes" }).click();
+  await expect(page).toHaveURL(/\/ajustes$/);
 
-  await elegir(page, "oscuro");
+  await page.getByTestId("tema-oscuro").click();
+  await page.waitForLoadState("networkidle");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   expect(await fondoDe(page)).toBe(OSCURO);
+  // El elegido se ve elegido: es lo primero que se busca al volver aquí.
+  await expect(page.getByTestId("tema-oscuro")).toHaveAttribute("aria-pressed", "true");
 
-  // El desplegable sigue abierto tras elegir: React no controla el `open` de un `<details>`, así
-  // que el nodo sobrevive al repintado. Se queda mostrando cuál quedó activo, que es buena señal.
-  await expect(page.getByTestId("tema-claro")).toBeVisible();
-
-  // Y abierto no empuja nada fuera de la pantalla: va posicionado por encima, no en el flujo.
+  // Las tres opciones caben en una línea a 360 px: nada se sale ni se parte.
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
-  const panel = await page.getByTestId("tema-claro").boundingBox();
-  expect(panel!.x + panel!.width).toBeLessThanOrEqual(360);
+  const alturas = await Promise.all(
+    ["sistema", "claro", "oscuro"].map(async (t) => (await page.getByTestId(`tema-${t}`).boundingBox())!.height),
+  );
+  expect(new Set(alturas).size).toBe(1);
 });
 
 /**

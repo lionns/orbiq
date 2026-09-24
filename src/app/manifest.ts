@@ -19,7 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Qué tienes, a qué precio y qué se está acabando.",
     lang: "es",
     dir: "ltr",
-    // La venta es la portada: es lo que el dueño abre cien veces al día (`US-005`).
+    // Inicio es la portada desde `T-029`: lo del día, y la venta a un toque.
     start_url: "/",
     scope: "/",
     display: "standalone",

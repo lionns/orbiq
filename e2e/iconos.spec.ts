@@ -18,7 +18,7 @@ test.afterAll(async () => {
   await borrarDueno(dueno);
 });
 
-const PANTALLAS = ["/", "/catalogo", "/catalogo/nuevo", "/ventas"] as const;
+const PANTALLAS = ["/", "/vender", "/catalogo", "/catalogo/nuevo", "/ventas", "/ajustes"] as const;
 
 /** Controles cuyo contenido visible es un icono y nada más. */
 async function iconosHuerfanos(page: Page): Promise<string[]> {
