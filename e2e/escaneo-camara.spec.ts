@@ -28,9 +28,12 @@ const pistas = (page: Page) =>
     return ((el?.srcObject as MediaStream | null)?.getTracks() ?? []).map((t) => t.readyState);
   });
 
+// En la venta del celular la cámara se enciende desde «Escanear», abajo junto a Cobrar (`T-029`).
+// Es la prueba que más importa de las dos: ahora quien la enciende es la pantalla y no el objetivo,
+// y si su efecto dependiera del padre, la cámara volvería a morirse sola.
 test("la cámara sigue viva después de abrirla, no se apaga sola", async ({ page }) => {
   await entrarComo(page, dueno);
-  await page.getByTestId("alternar-camara").click();
+  await page.getByTestId("escanear").click();
   await expect(page.getByTestId("camara")).toBeVisible();
 
   // Se rompía a los ~300 ms. Tres segundos dan margen de sobra sin volver la suite lenta.
@@ -43,7 +46,7 @@ test("cerrar la cámara apaga el flujo: el piloto del teléfono no se queda ence
   page,
 }) => {
   await entrarComo(page, dueno);
-  await page.getByTestId("alternar-camara").click();
+  await page.getByTestId("escanear").click();
   await expect(page.getByTestId("camara")).toBeVisible();
   await expect(async () => expect(await pistas(page)).toEqual(["live"])).toPass({ timeout: 2_000 });
 
@@ -54,7 +57,7 @@ test("cerrar la cámara apaga el flujo: el piloto del teléfono no se queda ence
     (window as unknown as { flujo: MediaStream }).flujo = el.srcObject as MediaStream;
   });
 
-  await page.getByTestId("alternar-camara").click();
+  await page.getByTestId("escanear").click();
   await expect(page.getByTestId("camara")).toHaveCount(0);
 
   const estados = await page.evaluate(() =>

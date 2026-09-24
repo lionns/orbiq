@@ -75,8 +75,30 @@ export function ObjetivoDeEscaneo({
   conCampo = true,
   admiteNombre = false,
   onVaciar,
+  camaraActiva,
+  onCamaraActiva,
+  claseBotonCamara = "",
+  enfocarEnComputador = false,
 }: {
-  onCodigo: (codigo: string) => void;
+  /**
+   * Devolver `true` vacía el campo. La venta lo pide cuando lo tecleado era un código que ya entró
+   * al carrito: un lector de códigos escribe en este campo, y el siguiente código no puede caer
+   * pegado al anterior. Un nombre buscado, en cambio, se queda (`T-017`).
+   */
+  onCodigo: (codigo: string) => void | boolean | Promise<void | boolean>;
+  /**
+   * La cámara puede encenderse desde fuera: en la venta del celular el botón vive abajo, junto a
+   * Cobrar, donde llega el pulgar (`.diseno/cobalto`, punto 4). Sin estas dos, se maneja sola.
+   */
+  camaraActiva?: boolean;
+  onCamaraActiva?: (activa: boolean) => void;
+  /** Para esconder el botón propio donde otro ya lo sustituye (`hidden lg:inline-flex`). */
+  claseBotonCamara?: string;
+  /**
+   * En computador el cursor vive en el campo: así un lector USB escribe ahí sin tocar nada
+   * (punto 13). En el celular no, porque enfocar abre el teclado y tapa media pantalla.
+   */
+  enfocarEnComputador?: boolean;
   /** Se avisa al quedar el campo vacío: la venta lo usa para volver a los frecuentes. */
   onVaciar?: (() => void) | undefined;
   etiqueta?: string;
@@ -101,7 +123,32 @@ export function ObjetivoDeEscaneo({
    * milisegundos — la imagen aparecía y se moría sola. `fallo` queda fuera de sus dependencias a
    * propósito.
    */
-  const [activa, setActiva] = useState(false);
+  const [activaPropia, setActivaPropia] = useState(false);
+  const activa = camaraActiva ?? activaPropia;
+  const setActiva = useCallback(
+    (valor: boolean | ((estaba: boolean) => boolean)) => {
+      const siguiente = typeof valor === "function" ? valor(activa) : valor;
+      if (onCamaraActiva) onCamaraActiva(siguiente);
+      else setActivaPropia(siguiente);
+    },
+    [activa, onCamaraActiva],
+  );
+  const campo = useRef<HTMLInputElement>(null);
+  /**
+   * Apagar desde dentro del efecto de la cámara sin que el efecto dependa del padre: si dependiera
+   * de `onCamaraActiva`, que es una función nueva en cada render, React reiniciaría el efecto y la
+   * cámara se moriría a los pocos milisegundos (`T-016`).
+   */
+  const apagar = useRef(() => setActiva(false));
+  useEffect(() => {
+    apagar.current = () => setActiva(false);
+  });
+
+  useEffect(() => {
+    if (enfocarEnComputador && window.matchMedia("(min-width: 1024px)").matches) {
+      campo.current?.focus();
+    }
+  }, [enfocarEnComputador]);
   const [fallo, setFallo] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
   const lectura = useRef<LecturaEnCurso>(LECTURA_VACIA);
@@ -160,7 +207,7 @@ export function ObjetivoDeEscaneo({
             // Se escanea un artículo y se ve el resultado: el escaneo continuo está fuera de
             // alcance. Cerrar es además el acuse de recibo — una cámara que sigue abierta y ya no
             // lee es peor que ninguna.
-            setActiva(false);
+            apagar.current();
             break;
           }
           await new Promise((r) => setTimeout(r, 120));
@@ -170,7 +217,7 @@ export function ObjetivoDeEscaneo({
         // entradas y el dueño tiene que saber cuál le queda.
         if (vivo) {
           setFallo(true);
-          setActiva(false);
+          apagar.current();
         }
       }
     })();
@@ -193,6 +240,7 @@ export function ObjetivoDeEscaneo({
         <label className="min-w-0 flex-1">
           <span className="sr-only">{etiqueta}</span>
           <input
+            ref={campo}
             name="codigo"
             value={tecleado}
             onChange={(e) => {
@@ -205,7 +253,11 @@ export function ObjetivoDeEscaneo({
               // El texto **se queda**. Al buscar por nombre, vaciarlo es como se vuelve a los
               // frecuentes (`T-017`), y no se puede vaciar lo que ya se vació solo. La cámara y el
               // lector no pasan por este campo, así que no les afecta.
-              emitir(tecleado.trim());
+              const texto = tecleado.trim();
+              if (!texto) return;
+              void Promise.resolve(onCodigo(texto)).then((limpiar) => {
+                if (limpiar) setTecleado("");
+              });
             }}
             // El teclado que sale en el celular. Numérico mientras solo entren códigos; con
             // nombres tiene que ser el normal o no se puede escribir «panela».
@@ -224,7 +276,8 @@ export function ObjetivoDeEscaneo({
             setActiva((estaba) => !estaba);
           }}
           data-testid="alternar-camara"
-          className="shrink-0 gap-1.5"
+          variante="suave"
+          className={`shrink-0 ${claseBotonCamara}`}
         >
           <Icono nombre={activa ? "cerrar" : "camara"} />
           {activa ? "Cerrar" : "Cámara"}

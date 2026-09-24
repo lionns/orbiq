@@ -40,7 +40,10 @@ export const VARIANTES = {
    * Una acción de apoyo junto a la principal —Escanear al lado de Cobrar—. El relleno de acento
    * suave la distingue del fondo sin competir con la principal.
    */
-  suave: "bg-accent-soft text-text disabled:opacity-50",
+  suave:
+    // El borde de acento no es adorno: sobre el fondo de la página el relleno suave queda a 1.03:1
+    // y el botón no se distinguía (`aspecto.spec.ts`, `T-010`). El acento contra el fondo da 5.89.
+    "border border-accent bg-accent-soft text-text disabled:opacity-50",
   /** Lo que borra: Vaciar. El rojo suave lo separa de todo lo demás sin gritar. */
   peligro: "bg-danger-soft text-danger disabled:opacity-50",
 } as const;

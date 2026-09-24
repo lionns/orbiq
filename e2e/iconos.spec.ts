@@ -65,7 +65,8 @@ test("los iconos no los anuncia un lector de pantalla, y los nombres accesibles 
   expect(anunciados).toEqual([]);
 
   // El nombre accesible sigue siendo la palabra, no la palabra más el dibujo.
-  await expect(page.getByRole("link", { name: "Catálogo", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Confirmar", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Cámara", exact: true })).toBeVisible();
+  const productos = page.getByRole("region", { name: "Productos" });
+  await expect(productos.getByRole("link", { name: "Productos", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cobrar", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Escanear", exact: true })).toBeVisible();
 });

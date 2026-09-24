@@ -68,6 +68,22 @@ async function tocar(page: Page, id: string, veces = 1) {
   for (let i = 0; i < veces; i++) await page.getByTestId(`casilla-${id}`).click();
 }
 
+/**
+ * En el celular la venta está recogida en una línea (`T-029`, punto 3): las cantidades y el total
+ * grande están dentro, a un toque. En computador siempre está desplegada y no hay nada que abrir.
+ */
+async function ventaNueva(page: Page) {
+  // La venta en curso sobrevive a recargar (`T-029`, punto 1). Una prueba que recorre varios
+  // anchos en la misma sesión empieza cada vuelta sin la de la vuelta anterior.
+  await page.evaluate(() => localStorage.removeItem("orbiq.venta"));
+  await page.reload();
+}
+
+async function abrirVenta(page: Page) {
+  const ver = page.getByTestId("ver-venta");
+  if (await ver.isVisible()) await ver.click();
+}
+
 test("una venta de tres artículos baja las existencias y escribe un movimiento por cada uno", async ({
   page,
 }) => {
@@ -237,6 +253,7 @@ test("tocar dos veces suma, y se puede corregir la cantidad sin rehacer la venta
   await tocar(page, cafe!.id, 3);
   await expect(page.getByTestId(`cantidad-${cafe!.id}`)).toHaveText("3");
 
+  await abrirVenta(page);
   await page.getByRole("button", { name: /^Quitar uno de Café/ }).click();
   await expect(page.getByTestId(`cantidad-${cafe!.id}`)).toHaveText("2");
   await expect(page.getByTestId("total")).toContainText("22.000");
@@ -270,7 +287,8 @@ test("con el carrito lleno se sigue llegando al final de la cuadrícula", async 
   for (const p of suyos) await tocar(page, p!.id);
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await expect(page.getByTestId("total")).toBeVisible();
+  // Recogida, el total va dentro de Cobrar (`T-029`, punto 8): es lo que tiene que verse.
+  await expect(page.getByTestId("confirmar")).toBeVisible();
 
   const medido = await page.evaluate(() => {
     const todas = [...document.querySelectorAll('[data-testid^="casilla-"]')];
@@ -299,14 +317,21 @@ test("a 360 px el total se ve siempre y nada del flujo de venta vive arriba", as
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 
-  // AC-X01: el total está a la vista sin desplazarse.
-  const total = await page.getByTestId("total").boundingBox();
-  expect(total!.y).toBeLessThan(740);
-
-  // NFR-003: confirmar y las cantidades viven fuera del tercio superior, donde llega el pulgar.
+  // AC-X01: el total está a la vista sin desplazarse. Con la venta recogida va dentro de Cobrar
+  // (`T-029`, punto 8), así que es Cobrar lo que tiene que verse entero y con el importe.
   const confirmar = await page.getByTestId("confirmar").boundingBox();
+  await expect(page.getByTestId("confirmar")).toContainText("2.500");
+  expect(confirmar!.y + confirmar!.height).toBeLessThanOrEqual(740);
+
+  // NFR-003: cobrar, escanear y las cantidades viven fuera del tercio superior, donde llega el pulgar.
   expect(confirmar!.y).toBeGreaterThan(740 / 3);
   expect(confirmar!.height).toBeGreaterThanOrEqual(48);
+  const escanear = await page.getByTestId("escanear").boundingBox();
+  expect(escanear!.y).toBeGreaterThan(740 / 3);
+  // Desplegada, el total grande también se ve entero.
+  await abrirVenta(page);
+  const total = await page.getByTestId("total").boundingBox();
+  expect(total!.y + total!.height).toBeLessThanOrEqual(740);
   const menos = await page.getByRole("button", { name: /^Quitar uno de/ }).boundingBox();
   expect(menos!.y).toBeGreaterThan(740 / 3);
   expect(menos!.height).toBeGreaterThanOrEqual(48);
@@ -321,12 +346,14 @@ test("la cuadrícula ordena por lo más vendido, no por cualquier cosa", async (
    * pasara desapercibido.
    */
   const [zeta, alfa] = await sembrar([
-    { nombre: "Zzz poco vendido", precio: 1000, existencias: 50 },
-    { nombre: "Aaa muy vendido", precio: 1000, existencias: 50 },
+    { nombre: "Zzz poco vendido", precio: 1000, existencias: 200 },
+    { nombre: "Aaa muy vendido", precio: 1000, existencias: 200 },
   ]);
   // El de nombre alfabéticamente posterior se vende más: si el orden fuera por nombre, perdería.
-  await registrarVenta(nuevoId(), [{ productoId: zeta!.id, cantidad: 9 }], dueno.id);
-  await registrarVenta(nuevoId(), [{ productoId: alfa!.id, cantidad: 1 }], dueno.id);
+  // Por encima de lo que venden las pruebas vecinas (hasta 50 en la de computador): con 9 y 1, las
+  // que corren en paralelo los echaban de los 24 que enseña la cuadrícula — lo mismo que `T-018`.
+  await registrarVenta(nuevoId(), [{ productoId: zeta!.id, cantidad: 90 }], dueno.id);
+  await registrarVenta(nuevoId(), [{ productoId: alfa!.id, cantidad: 60 }], dueno.id);
 
   await entrarComo(page, dueno);
   const casillas = await page.getByTestId(/^casilla-/).all();
@@ -363,8 +390,12 @@ test("el botón de confirmar se queda dentro de la barra con un total de seis ci
   ] as const) {
     await page.setViewportSize({ width: ancho, height: alto });
     await entrarComo(page, dueno);
+    await ventaNueva(page);
     await tocar(page, caro!.id, 3);
     await expect(page.getByTestId("total")).toContainText("174.030");
+    // En el celular el total grande está dentro de la venta desplegada: se mide ahí, que es donde
+    // conviven el total y el botón. Recogida, el importe va dentro del propio botón.
+    await abrirVenta(page);
 
     const medido = await page.evaluate(() => {
       const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
@@ -423,6 +454,7 @@ test("en computador el total sigue a la vista con el carrito más largo que la p
   ] as const) {
     await page.setViewportSize({ width: ancho, height: alto });
     await entrarComo(page, dueno);
+    await ventaNueva(page);
     for (const p of suyos) await tocar(page, p!.id);
     await expect(page.getByTestId("total")).toBeVisible();
 
@@ -454,4 +486,137 @@ test("en computador el total sigue a la vista con el carrito más largo que la p
     expect(medido.altoBarra).toBeLessThanOrEqual(medido.pantalla);
     expect(medido.listaSeDesplaza, "la lista no está desplazándose por dentro").toBe(true);
   }
+});
+
+// ——— T-029: lo que Cobalto añadió a la venta (`.diseno/cobalto`, puntos 1, 5, 11, 13 y 14) ———
+
+/**
+ * Añade por búsqueda y no por la cuadrícula. La cuadrícula enseña los 24 más vendidos, y registrar
+ * ventas para entrar en ella echa fuera a los productos de las pruebas vecinas que corren en
+ * paralelo: el mismo defecto que ya corrigió `T-018`. Buscar por nombre no compite con nadie.
+ */
+async function anadir(page: Page, p: { id: string; nombre: string }, veces = 1) {
+  for (let i = 0; i < veces; i++) {
+    await page.getByTestId("codigo-tecleado").fill(p.nombre);
+    await page.getByTestId("codigo-tecleado").press("Enter");
+    await page.getByTestId(`casilla-${p.id}`).click();
+  }
+}
+
+test("la venta en curso sobrevive a ir a Productos y a recargar; cobrarla la vacía", async ({
+  page,
+}) => {
+  const [a, b] = await sembrar([
+    { nombre: "Persiste A", precio: 1200, existencias: 30 },
+    { nombre: "Persiste B", precio: 800, existencias: 30 },
+  ]);
+  await entrarComo(page, dueno);
+  await anadir(page, a!, 2);
+  await anadir(page, b!);
+
+  // Irse a mirar un precio ya no la pierde, y la insignia de Vender dice cuántos esperan.
+  await page.getByRole("navigation", { name: "Secciones" }).getByRole("link", { name: /Productos/ }).click();
+  await expect(page).toHaveURL(/\/catalogo$/);
+  await expect(page.getByTestId("barra-de-pestanas").getByTestId("insignia-venta")).toContainText("3");
+  await page.getByRole("navigation", { name: "Secciones" }).getByRole("link", { name: /Vender/ }).click();
+  await expect(page.getByTestId(`cantidad-${a!.id}`)).toHaveText("2");
+
+  await page.reload();
+  await expect(page.getByTestId(`cantidad-${a!.id}`)).toHaveText("2");
+  await expect(page.getByTestId("total")).toContainText("3.200");
+
+  await page.getByTestId("confirmar").click();
+  await expect(page.getByTestId("venta-anterior")).toContainText("3.200");
+  await page.reload();
+  await expect(page.getByTestId("venta-en-curso").locator("li")).toHaveCount(0);
+  await expect(page.getByTestId("barra-de-pestanas").getByTestId("insignia-venta")).toHaveCount(0);
+});
+
+test("deshacer un cobro anula esa venta, devuelve las existencias y la trae de vuelta al carrito", async ({
+  page,
+}) => {
+  const [p] = await sembrar([{ nombre: "Deshacible", precio: 2500, existencias: 10 }]);
+  await entrarComo(page, dueno);
+  await anadir(page, p!, 3);
+  await page.getByTestId("confirmar").click();
+  await expect(page.getByTestId("venta-anterior")).toContainText("7.500");
+  expect(await existenciasDe(p!.id)).toBe(7);
+
+  await page.getByTestId("deshacer").click();
+  await expect(page.getByTestId("cobro-deshecho")).toBeVisible();
+  // Vuelve para corregirla: las tres unidades, listas para cobrar otra vez.
+  await expect(page.getByTestId(`cantidad-${p!.id}`)).toHaveText("3");
+  expect(await existenciasDe(p!.id)).toBe(10);
+  const anulaciones = (await movimientosDe([p!.id])).filter((m) => m.type === "sale_void");
+  expect(anulaciones.map((m) => m.quantity)).toEqual([3]);
+
+  // Y cobrarla de nuevo es otra venta, no un reintento de la anulada (`AC-010`).
+  await page.getByTestId("confirmar").click();
+  await expect(page.getByTestId("venta-anterior")).toContainText("7.500");
+  expect(await existenciasDe(p!.id)).toBe(7);
+});
+
+test("vaciar no pregunta, no llama al servidor, y deshacer devuelve los nueve artículos", async ({
+  page,
+}) => {
+  const [a, b] = await sembrar([
+    { nombre: "Vaciable A", precio: 500, existencias: 50 },
+    { nombre: "Vaciable B", precio: 900, existencias: 50 },
+  ]);
+  await entrarComo(page, dueno);
+  await anadir(page, a!, 6);
+  await anadir(page, b!, 3);
+  await abrirVenta(page);
+
+  const alServidor: string[] = [];
+  page.on("request", (r) => {
+    if (r.method() === "POST") alServidor.push(r.url());
+  });
+  page.on("dialog", () => {
+    throw new Error("Vaciar no puede abrir un diálogo");
+  });
+  await page.getByTestId("vaciar").click();
+  await expect(page.getByTestId("venta-vaciada")).toContainText("9 artículos");
+  await expect(page.getByTestId("venta-en-curso").locator("li")).toHaveCount(0);
+  expect(alServidor, "vaciar no es una operación del servidor").toEqual([]);
+
+  await page.getByTestId("deshacer").click();
+  await expect(page.getByTestId(`cantidad-${a!.id}`)).toHaveText("6");
+  await expect(page.getByTestId(`cantidad-${b!.id}`)).toHaveText("3");
+});
+
+test("la cantidad se escribe: seis huevos son un toque y un número", async ({ page }) => {
+  const [h] = await sembrar([{ nombre: "Huevo", precio: 800, existencias: 90 }]);
+  await entrarComo(page, dueno);
+  await anadir(page, h!);
+  await abrirVenta(page);
+
+  await page.getByTestId(`cantidad-${h!.id}`).click();
+  await page.getByTestId(`editar-cantidad-${h!.id}`).fill("6");
+  await page.getByTestId(`editar-cantidad-${h!.id}`).press("Enter");
+  await expect(page.getByTestId(`cantidad-${h!.id}`)).toHaveText("6");
+  await expect(page.getByTestId("total")).toContainText("4.800");
+});
+
+test("en computador el lector escribe en la búsqueda sin tocar nada, y F2 cobra", async ({ page }) => {
+  const codigo = `77${Date.now()}`.slice(0, 13);
+  const [p] = await sembrar([{ nombre: "Leído", precio: 3100, existencias: 20 }]);
+  await db.update(schema.product).set({ barcode: codigo }).where(eq(schema.product.id, p!.id));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await entrarComo(page, dueno);
+
+  // El cursor ya está en la búsqueda: un lector USB es un teclado que escribe y pulsa Enter.
+  await expect(page.getByTestId("codigo-tecleado")).toBeFocused();
+  await page.keyboard.type(codigo);
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId(`cantidad-${p!.id}`)).toHaveText("1");
+  // Y el campo queda vacío para el siguiente, que si no caería pegado a este.
+  await expect(page.getByTestId("codigo-tecleado")).toHaveValue("");
+  await page.keyboard.type(codigo);
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId(`cantidad-${p!.id}`)).toHaveText("2");
+
+  await page.keyboard.press("F2");
+  await expect(page.getByTestId("venta-anterior")).toContainText("6.200");
+  expect(await existenciasDe(p!.id)).toBe(18);
 });

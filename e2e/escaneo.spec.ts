@@ -62,7 +62,7 @@ test("AC-006 · tecleado y lector llegan al mismo resultado", async ({ page }) =
   // reintenta a propósito — resolver el código es un viaje al servidor, y leer el total una sola
   // vez comprobaría lo rápido que responde la red, no que las dos entradas coinciden.
   await expect(page.getByTestId(`cantidad-${panelaId}`)).toHaveText("2");
-  await expect(page.getByTestId("venta-en-curso").getByRole("listitem")).toHaveCount(1);
+  await expect(page.getByTestId("venta-en-curso").locator("li")).toHaveCount(1);
 });
 
 test("AC-X02 · escribir en un campo no se confunde con escanear", async ({ page }) => {
@@ -99,7 +99,7 @@ test("AC-007 · un código desconocido se da de alta sin perder la venta", async
   // El producto nuevo entró, y la Panela sigue donde estaba: la venta no se perdió.
   await expect(page.getByTestId("venta-en-curso")).toContainText("Bolsa");
   await expect(page.getByTestId("venta-en-curso")).toContainText("Panela");
-  await expect(page.getByTestId("venta-en-curso").getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByTestId("venta-en-curso").locator("li")).toHaveCount(2);
 
   // Y quedó en la base con su código, no solo en la pantalla.
   const [creado] = await db
