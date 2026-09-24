@@ -1,6 +1,26 @@
+import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FORMATOS } from "../../src/domain/escaneo";
 import { digitoDeControl, imagen } from "./ean13";
+
+/**
+ * El binario que trae el paquete, leído del disco. Sin esto la librería lo descarga de un CDN al
+ * correr, así que la prueba pasaba con internet y fallaba sin él: bloqueó la línea base de `T-028`
+ * en un entorno sin red. Se sube hasta la raíz del paquete igual que `scripts/copiar-wasm.mjs`,
+ * para respetar dónde lo haya dejado el hoisting de npm.
+ */
+function binarioDelDecodificador(): ArrayBuffer {
+  let dir = dirname(createRequire(import.meta.url).resolve("zxing-wasm/reader"));
+  while (!existsSync(join(dir, "dist/reader/zxing_reader.wasm"))) {
+    const padre = dirname(dir);
+    if (padre === dir) throw new Error("no se encontró zxing_reader.wasm — ¿está instalado zxing-wasm?");
+    dir = padre;
+  }
+  const bytes = readFileSync(join(dir, "dist/reader/zxing_reader.wasm"));
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
 
 /**
  * El decodificador que se envía, contra códigos de barras de verdad.
@@ -13,7 +33,8 @@ import { digitoDeControl, imagen } from "./ean13";
  * comprueba a mano `T-016` § Verification.
  */
 async function leer(codigo: string) {
-  const { readBarcodes } = await import("zxing-wasm/reader");
+  const { prepareZXingModule, readBarcodes } = await import("zxing-wasm/reader");
+  prepareZXingModule({ overrides: { wasmBinary: binarioDelDecodificador() } });
   // Los mismos formatos que pide el objetivo de escaneo, con el nombre que usa esta librería.
   const formatos = FORMATOS.map((f) => (f === "ean_13" ? "EAN-13" : "EAN-8"));
   const encontrados = await readBarcodes(imagen(codigo), { formats: formatos });
