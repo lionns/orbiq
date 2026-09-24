@@ -11,6 +11,7 @@ la aplicación y nada de `src/` lo importa.
 | `Main.dc.html` | La dirección aprobada, tema claro. El que abre por defecto |
 | `Oscuro.dc.html` | La misma dirección en tema oscuro. Mismo esqueleto y mismos tamaños: el tema solo redefine color |
 | `canvas.json` | Posición de los artboards y las notas del lienzo |
+| `cobalto/` | La dirección que reemplaza a esta, validada el 2026-09-24. Contrato de `T-028` y `T-029` |
 
 Cada `.dc.html` es un artboard de 390 × 844 y se abre en cualquier navegador por su cuenta.
 

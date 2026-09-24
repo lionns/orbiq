@@ -1,7 +1,7 @@
 ---
 id: T-024
 title: La dirección alcanza al resto de las pantallas
-status: ready
+status: superseded
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -73,6 +73,8 @@ Y lo que aparezca al recorrer **catálogo** y **alta de producto**, que tampoco 
 
 ## Outcome
 
+- **`superseded` por `T-029` el 2026-09-24.** Los cuatro hallazgos se resuelven dentro de la dirección
+  Cobalto, que sí se dibujó y validó antes de escribir código (`.diseno/cobalto/`).
 - **Implementada, enseñada y rechazada por el estudio el 2026-09-14. Revertida entera.** El código
   vuelve a lo que había al firmar `T-023`; la tarea vuelve a `ready` con sus criterios sin marcar.
 - Lo que se llegó a construir, por si se retoma: precio dominante en la ficha, flecha en los tres
