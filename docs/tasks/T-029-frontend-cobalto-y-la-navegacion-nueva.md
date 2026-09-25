@@ -141,6 +141,10 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
   Ventas se ensanchaba a 373 px con una venta anulada. El segundo ya tiene su prueba.
 - El servidor de desarrollo se degrada si se compila producción con él en marcha: la suite se
   corrió contra `next start` en otro puerto.
+- **Reportado por el estudio tras la entrega:** «Cerrar» de los filtros no cerraba con JavaScript
+  (enlace a la misma dirección) y el conteo se veía apretado. Corregido en `519c4d0`, con prueba
+  que cae con el código anterior; ahora cierra también con Escape y tocando fuera. Suite: 103/105
+  con la máquina a carga 22; los dos fallos, del ritmo del lector, pasan 5/5 aislados.
 
 ## Validation
 
