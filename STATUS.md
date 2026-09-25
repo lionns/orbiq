@@ -9,8 +9,8 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
-| [T-029](docs/tasks/T-029-frontend-cobalto-y-la-navegacion-nueva.md) | `doing` | Que la aplicación se vea y se navegue como el lienzo Cobalto validado el 2026-09-24, en celular y en computador. Se entra por una portada con lo del día, todo está a un toque desde abajo, y vender cuesta menos toques que hoy. |
 | [T-028](docs/tasks/T-028-backend-lo-que-la-portada-y-el-deshacer-necesitan.md) | `review` | Que el servidor dé en una sola llamada lo que la portada nueva enseña (lo vendido hoy, las últimas ventas y lo que hay que reponer), que la lista de ventas sume su rango, y que una venta recién cobrada se pueda deshacer desde la misma pantalla de venta. |
+| [T-029](docs/tasks/T-029-frontend-cobalto-y-la-navegacion-nueva.md) | `review` | Que la aplicación se vea y se navegue como el lienzo Cobalto validado el 2026-09-24, en celular y en computador. Se entra por una portada con lo del día, todo está a un toque desde abajo, y vender cuesta menos toques que hoy. |
 | [T-030](docs/tasks/T-030-la-prueba-del-decodificador-no-depende-de-la-red.md) | `review` | Que `npm test` dé el mismo resultado con y sin internet. Hoy las dos pruebas de `e2e/apoyo/ean13.test.ts` descargan el WASM del decodificador de un CDN al correr, así que en un entorno sin red la línea base sale en rojo (67/69) y bloquea cualquier tarea, como le pasó a `T-028`. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
@@ -41,7 +41,7 @@ Harness `0.9.0` · profile `team`
 
 ## Next
 
-**T-029** (`doing`) — Que la aplicación se vea y se navegue como el lienzo Cobalto validado el 2026-09-24, en celular y en computador. Se entra por una portada con lo del día, todo está a un toque desde abajo, y vender cuesta menos toques que hoy.
+**T-028** (`review`) — Que el servidor dé en una sola llamada lo que la portada nueva enseña (lo vendido hoy, las últimas ventas y lo que hay que reponer), que la lista de ventas sume su rango, y que una venta recién cobrada se pueda deshacer desde la misma pantalla de venta.
 
 ## Open decisions
 

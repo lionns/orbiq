@@ -198,16 +198,18 @@ function FilaDeVenta({ venta: v }: { venta: VentaDelDia }) {
         <Icono nombre="ventas" />
       </span>
       <span className="flex-1">
-        <span className="block font-semibold tabular-nums">{hora.format(v.cuando)}</span>
-        <span className="block text-text-muted">
+        <span className="block font-semibold whitespace-nowrap tabular-nums">{hora.format(v.cuando)}</span>
+        {/* «Anulada» va debajo, con los artículos, y no en la fila del importe: a 360 px hora,
+            etiqueta, importe y flecha no caben juntos y la página se ensanchaba. */}
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-text-muted">
           {v.articulos} {v.articulos === 1 ? "artículo" : "artículos"}
+          {v.anulada ? (
+            <span className="rounded-full bg-danger-soft px-2.5 py-0.5 font-semibold text-danger">
+              Anulada
+            </span>
+          ) : null}
         </span>
       </span>
-      {v.anulada ? (
-        <span className="rounded-full bg-danger-soft px-2.5 py-0.5 font-semibold text-danger">
-          Anulada
-        </span>
-      ) : null}
       <Precio
         valor={v.total}
         className={`text-lg ${v.anulada ? "text-text-muted line-through" : "font-semibold"}`}

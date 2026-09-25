@@ -17,3 +17,5 @@
   - review: la ficha deja el historial antes que las acciones, como pide `T-013`, aunque
     `U-M-Ficha` las dibujó al revés. `aspecto.spec` mide el contenedor de un campo compuesto
   - blockers: ninguno
+- 2026-09-24 — role: Implementer · verificación: capturas de 20 pantallas en dos temas junto a su
+  artboard; arreglado Ventas a 360 px con una anulada (prueba nueva); e2e 104/104 en producción.

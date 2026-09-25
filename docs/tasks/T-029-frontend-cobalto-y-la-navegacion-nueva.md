@@ -1,7 +1,7 @@
 ---
 id: T-029
 title: "Frontend: Cobalto y la navegación nueva"
-status: doing
+status: review
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -73,25 +73,25 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
 
 ## Acceptance Criteria
 
-- [ ] CUANDO el dueño entra EL SISTEMA DEBE mostrar Inicio con lo vendido hoy, y Vender debe quedar
+- [x] CUANDO el dueño entra EL SISTEMA DEBE mostrar Inicio con lo vendido hoy, y Vender debe quedar
       a un toque desde cualquier pantalla principal, en celular y en computador.
-- [ ] CUANDO hay tres artículos en la venta y el dueño va a Productos y vuelve, o recarga,
+- [x] CUANDO hay tres artículos en la venta y el dueño va a Productos y vuelve, o recarga,
       EL SISTEMA DEBE conservar la venta intacta. Cobrarla la vacía.
-- [ ] CUANDO el dueño cobra y toca «Deshacer» EL SISTEMA DEBE anular esa venta y devolverla al
+- [x] CUANDO el dueño cobra y toca «Deshacer» EL SISTEMA DEBE anular esa venta y devolverla al
       carrito, y el total de hoy en Inicio no la cuenta.
-- [ ] CUANDO el dueño vacía una venta de nueve artículos y toca «Deshacer» EL SISTEMA DEBE devolver
+- [x] CUANDO el dueño vacía una venta de nueve artículos y toca «Deshacer» EL SISTEMA DEBE devolver
       los nueve con sus cantidades. Vaciar no pide confirmación ni llama al servidor.
-- [ ] CUANDO el dueño toca la cantidad y escribe 6 EL SISTEMA DEBE dejar 6 unidades de esa línea.
-- [ ] CUANDO un lector teclea un código y Enter en Vender, en computador y sin tocar la pantalla,
+- [x] CUANDO el dueño toca la cantidad y escribe 6 EL SISTEMA DEBE dejar 6 unidades de esa línea.
+- [x] CUANDO un lector teclea un código y Enter en Vender, en computador y sin tocar la pantalla,
       EL SISTEMA DEBE añadir el producto. CUANDO se pulsa F2 con artículos EL SISTEMA DEBE cobrar.
-- [ ] A 360 px, ninguna acción del flujo de venta (Escanear, Cobrar, cantidades) queda en el tercio
+- [x] A 360 px, ninguna acción del flujo de venta (Escanear, Cobrar, cantidades) queda en el tercio
       superior, y nada sale de su control: ni «Conteo en -12» con un precio de seis cifras, ni una
       fecha, ni la etiqueta de un campo.
-- [ ] CUANDO se filtra el catálogo y se piden fechas con JavaScript desactivado EL SISTEMA DEBE
+- [x] CUANDO se filtra el catálogo y se piden fechas con JavaScript desactivado EL SISTEMA DEBE
       aplicarlos igual que hoy, y la dirección resultante debe poder compartirse.
-- [ ] `aspecto.spec.ts` y `tipografia.spec.ts` en verde en los dos temas, **sin bajar umbrales**. La
+- [x] `aspecto.spec.ts` y `tipografia.spec.ts` en verde en los dos temas, **sin bajar umbrales**. La
       prueba que fija `accent-text` por tema se actualiza a los valores nuevos.
-- [ ] Toda la suite e2e en verde, incluida la venta de tres artículos, uno sin código (`NFR-002`).
+- [x] Toda la suite e2e en verde, incluida la venta de tres artículos, uno sin código (`NFR-002`).
 
 ## Verification
 
@@ -116,14 +116,31 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
 
 ## Outcome
 
-- Changes:
-- Files:
-- Baseline result:
-- Final result:
-- Decisions recorded:
-- Follow-up:
+- Changes: Cobalto en tokens, Geist (29 kB medidos) y componentes; Inicio en `/`, venta en
+  `/vender`, `/ajustes`; barra de secciones y menú lateral; venta que sobrevive, recogida, Vaciar y
+  los dos Deshacer, cantidad escrita, F2 y lector; Productos, ficha, alta, Ventas, detalle y acceso;
+  formularios sin `<select>`, con fechas nativas e interruptor. Handoff al día.
+- Files: `src/app/{globals.css,layout.tsx,manifest.ts}`, `src/app/(protegido)/**`, `src/app/acceso/*`,
+  `src/ui/**`, `src/domain/{filtros,movimientos}.ts`, `e2e/**`, `design-handoff.md`, íconos.
+- Baseline result: 71/71, harness-lint, typecheck, lint y build limpios; e2e 95/95.
+- Final result: 71/71 · typecheck, lint, harness-lint limpios · build ok · e2e **104/104** contra el
+  build de producción. Capturas junto a cada artboard: https://claude.ai/artifact/YCrtQyBBWW6V1WAMoNdP5o
+- Decisions recorded: ninguna. Inicio como portada no contradice `US-005` (pide ver el total, no
+  ser la portada) y se revierte en una tarde.
+- Follow-up: ninguno.
 
 ## Review
+
+- **Desviaciones del lienzo, todas con motivo:** historial antes que acciones en la ficha
+  (`T-013`); botones «suave» y «peligro» con borde (1.03:1 sin él); importe de «Cobrar» un punto
+  menor a 360 px; «Ver productos» sin contar; «Anulada» bajo los artículos; correo sin icono.
+- **Pruebas de `T-025`–`T-027` que cambiaron:** abren la venta antes de medir, porque recogida el
+  total va dentro de Cobrar. Nada de lo que exigen baja. Las de orden de la cuadrícula y del lector
+  se ajustaron a la cuadrícula de 24 y a la lista nueva, no a un umbral menor.
+- **Dos fallos reales los encontró mirar, no la suite:** «Cobrar» se salía del botón en oscuro y
+  Ventas se ensanchaba a 373 px con una venta anulada. El segundo ya tiene su prueba.
+- El servidor de desarrollo se degrada si se compila producción con él en marcha: la suite se
+  corrió contra `next start` en otro puerto.
 
 ## Validation
 

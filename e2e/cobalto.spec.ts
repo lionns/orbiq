@@ -2,6 +2,11 @@
 // DATABASE_URL al cargarse.
 import "dotenv/config";
 import { expect, test } from "@playwright/test";
+import { eq, sql } from "drizzle-orm";
+import { db, schema } from "../src/db";
+import { nuevoId } from "../src/domain/ids";
+import { anularVenta, registrarVenta } from "../src/domain/venta";
+import { diaDelNegocio } from "../src/domain/zona";
 import { borrarDueno, crearDueno, entrarComo, entrarPorPantalla, type DuenoDePrueba } from "./apoyo";
 
 /**
@@ -13,7 +18,15 @@ let dueno: DuenoDePrueba;
 test.beforeAll(async () => {
   dueno = await crearDueno("cobalto");
 });
+const MARCA = `t29-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
 test.afterAll(async () => {
+  const suyas = sql`select id from ${schema.sale} where ${schema.sale.userId} = ${dueno.id}`;
+  const suyos = sql`select id from ${schema.product} where ${schema.product.name} like ${`%${MARCA}%`}`;
+  await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${suyos})`);
+  await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${suyas})`);
+  await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
+  await db.delete(schema.product).where(sql`${schema.product.name} like ${`%${MARCA}%`}`);
   await borrarDueno(dueno);
 });
 
@@ -76,10 +89,23 @@ test.describe("sin JavaScript", () => {
 test("a 360 px ninguna pantalla se sale de lado, tampoco con los filtros o las fechas abiertos", async ({
   page,
 }) => {
+  // Una venta anulada de un importe largo: es la fila más ancha de Ventas y de Inicio, y la que
+  // ensanchaba la página a 373 px cuando «Anulada» compartía fila con el importe.
+  const [p] = await db
+    .insert(schema.product)
+    .values({ name: `Canasta ${MARCA}`, price: 58_010, stock: 10 })
+    .returning({ id: schema.product.id });
+  const venta = nuevoId();
+  await registrarVenta(venta, [{ productoId: p!.id, cantidad: 3 }], dueno.id);
+  await anularVenta(venta, dueno.id);
+  const hoy = diaDelNegocio(new Date());
+
   await page.setViewportSize({ width: 360, height: 740 });
   await entrarComo(page, dueno);
 
   const pantallas = [
+    `/ventas?desde=${hoy}&hasta=${hoy}`,
+    `/ventas/${venta}`,
     "/",
     "/vender",
     "/catalogo",

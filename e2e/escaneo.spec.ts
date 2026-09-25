@@ -42,7 +42,9 @@ test.afterAll(async () => {
 
 /** Teclea como lo hace una pistola lectora: ráfaga rápida y Enter, sin foco en ningún campo. */
 async function dispararLector(page: Page, codigo: string) {
-  await page.locator("body").click();
+  // Quitar el foco de cualquier campo tocando algo que no hace nada: el título. El centro de la
+  // página ya no sirve, porque en Productos cae sobre una fila, que es un enlace (`T-029`).
+  await page.getByRole("heading", { level: 1 }).first().click();
   for (const d of codigo) await page.keyboard.press(d, { delay: 5 });
   await page.keyboard.press("Enter");
 }

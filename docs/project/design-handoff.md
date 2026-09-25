@@ -95,7 +95,9 @@ Accessibility Notes).
 - **Geist**, autoalojada con `next/font` (`T-029`). Sustituye a la pila de sistema que se había
   elegido para no gastar datos móviles (`brief.md` § Constraints): se sirve desde nuestro origen,
   en un solo archivo variable, y se descarga **una vez**. Si no llega, detrás queda la pila de
-  sistema, así que nunca se espera a la fuente para ver un precio.
+  sistema, así que nunca se espera a la fuente para ver un precio. **Medido en el build de `T-029`:
+  29 kB** el archivo latino que se precarga; los demás subconjuntos solo bajan si hace falta una
+  letra suya.
 - Escala: `14 · 16 · 18 · 20 · 24 · 30 · 40`.
 - **14 px es el suelo absoluto** (`T-021`). Por debajo no hay texto en ninguna pantalla.
 - **16 px es el mínimo en cualquier campo de entrada.** Por debajo, iOS hace zoom al enfocar y saca
@@ -146,11 +148,12 @@ suave desaparece. Sombra solo en la barra fija de total, para separarla de lo qu
 Se diseña en 360 px y se ensancha. Un solo código, nunca dos interfaces (`FR-010`, `D-007`).
 
 - **< 640 px (celular, el caso que manda):** una columna. Cuadrícula de frecuentes de 2 columnas.
-  **Barra fija abajo** con el total y "Confirmar" — abajo porque ahí llega el pulgar, no arriba.
-  La navegación también vive abajo.
+  **Barra de secciones fija abajo** (Inicio, Vender, Ventas, Productos) y, en Vender, la venta
+  recogida en una línea encima, con Escanear y «Cobrar $ N» juntos — abajo porque ahí llega el
+  pulgar, no arriba (`T-029`).
 - **640–1024 px (tablet):** cuadrícula de 3-4 columnas. La barra de total sigue fija.
 - **> 1024 px (computador):** dos columnas — cuadrícula a la izquierda, venta en curso a la derecha
-  y siempre visible. La navegación pasa a un lateral.
+  y siempre visible. La navegación pasa a un menú lateral, con el dueño y Ajustes al pie.
 
 Regla de pulgar: en celular, ninguna acción del flujo de venta vive en el tercio superior de la
 pantalla.
