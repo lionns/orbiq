@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { comoDireccion, type FiltrosCatalogo } from "@/domain/filtros";
 import { Boton, BotonEnlace } from "@/ui/boton";
+import { CerrarDetalles } from "@/ui/cerrar-detalles";
 import { Campo } from "@/ui/campo";
 import { Icono } from "@/ui/iconos";
 import { Interruptor, Opciones } from "@/ui/opciones";
@@ -83,22 +83,24 @@ export function Filtros({
           </summary>
 
           {/* El velo del celular: tocar fuera cierra, que es volver a la misma dirección. */}
-          <Link
+          <CerrarDetalles
             href={aqui}
             aria-label="Cerrar los filtros"
-            className="fixed inset-0 z-40 bg-text/40 lg:hidden"
+            // En computador, transparente: tocar fuera del panel también lo cierra.
+            className="fixed inset-0 z-40 bg-text/40 lg:bg-transparent"
+            conEsc
           />
           <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col gap-5 overflow-y-auto rounded-t-card bg-surface px-4 pt-2 pb-5 lg:absolute lg:inset-x-auto lg:right-0 lg:bottom-auto lg:mt-2 lg:w-110 lg:rounded-card lg:border lg:border-border lg:p-7 lg:shadow-[0_24px_48px_rgba(15,20,25,0.16)]">
             <span className="h-1 w-10 self-center rounded-full bg-border lg:hidden" />
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold tracking-tight">Filtros</h2>
-              <Link
+              <CerrarDetalles
                 href={aqui}
                 className="flex min-h-12 items-center gap-1.5 px-1 font-semibold text-accent"
               >
                 <Icono nombre="cerrar" />
                 Cerrar
-              </Link>
+              </CerrarDetalles>
             </div>
 
             <Opciones

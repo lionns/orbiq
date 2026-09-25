@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { CerrarDetalles } from "./cerrar-detalles";
 import { Icono, type NombreDeIcono } from "./iconos";
 
 /**
@@ -31,11 +31,12 @@ export function SeccionPlegable({
   /** Sin borde propio: va dentro de una tarjeta que agrupa varias (`divide-y`). */
   enGrupo?: boolean;
   /**
-   * En el celular, abierta sube como hoja desde abajo (`.diseno/cobalto/F-M-Conteo`). Cerrar es
-   * volver a esta dirección: el `<details>` no se abre solo, así que la página vuelve cerrada. Sin
-   * JavaScript, igual. En computador sigue abriéndose en su sitio.
+   * Abierta, no se despliega en su sitio: sube como hoja desde abajo en el celular
+   * (`.diseno/cobalto/F-M-Conteo`) y es una ventana centrada en computador, sobre un velo.
+   * Se cierra con «Cerrar», tocando fuera o con Escape; sin JavaScript, volviendo a `cerrar`.
+   * `subtitulo` sustituye a la descripción dentro de la hoja: ahí ya se sabe qué es.
    */
-  hoja?: { cerrar: string };
+  hoja?: { cerrar: string; subtitulo?: string };
 } & { "data-testid"?: string }) {
   return (
     <details
@@ -67,25 +68,30 @@ export function SeccionPlegable({
       </summary>
       {hoja ? (
         <>
-          <Link
+          <CerrarDetalles
             href={hoja.cerrar}
             aria-label={`Cerrar ${titulo}`}
-            className="fixed inset-0 z-40 bg-text/40 lg:hidden"
+            className="fixed inset-0 z-40 bg-text/40"
+            conEsc
           />
-          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col gap-4 overflow-y-auto rounded-t-card bg-surface px-4 pt-2 pb-5 lg:static lg:max-h-none lg:rounded-none lg:border-t lg:border-border lg:p-4">
+          <div
+            role="dialog"
+            aria-label={titulo}
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col gap-5 overflow-y-auto rounded-t-card bg-surface px-4 pt-2 pb-5 shadow-[0_-12px_32px_rgba(15,20,25,0.18)] lg:inset-x-auto lg:top-1/2 lg:bottom-auto lg:left-1/2 lg:w-120 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-card lg:p-7 lg:shadow-[0_24px_64px_rgba(15,20,25,0.28)]"
+          >
             <span className="h-1 w-10 shrink-0 self-center rounded-full bg-border lg:hidden" />
-            <div className="flex items-start justify-between gap-3 lg:hidden">
-              <span>
+            <div className="flex items-start justify-between gap-3">
+              <span className="min-w-0">
                 <span className="block text-2xl font-bold tracking-tight">{titulo}</span>
-                {descripcion ? <span className="block text-text-muted">{descripcion}</span> : null}
+                <span className="block text-text-muted">{hoja.subtitulo ?? descripcion}</span>
               </span>
-              <Link
+              <CerrarDetalles
                 href={hoja.cerrar}
-                className="flex min-h-12 shrink-0 items-center gap-1.5 font-semibold text-accent"
+                className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-bg px-3.5 font-semibold text-text-muted"
               >
                 <Icono nombre="cerrar" />
                 Cerrar
-              </Link>
+              </CerrarDetalles>
             </div>
             {children}
           </div>

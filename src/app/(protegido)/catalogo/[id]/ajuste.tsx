@@ -39,12 +39,13 @@ export function FormularioAjuste({ productoId, saldo }: { productoId: string; sa
         <label htmlFor={`conteo-${productoId}`} className="font-semibold">
           ¿Cuántas hay en el estante?
         </label>
-        <span className="flex min-h-16 items-center justify-between rounded-button border-2 border-accent bg-surface ring-4 ring-accent-soft">
+        {/* Borde normal y halo solo con el foco dentro: siempre en azul parecía seleccionado. */}
+        <span className="flex min-h-18 items-center justify-between gap-2 rounded-button border border-border-strong bg-surface p-1.5 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
           <button
             type="button"
             aria-label="Una menos"
             onClick={() => paso(-1)}
-            className="grid size-16 place-items-center text-2xl font-semibold"
+            className="grid size-14 place-items-center rounded-xl bg-bg text-3xl font-semibold active:bg-border"
           >
             −
           </button>
@@ -55,14 +56,14 @@ export function FormularioAjuste({ productoId, saldo }: { productoId: string; sa
             required
             value={conteo}
             onChange={(e) => setConteo(e.target.value.replace(/\D/g, ""))}
-            className="w-24 bg-transparent text-center text-3xl font-bold tabular-nums focus-visible:outline-none"
+            className="w-24 min-w-0 flex-1 bg-transparent text-center text-4xl font-bold tabular-nums focus-visible:outline-none"
             data-testid="conteo"
           />
           <button
             type="button"
             aria-label="Una más"
             onClick={() => paso(1)}
-            className="grid size-16 place-items-center text-2xl font-semibold"
+            className="grid size-14 place-items-center rounded-xl bg-bg text-3xl font-semibold active:bg-border"
           >
             +
           </button>

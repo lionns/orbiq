@@ -130,3 +130,45 @@ test("a 360 px ninguna pantalla se sale de lado, tampoco con los filtros o las f
   }
   expect(desbordes, JSON.stringify(desbordes, null, 1)).toEqual([]);
 });
+
+/**
+ * «Cerrar» era un enlace a la misma dirección: sin JavaScript recarga y cierra, pero con JavaScript
+ * Next navega sin recargar y el `<details>` se quedaba abierto. Las pruebas abrían los filtros y
+ * nunca los cerraban, así que nadie lo vio hasta que el estudio lo tocó.
+ */
+test("los filtros y la hoja del conteo se cierran con «Cerrar», con Escape y tocando fuera", async ({
+  page,
+}) => {
+  const abierto = (sel: string) => page.locator(sel).evaluate((d) => (d as HTMLDetailsElement).open);
+  const filtros = "details:has([data-testid=abrir-filtros])";
+
+  for (const [ancho, alto] of [
+    [360, 740],
+    [1280, 900],
+  ] as const) {
+    await page.setViewportSize({ width: ancho, height: alto });
+    await entrarComo(page, dueno);
+    await page.goto("/catalogo");
+
+    await page.getByTestId("abrir-filtros").click();
+    await page.getByRole("link", { name: "Cerrar", exact: true }).click();
+    expect(await abierto(filtros), `a ${ancho} px «Cerrar» no cierra los filtros`).toBe(false);
+    await page.getByTestId("abrir-filtros").click();
+    await page.keyboard.press("Escape");
+    expect(await abierto(filtros), `a ${ancho} px Escape no cierra los filtros`).toBe(false);
+    await page.getByTestId("abrir-filtros").click();
+    await page.mouse.click(ancho - 8, 12);
+    expect(await abierto(filtros), `a ${ancho} px tocar fuera no cierra los filtros`).toBe(false);
+
+    await page.getByTestId("lista-catalogo").getByRole("link").first().click();
+    await page.waitForURL(/ficha=|\/catalogo\/[0-9a-f-]+/);
+    const conteo = page.getByTestId("abrir-ajuste");
+    await conteo.locator("summary").click();
+    await expect(page.getByRole("dialog", { name: "Corregir el conteo" })).toBeVisible();
+    await page.getByRole("dialog").getByRole("link", { name: "Cerrar" }).click();
+    expect(await abierto("[data-testid=abrir-ajuste]")).toBe(false);
+    await conteo.locator("summary").click();
+    await page.keyboard.press("Escape");
+    expect(await abierto("[data-testid=abrir-ajuste]")).toBe(false);
+  }
+});

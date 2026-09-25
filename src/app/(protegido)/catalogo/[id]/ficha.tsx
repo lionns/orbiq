@@ -142,7 +142,10 @@ export async function FichaDelProducto({
             descripcion="Cuenta y di por qué no cuadra."
             icono="contar"
             enGrupo
-            hoja={{ cerrar: aqui }}
+            hoja={{
+              cerrar: aqui,
+              subtitulo: `${p.nombre}. El sistema dice ${libro.saldoMaterializado}.`,
+            }}
             data-testid="abrir-ajuste"
             abierta={!libro.cuadra}
           >
