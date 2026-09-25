@@ -463,10 +463,11 @@ test("en computador el total sigue a la vista con el carrito más largo que la p
       existencias: 60,
     })),
   );
-  // Vendidos, para que entren en la cuadrícula por donde ella ordena (`T-018`).
-  for (const [i, p] of suyos.entries()) {
-    await registrarVenta(nuevoId(), [{ productoId: p!.id, cantidad: 50 - i }], dueno.id);
-  }
+  // Vendidos, para que entren en la cuadrícula por donde ella ordena (`T-018`). A la vez: una tras
+  // otra eran veinte transacciones seguidas, y con la base lejos se comían el plazo de la prueba.
+  await Promise.all(
+    suyos.map((p, i) => registrarVenta(nuevoId(), [{ productoId: p!.id, cantidad: 50 - i }], dueno.id)),
+  );
 
   // 900 de alto es una pantalla de escritorio holgada; 768, el portátil corriente. El defecto
   // aparecía en las dos, porque no dependía de la pantalla sino de que la columna no tuviera tope.

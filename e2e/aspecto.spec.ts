@@ -2,6 +2,8 @@
 // DATABASE_URL al cargarse.
 import "dotenv/config";
 import { expect, test, type Page } from "@playwright/test";
+import { like } from "drizzle-orm";
+import { db, schema } from "../src/db";
 import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
@@ -14,10 +16,22 @@ import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo
  */
 let dueno: DuenoDePrueba;
 
+// Productos propios: la cuadrícula tiene que tener casillas que medir aunque la base esté vacía, como
+// la que se entrega al negocio. Antes contaba con los de demostración.
+const MARCA = `t10-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
 test.beforeAll(async () => {
   dueno = await crearDueno("aspecto");
+  await db.insert(schema.product).values(
+    ["Arroz", "Panela cuadrada", "Aceite", "Leche entera", "Café molido", "Galletas"].map((n, i) => ({
+      name: `${n} ${MARCA}`,
+      price: (i + 1) * 1500,
+      stock: i === 5 ? 0 : 10,
+    })),
+  );
 });
 test.afterAll(async () => {
+  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 
