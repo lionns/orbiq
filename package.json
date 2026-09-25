@@ -19,16 +19,20 @@
     "db:verify": "tsx scripts/verificar-esquema.mts",
     "alta-dueno": "tsx scripts/alta-dueno.mts",
     "sembrar-demo": "tsx scripts/sembrar-demo.mts",
-    "codigos": "tsx scripts/hoja-de-codigos.mts"
+    "codigos": "tsx scripts/hoja-de-codigos.mts",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "type": "module",
   "dependencies": {
-    "@neondatabase/serverless": "^1.1.0",
+    "@opennextjs/cloudflare": "^1.20.6",
     "barcode-detector": "^3.2.2",
     "better-auth": "^1.7.3",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.45.0",
     "next": "^16.3.4",
+    "pg": "^8.23.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "uuidv7": "^1.2.1"
@@ -37,6 +41,7 @@
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.4.1",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "dotenv": "^17.4.2",
@@ -47,7 +52,8 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.139.0"
   },
   "private": true
 }

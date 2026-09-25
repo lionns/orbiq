@@ -3,10 +3,11 @@
  * lado y no en el esquema: un despliegue por negocio es una zona por base (`D-005`).
  *
  * Existe porque «hoy» no es una pregunta que sepan responder ni la base ni el servidor. Neon corre
- * su sesión en UTC y Vercel su proceso en la zona que le toque, así que sin esto el corte del día
- * lo decidía la infraestructura: una venta de las nueve de la noche en Bogotá se listaba bajo el
- * día siguiente —ya es el día siguiente en UTC— con su hora correcta al lado. La pantalla del
- * cierre de caja se contradecía a sí misma en las últimas cinco horas de cada jornada.
+ * su sesión en UTC y el servidor en la zona que le toque —un Worker de Cloudflare, en UTC—, así
+ * que sin esto el corte del día lo decidía la infraestructura: una venta de las nueve de la noche
+ * en Bogotá se listaba bajo el día siguiente —ya es el día siguiente en UTC— con su hora correcta
+ * al lado. La pantalla del cierre de caja se contradecía a sí misma en las últimas cinco horas de
+ * cada jornada.
  *
  * Cambiar de país es cambiar esta constante, igual que con la moneda. Varios negocios en zonas
  * distintas sobre la misma base es multi-tenancy, y eso lo gobierna `D-005`, no este archivo.

@@ -12,7 +12,7 @@ eso vive aquí y no en una decisión.
 | Área | Elección | De dónde sale |
 | --- | --- | --- |
 | Lenguaje | TypeScript, modo estricto | Las funciones de dominio se prueban solas (`D-001`); el tipo es la primera prueba |
-| Runtime | Node.js — versión fijada en `package.json` | Local hoy `v26.8.1` (`node -v`); la de despliegue se fija contra lo que soporte Vercel al crear el proyecto |
+| Runtime | Node.js en local, pruebas y scripts; en producción, el runtime de Cloudflare Workers con `nodejs_compat` | Local hoy `v26.8.1` (`node -v`). Next.js entra en Workers por `@opennextjs/cloudflare` (`T-031`) |
 | Framework | Next.js, App Router | Un solo desplegable con interfaz y acceso a datos juntos (`D-001`) |
 | Interfaz | React + Tailwind CSS | Responsive pulgar primero sin construir una capa de diseño propia todavía (`D-007`) |
 | Base de datos | PostgreSQL gestionado en Neon | Relacional gestionado con respaldo automático del proveedor (`D-002`) |
@@ -21,7 +21,8 @@ eso vive aquí y no en una decisión.
 | Identidad y sesión | Better Auth, con adaptador de Drizzle | Sesión en base de datos y cookie opaca de fábrica (`D-008`) |
 | Identificadores | UUIDv7 generados en la aplicación | Ordenados en el tiempo, no secuenciales (`D-002`) |
 | Pruebas | Vitest (dominio) + Playwright (rebanada completa) | Suite rápida y recorrido real (`D-006`) |
-| Hospedaje | Vercel, un proyecto por negocio | Un despliegue por negocio (`D-005`) |
+| Hospedaje | Cloudflare Workers, un Worker por negocio, en `*.workers.dev` | Un despliegue por negocio (`D-005`); plan Workers Paid, por cuenta (`T-031`) |
+| Conexión a la base | `pg` sobre Hyperdrive en Workers, sobre el string agrupado de Neon en Node | Transacciones interactivas en la venta (`AC-008`); `src/db/index.ts` elige el camino |
 
 | Lectura de códigos | `BarcodeDetector` del navegador, con `barcode-detector` (ZXing en WebAssembly) de respaldo | Resuelto en `T-016` sobre lo medido, no sobre la documentación |
 
@@ -122,22 +123,51 @@ cambiaba de día cinco horas antes de tiempo (`T-019`).
 
 ## Deployment
 
-- Un proyecto de Vercel y una base de Neon por negocio (`D-005`).
-- Despliegue desde `main`. Las migraciones corren antes de que la versión nueva reciba tráfico.
-- Reversión: volver a la versión anterior en Vercel. Una migración destructiva no se revierte sola;
+- Un Worker, una base de Neon y un Hyperdrive por negocio (`D-005`). Cada negocio es un entorno de
+  `wrangler.jsonc` (`negocio-1`, `negocio-2` hasta que tengan nombre): su Worker, su Hyperdrive, su
+  `NEGOCIO_NOMBRE` y su `BETTER_AUTH_URL`. En Wrangler los bindings no se heredan entre entornos;
+  cada negocio los repite.
+- `npm run deploy -- --env negocio-N` compila con OpenNext y despliega solo ese negocio.
+  `npm run preview` corre la app en el runtime de Workers en local, contra la base de
+  `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` (el string directo de Neon).
+- Las migraciones corren antes de desplegar la versión que las necesita, contra la base de ese
+  negocio.
+- Reversión: `npx wrangler rollback --env negocio-N`. Una migración destructiva no se revierte sola;
   por eso el libro es inmutable y las correcciones son movimientos nuevos (`D-002`).
-- Observabilidad: **sin decidir**. Se resuelve cuando haya un negocio real operando y algo que
-  observar.
+- Observabilidad: los logs de Workers (`observability` en `wrangler.jsonc`). Más que eso se decide
+  cuando haya un negocio operando y algo que observar.
 - El costo crece lineal con los clientes, y el despliegue habrá que automatizarlo antes del quinto
   (`D-005`).
 
+### Dar de alta un negocio
+
+Pasos de la cuenta del estudio, en orden. `N` es el número del negocio.
+
+1. Una vez por cuenta: `! npx wrangler login` y el plan Workers Paid. El gratuito da 10 ms de CPU
+   por petición, y entrar (scrypt) no cabe.
+2. Un proyecto de Neon para el negocio. De él salen dos strings: el agrupado y el directo.
+3. `npx wrangler hyperdrive create orbiq-negocio-N --connection-string="<string directo>"` y el id
+   que devuelve, en `env.negocio-N.hyperdrive` de `wrangler.jsonc`.
+4. `DATABASE_URL_UNPOOLED="<string directo>" npm run db:migrate`.
+5. `DATABASE_URL="<string agrupado>" npm run alta-dueno` — el dueño del negocio.
+6. `npx wrangler secret put BETTER_AUTH_SECRET --env negocio-N`, con `openssl rand -base64 32`. Un
+   secreto por negocio.
+7. En `wrangler.jsonc`, `NEGOCIO_NOMBRE` y `BETTER_AUTH_URL`: la dirección es
+   `https://orbiq-negocio-N.<subdominio>.workers.dev`, y el subdominio es el de la cuenta (lo
+   enseña el primer despliegue).
+8. `npm run deploy -- --env negocio-N`. Si el subdominio no se conocía, corregir `BETTER_AUTH_URL`
+   y desplegar otra vez: de ella sale el `baseURL` de Better Auth, y con él que la cookie de sesión
+   lleve `Secure` (`src/lib/auth.ts`).
+
 ## Known Constraints
 
-- Serverless no sostiene conexiones vivas: se conecta por el string agrupado de Neon. Una función
-  que abra su propia conexión por invocación agota la base.
+- Un Worker no puede usar en una petición una conexión abierta en otra. Cada petición abre las
+  suyas contra Hyperdrive, que es quien agrupa contra Neon (`src/db/index.ts`). Sin Hyperdrive —en
+  `npm run preview`, que conecta directo— cada conexión es un saludo TLS con Neon: la app corre,
+  pero lenta, y no sirve para medir tiempos.
 - El arranque en frío juega contra los tres segundos que pide `brief.md` § Success Measures. El
   escaneo es de cliente y no lo sufre; el alta de un producto sí.
-- Dos tableros por cliente — Vercel y Neon. Es el precio de este stack y se paga en el quinto
+- Dos tableros por cliente — Cloudflare y Neon. Es el precio de este stack y se paga en el quinto
   negocio, que es exactamente donde `D-005` puso su `Trigger`.
 - **El token de sesión se almacena en claro en la base.** Verificado en
   `packages/better-auth/src/db/internal-adapter.ts`: `token: generateId(32)` va directo a la fila y

@@ -24,3 +24,9 @@ test-results/
 # Material de diseño: el lienzo se regenera desde los .dc.html, no se versiona (2,5 MB).
 .diseno/*.html
 !.diseno/*.dc.html
+
+# Cloudflare (T-031): lo que construye OpenNext, el estado local de Wrangler y sus secretos.
+.open-next/
+.wrangler/
+.dev.vars
+cloudflare-env.d.ts

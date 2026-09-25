@@ -2,6 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /**
+   * `pg` solo carga `pg-cloudflare` cuando corre en Cloudflare Workers, así que el rastreo de
+   * archivos de Next no lo ve y el build de OpenNext falla con «Could not resolve "pg-cloudflare"»
+   * (`T-031`). Se incluye a mano; en Node no cambia nada.
+   */
+  outputFileTracingIncludes: { "/**": ["./node_modules/pg-cloudflare/**"] },
+
+  /**
    * Solo desarrollo. No cambia nada de lo que se despliega.
    *
    * El servidor de desarrollo bloquea sus propios recursos (`/_next/*`, el HMR) cuando la petición

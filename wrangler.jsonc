@@ -1,0 +1,45 @@
+// orbiq en Cloudflare Workers, con OpenNext (`T-031`, `docs/project/architecture.md` § Deployment).
+//
+// Un entorno por negocio (`D-005`): cada uno es su propio Worker, con su base en Neon detrás de su
+// propio Hyperdrive y el nombre de su tienda. Se despliega con `npm run deploy -- --env negocio-1`.
+//
+// Los bindings y las variables **no se heredan** entre entornos en Wrangler: cada negocio los
+// repite. La configuración de arriba es la de `npm run preview`, en local.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "orbiq",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-01",
+  // `nodejs_compat`: OpenNext corre Next.js sobre las APIs de Node del runtime, y `pg` también.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true },
+
+  // Local: el id no importa, porque `npm run preview` pasa la conexión real por
+  // CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE (ver `architecture.md`).
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "local" }],
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "orbiq" }],
+  "vars": { "NEGOCIO_NOMBRE": "Mi tienda", "BETTER_AUTH_URL": "http://localhost:8787" },
+
+  "env": {
+    "negocio-1": {
+      "name": "orbiq-negocio-1",
+      // El id sale de `npx wrangler hyperdrive create orbiq-negocio-1 …` (architecture.md).
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REEMPLAZAR-CON-EL-ID-DE-HYPERDRIVE" }],
+      "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "orbiq-negocio-1" }],
+      "vars": {
+        "NEGOCIO_NOMBRE": "Mi tienda",
+        "BETTER_AUTH_URL": "https://orbiq-negocio-1.REEMPLAZAR-CON-TU-SUBDOMINIO.workers.dev"
+      }
+    },
+    "negocio-2": {
+      "name": "orbiq-negocio-2",
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REEMPLAZAR-CON-EL-ID-DE-HYPERDRIVE" }],
+      "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "orbiq-negocio-2" }],
+      "vars": {
+        "NEGOCIO_NOMBRE": "Mi tienda",
+        "BETTER_AUTH_URL": "https://orbiq-negocio-2.REEMPLAZAR-CON-TU-SUBDOMINIO.workers.dev"
+      }
+    }
+  }
+}

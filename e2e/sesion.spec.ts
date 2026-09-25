@@ -90,13 +90,20 @@ test("una sesión vencida se trata como ausente, no como inválida", async ({ pa
 
 test("salir cierra la sesión en el servidor, no solo en el navegador", async ({ page }) => {
   await entrarPorPantalla(page, dueno);
+  // La sesión de esta prueba, no todas las del dueño: la de «vencida» deja su fila envejecida, y
+  // si corre antes en el mismo proceso se contaba aquí.
+  const token = (await page.context().cookies()).find(
+    (c) => c.name === "better-auth.session_token",
+  )!.value.split(".")[0];
+  const vivas = async () => (await sesionesDe(dueno.id)).filter((s) => s.token === token);
+  expect(await vivas()).toHaveLength(1);
 
   // Salir vive en Ajustes (`T-029`, punto 7).
   await page.goto("/ajustes");
   await page.getByRole("button", { name: "Salir" }).click();
   await expect(page).toHaveURL(/\/acceso$/);
 
-  expect(await sesionesDe(dueno.id)).toHaveLength(0);
+  expect(await vivas()).toHaveLength(0);
 });
 
 /**

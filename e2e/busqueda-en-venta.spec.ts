@@ -2,6 +2,8 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 import { eq, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
+import { nuevoId } from "../src/domain/ids";
+import { registrarVenta } from "../src/domain/venta";
 import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 import { codigoAleatorio } from "./apoyo/ean13";
 
@@ -21,9 +23,12 @@ test.beforeAll(async () => {
   dueno = await crearDueno("busqueda");
   const [panela] = await db
     .insert(schema.product)
-    .values({ name: `${MARCA} Panela`, price: 3500, stock: 10, barcode: CODIGO })
+    .values({ name: `${MARCA} Panela`, price: 3500, stock: 100, barcode: CODIGO })
     .returning({ id: schema.product.id });
   panelaId = panela!.id;
+  // La panela se toca en la cuadrícula: tiene que haberse vendido, y más que lo que venden las
+  // pruebas vecinas a la vez, o queda fuera de los 24 que se enseñan (`venta.spec`).
+  await registrarVenta(nuevoId(), [{ productoId: panelaId, cantidad: 60 }], dueno.id);
   // Sin código y sin ventas: no sale en la cuadrícula de frecuentes, que es el caso del brief.
   await db.insert(schema.product).values({ name: `${MARCA} Queso costeño`, price: 9800, stock: 5 });
   await db

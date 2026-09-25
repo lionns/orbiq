@@ -260,7 +260,10 @@ test("retirar un producto lo saca de la venta y del catálogo, sin perder su his
 });
 
 test("devolver a la venta lo reactiva, y las dos cosas quedan en el historial", async ({ page }) => {
-  const p = await sembrar("Café", 11000, 3);
+  const p = await sembrar("Café", 11000, 100);
+  // Vendido de verdad, para que tenga sitio en los 24 de la cuadrícula aunque las pruebas vecinas
+  // vendan a la vez; sin ventas, su casilla dependía de cuántos otros tuvieran (`venta.spec`).
+  await registrarVenta(nuevoId(), [{ productoId: p.id, cantidad: 60 }], dueno.id);
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${p.id}`);
 

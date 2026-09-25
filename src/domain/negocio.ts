@@ -6,9 +6,15 @@
  * del **dueño** —quien entra—, que no es lo mismo que cómo se llama la tienda, y poner uno donde va
  * el otro es lo que hace que una herramienta se sienta prestada.
  *
- * **`nombre` es un marcador, no un dato real.** Se pone el del primer cliente cuando lo haya;
- * hasta entonces dice «Mi tienda», que se ve y se corrige. Cambiarlo es esta línea.
+ * **Sin `NEGOCIO_NOMBRE` dice «Mi tienda»**, que se ve y se corrige: cambiarlo es una variable del
+ * despliegue, no una línea de código.
  */
 export const NEGOCIO = {
-  nombre: "Mi tienda",
-} as const;
+  /**
+   * El de este despliegue (`NEGOCIO_NOMBRE`, por negocio en `wrangler.jsonc`, `T-031`). Se lee en
+   * cada uso y no al cargar el módulo: en un Worker las variables llegan con la petición.
+   */
+  get nombre(): string {
+    return process.env.NEGOCIO_NOMBRE?.trim() || "Mi tienda";
+  },
+};
