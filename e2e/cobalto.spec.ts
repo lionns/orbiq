@@ -60,7 +60,7 @@ test.describe("sin JavaScript", () => {
     // Un `<details>`: se abre sin JavaScript. Las opciones son radios de verdad.
     await page.getByTestId("abrir-filtros").click();
     await page.getByText("En negativo", { exact: true }).click();
-    await page.getByRole("button", { name: "Ver productos" }).click();
+    await page.getByTestId("aplicar-filtros").click();
     await expect(page).toHaveURL(/existencias=negativos/);
 
     // Y la dirección, abierta en otra visita, da lo mismo.

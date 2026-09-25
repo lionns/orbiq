@@ -5,6 +5,7 @@ import { Campo } from "@/ui/campo";
 import { Icono } from "@/ui/iconos";
 import { Interruptor, Opciones } from "@/ui/opciones";
 import { BuscadorPorCodigo } from "./buscador-por-codigo";
+import { VerProductos } from "./ver-productos";
 
 const EXISTENCIAS = [
   { valor: "todos", texto: "Todas" },
@@ -37,11 +38,14 @@ export function Filtros({
   filtros,
   categorias,
   volverA,
+  total,
 }: {
   filtros: FiltrosCatalogo;
   categorias: string[];
   /** Adónde vuelve «Cerrar». Por defecto, la misma lista; con una ficha abierta al lado, la ficha. */
   volverA?: string;
+  /** Cuántos cumplen los filtros puestos: lo que dice «Ver N productos» al abrir. */
+  total: number;
 }) {
   const n = activos(filtros);
   const aqui = volverA ?? comoDireccion(filtros);
@@ -151,9 +155,7 @@ export function Filtros({
               <BotonEnlace href="/catalogo" data-testid="limpiar-filtros">
                 Limpiar
               </BotonEnlace>
-              <Boton type="submit" variante="principal" tamano="alto">
-                Ver productos
-              </Boton>
+              <VerProductos inicial={total} />
             </div>
           </div>
         </details>

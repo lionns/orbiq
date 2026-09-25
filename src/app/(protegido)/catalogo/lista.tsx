@@ -60,7 +60,7 @@ export async function PantallaDeProductos({
         </BotonEnlace>
       </div>
 
-      <Filtros filtros={filtros} categorias={categorias} volverA={volverA} />
+      <Filtros filtros={filtros} categorias={categorias} volverA={volverA} total={total} />
 
       <p className="mt-5 mb-2 font-medium text-text-muted" data-testid="conteo">
         {total === 0 ? "Ningún producto" : total === 1 ? "1 producto" : `${total} productos`}

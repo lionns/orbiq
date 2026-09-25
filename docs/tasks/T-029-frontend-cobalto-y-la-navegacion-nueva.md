@@ -133,7 +133,8 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
 
 - **Desviaciones del lienzo, todas con motivo:** historial antes que acciones en la ficha
   (`T-013`); botones «suave» y «peligro» con borde (1.03:1 sin él); importe de «Cobrar» un punto
-  menor a 360 px; «Ver productos» sin contar; «Anulada» bajo los artículos; correo sin icono.
+  menor a 360 px; «Anulada» bajo los artículos. Contar en «Ver N productos» y los iconos de Acceso
+  se hicieron después, a pedido del estudio: `contarCatalogo` reusa las condiciones de la lista.
 - **Pruebas de `T-025`–`T-027` que cambiaron:** abren la venta antes de medir, porque recogida el
   total va dentro de Cobrar. Nada de lo que exigen baja. Las de orden de la cuadrícula y del lector
   se ajustaron a la cuadrícula de 24 y a la lista nueva, no a un umbral menor.

@@ -64,8 +64,29 @@ const existenciasDe = async (id: string) => {
 const movimientosDe = (ids: string[]) =>
   db.select().from(schema.stockMovement).where(inArray(schema.stockMovement.productId, ids));
 
+/**
+ * Añade un producto como lo haría el dueño: tocando su casilla si está entre los frecuentes y, si
+ * no, buscándolo por nombre. La cuadrícula enseña los 24 más vendidos de **toda** la base, y las
+ * pruebas de este archivo venden decenas de unidades en paralelo: depender de entrar en ella hacía
+ * que pasaran o fallaran según el orden (`T-018` lo arregló para una; esto, para todas).
+ */
+const nombres = new Map<string, string>();
 async function tocar(page: Page, id: string, veces = 1) {
-  for (let i = 0; i < veces; i++) await page.getByTestId(`casilla-${id}`).click();
+  for (let i = 0; i < veces; i++) {
+    const casilla = page.getByTestId(`casilla-${id}`);
+    if (!(await casilla.isVisible())) {
+      if (!nombres.has(id)) {
+        const [p] = await db
+          .select({ nombre: schema.product.name })
+          .from(schema.product)
+          .where(eq(schema.product.id, id));
+        nombres.set(id, p!.nombre);
+      }
+      await page.getByTestId("codigo-tecleado").fill(nombres.get(id)!);
+      await page.getByTestId("codigo-tecleado").press("Enter");
+    }
+    await casilla.click();
+  }
 }
 
 /**

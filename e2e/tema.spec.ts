@@ -175,7 +175,10 @@ for (const [nombre, esperado] of Object.entries(TOKENS)) {
         apagado: s("main > p").color,
         acento: boton.backgroundColor,
         textoDelAcento: boton.color,
-        bordeFuerte: s('input[name="correo"]').borderTopColor,
+        // El campo lleva el icono dentro: el borde lo dibuja su contenedor, que es el control.
+        bordeFuerte: getComputedStyle(
+          document.querySelector('input[name="correo"]')!.closest("[data-control]")!,
+        ).borderTopColor,
       };
     });
 

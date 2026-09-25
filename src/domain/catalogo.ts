@@ -66,7 +66,7 @@ export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatal
   // Dos consultas y no una: el total tiene que ser el de todos los que cumplen, no el de los que
   // se muestran. Sacarlo con una ventana sobre la misma consulta ahorraría un viaje y costaría
   // entender por qué el número no cuadra el día que cambie el orden.
-  const [productos, [conteo]] = await Promise.all([
+  const [productos, conteo] = await Promise.all([
     db
       .select({
         id: schema.product.id,
@@ -82,15 +82,25 @@ export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatal
       .where(donde)
       .orderBy(asc(schema.product.name))
       .limit(f.ver),
-    db
-      .select({ n: count() })
-      .from(schema.product)
-      .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
-      .where(donde),
+    contarCatalogo(f),
   ]);
 
-  const total = conteo?.n ?? 0;
-  return { productos, total, hayMas: total > productos.length };
+  return { productos, total: conteo, hayMas: conteo > productos.length };
+}
+
+/**
+ * Cuántos productos cumplen unos filtros, sin traerlos. Es lo que dice «Ver 3 productos» mientras
+ * se eligen los filtros (`.diseno/cobalto/F-M-Filtros`): se sabe si el filtro deja la lista vacía
+ * antes de aplicarlo. Usa las mismas condiciones que la lista, así que el número no puede diferir
+ * de lo que se ve al aplicar.
+ */
+export async function contarCatalogo(f: FiltrosCatalogo): Promise<number> {
+  const [conteo] = await db
+    .select({ n: count() })
+    .from(schema.product)
+    .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
+    .where(condiciones(f));
+  return conteo?.n ?? 0;
 }
 
 export type Resuelto =

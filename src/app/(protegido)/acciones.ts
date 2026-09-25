@@ -3,7 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { crearProducto, resolverCodigo, type Resuelto, type ResultadoAlta } from "@/domain/catalogo";
+import {
+  contarCatalogo,
+  crearProducto,
+  resolverCodigo,
+  type Resuelto,
+  type ResultadoAlta,
+} from "@/domain/catalogo";
+import { leerFiltros } from "@/domain/filtros";
 import { validarAlta } from "@/domain/producto";
 import {
   registrarVenta,
@@ -97,4 +104,14 @@ export async function buscarEnVenta(texto: string): Promise<EntradaDeVenta> {
   const sesion = await sesionActual(await headers());
   if (!sesion) redirect("/acceso");
   return resolverEntradaDeVenta(texto);
+}
+
+/**
+ * Cuántos productos dejarían unos filtros aún sin aplicar: la consulta del formulario, tal cual.
+ * Pasa por `leerFiltros`, así que un valor inventado se ignora igual que en la dirección.
+ */
+export async function contarProductos(consulta: string): Promise<number> {
+  const sesion = await sesionActual(await headers());
+  if (!sesion) redirect("/acceso");
+  return contarCatalogo(leerFiltros(Object.fromEntries(new URLSearchParams(consulta))));
 }

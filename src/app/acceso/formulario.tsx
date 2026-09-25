@@ -29,6 +29,7 @@ export function FormularioAcceso() {
         autoComplete="username"
         autoCapitalize="none"
         autoCorrect="off"
+        icono="correo"
         required
       />
       <Campo
@@ -36,6 +37,7 @@ export function FormularioAcceso() {
         nombre="contrasena"
         type={ver ? "text" : "password"}
         autoComplete="current-password"
+        icono="clave"
         required
         cola={
           <button

@@ -316,9 +316,29 @@ test.describe("acotar y recorrer el catálogo", () => {
     // (`.diseno/cobalto/F-M-Filtros`), y cada una es un radio de verdad dentro del formulario.
     await page.getByTestId("abrir-filtros").click();
     await page.getByRole("radio", { name: "En negativo" }).check({ force: true });
-    await page.getByRole("button", { name: "Ver productos" }).click();
+    await page.getByTestId("aplicar-filtros").click();
 
     await expect(page).toHaveURL(/existencias=negativos/);
+    await expect(page.getByTestId("conteo")).toContainText("1 producto");
+  });
+
+  test("el botón de los filtros dice cuántos quedarían antes de aplicar", async ({ page }) => {
+    // `.diseno/cobalto/F-M-Filtros`: «Ver 3 productos». Se ve si el filtro deja la lista vacía
+    // sin tener que aplicarlo para descubrirlo.
+    await entrarComo(page, dueno);
+    await page.goto(soloMios);
+    await page.getByTestId("abrir-filtros").click();
+    await expect(page.getByTestId("aplicar-filtros")).toHaveText("Ver 30 productos");
+
+    await page.getByText("En negativo", { exact: true }).click();
+    await expect(page.getByTestId("aplicar-filtros")).toHaveText("Ver 1 producto");
+    await page.getByLabel("Precio desde").fill("999999");
+    await expect(page.getByTestId("aplicar-filtros")).toHaveText("Ningún producto");
+
+    // Y el número es el de la lista que resulta: aplicar da exactamente eso.
+    await page.getByLabel("Precio desde").fill("");
+    await expect(page.getByTestId("aplicar-filtros")).toHaveText("Ver 1 producto");
+    await page.getByTestId("aplicar-filtros").click();
     await expect(page.getByTestId("conteo")).toContainText("1 producto");
   });
 
