@@ -123,8 +123,8 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
 - Files: `src/app/{globals.css,layout.tsx,manifest.ts}`, `src/app/(protegido)/**`, `src/app/acceso/*`,
   `src/ui/**`, `src/domain/{filtros,movimientos}.ts`, `e2e/**`, `design-handoff.md`, íconos.
 - Baseline result: 71/71, harness-lint, typecheck, lint y build limpios; e2e 95/95.
-- Final result: 71/71 · typecheck, lint, harness-lint limpios · build ok · e2e **104/104** contra el
-  build de producción. Capturas junto a cada artboard: https://claude.ai/artifact/YCrtQyBBWW6V1WAMoNdP5o
+- Final result: 71/71 · typecheck, lint, harness-lint limpios · build ok · e2e **106/106** contra el
+  build de producción (tras `539c233`). Capturas junto a cada artboard: https://claude.ai/artifact/YCrtQyBBWW6V1WAMoNdP5o
 - Decisions recorded: ninguna. Inicio como portada no contradice `US-005` (pide ver el total, no
   ser la portada) y se revierte en una tarde.
 - Follow-up: ninguno.
