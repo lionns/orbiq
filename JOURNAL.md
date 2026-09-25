@@ -28,3 +28,7 @@
 2026-09-24 | T-025 | done | la barra de la venta deja holgura a la cuadrícula, medida y no supuesta | 3 files | test 69/69, e2e 92/92 | D-007
 2026-09-24 | T-026 | done | total y botón apilados: ninguno empuja al otro fuera de la barra | 2 files | test 69/69, e2e 93/93 | D-007
 2026-09-24 | T-027 | done | la columna de computador tiene tope y el total queda a la vista | 2 files | test 69/69, e2e 94/94 | D-007
+2026-09-25 | T-028 | done | resumen del día y del rango desde ventasPorDia, por reponer y deshacerVenta compartida con la anulación | 13 files | test 71/71, e2e 95/95 | D-001,D-002,D-006
+2026-09-25 | T-029 | done | Cobalto, Inicio como portada, venta recogida con Deshacer y Vaciar, formularios sin select | 73 files | test 71/71, e2e 106/106 | D-001,D-003,D-009
+2026-09-25 | T-030 | done | la prueba del decodificador no depende de la red | 5 files | test 69/69, e2e 94/94 | D-005,D-006
+2026-09-25 | T-031 | done | un Worker por negocio en Cloudflare, con pg por petición sobre Hyperdrive; Tienda Miriam desplegada | 18 files | test 71/71, e2e 106/106 Node, 105/106 Workers | D-001,D-005,D-009

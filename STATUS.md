@@ -9,10 +9,6 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
-| [T-028](docs/tasks/T-028-backend-lo-que-la-portada-y-el-deshacer-necesitan.md) | `review` | Que el servidor dé en una sola llamada lo que la portada nueva enseña (lo vendido hoy, las últimas ventas y lo que hay que reponer), que la lista de ventas sume su rango, y que una venta recién cobrada se pueda deshacer desde la misma pantalla de venta. |
-| [T-029](docs/tasks/T-029-frontend-cobalto-y-la-navegacion-nueva.md) | `review` | Que la aplicación se vea y se navegue como el lienzo Cobalto validado el 2026-09-24, en celular y en computador. Se entra por una portada con lo del día, todo está a un toque desde abajo, y vender cuesta menos toques que hoy. |
-| [T-030](docs/tasks/T-030-la-prueba-del-decodificador-no-depende-de-la-red.md) | `review` | Que `npm test` dé el mismo resultado con y sin internet. Hoy las dos pruebas de `e2e/apoyo/ean13.test.ts` descargan el WASM del decodificador de un CDN al correr, así que en un entorno sin red la línea base sale en rojo (67/69) y bloquea cualquier tarea, como le pasó a `T-028`. |
-| [T-031](docs/tasks/T-031-desplegar-en-cloudflare-un-worker-por-negocio.md) | `review` | Que orbiq se despliegue en Cloudflare Workers con un solo comando por negocio —hoy son dos, en Colombia, en `*.workers.dev`— y que cada uno tenga su Worker, su base en Neon y su Hyperdrive, como pide `D-005`. Cada Worker dice el nombre de su tienda. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -38,11 +34,15 @@ Harness `0.9.0` · profile `team`
 | [T-025](docs/tasks/T-025-la-barra-de-la-venta-deja-sitio.md) | `done` | Que en un teléfono real se llegue al último producto de la cuadrícula con el carrito lleno. La barra del total reservaba exactamente lo que medía, así que la última fila quedaba a cero píxeles del borde: en el navegador de prueba cuadraba y en un teléfono de verdad quedaba debajo. |
 | [T-026](docs/tasks/T-026-el-total-y-el-boton-dejan-de-pelear.md) | `done` | Que el botón de confirmar esté siempre dentro de la barra, con cualquier importe y en cualquier ancho. Hoy el total y el botón comparten una línea que no siempre alcanza: con seis cifras el número empuja al botón fuera de la barra —29 px en computador, 20 px a 360 px de ancho— y en computador además saca una barra de desplazamiento horizontal a toda la página. |
 | [T-027](docs/tasks/T-027-el-total-no-se-va-de-la-pantalla.md) | `done` | Que el total y el botón de confirmar estén a la vista mientras se cobra, también en computador y con el carrito largo. Hoy la columna de la venta no tiene tope de alto, así que con veinte productos mide 1447 px, y en una pantalla de 900 el total cae en y=1344: fuera de la vista, y `sticky` no lo salva porque la tarjeta es más alta que la ventana. |
+| [T-028](docs/tasks/T-028-backend-lo-que-la-portada-y-el-deshacer-necesitan.md) | `done` | Que el servidor dé en una sola llamada lo que la portada nueva enseña (lo vendido hoy, las últimas ventas y lo que hay que reponer), que la lista de ventas sume su rango, y que una venta recién cobrada se pueda deshacer desde la misma pantalla de venta. |
+| [T-029](docs/tasks/T-029-frontend-cobalto-y-la-navegacion-nueva.md) | `done` | Que la aplicación se vea y se navegue como el lienzo Cobalto validado el 2026-09-24, en celular y en computador. Se entra por una portada con lo del día, todo está a un toque desde abajo, y vender cuesta menos toques que hoy. |
+| [T-030](docs/tasks/T-030-la-prueba-del-decodificador-no-depende-de-la-red.md) | `done` | Que `npm test` dé el mismo resultado con y sin internet. Hoy las dos pruebas de `e2e/apoyo/ean13.test.ts` descargan el WASM del decodificador de un CDN al correr, así que en un entorno sin red la línea base sale en rojo (67/69) y bloquea cualquier tarea, como le pasó a `T-028`. |
+| [T-031](docs/tasks/T-031-desplegar-en-cloudflare-un-worker-por-negocio.md) | `done` | Que orbiq se despliegue en Cloudflare Workers con un solo comando por negocio —hoy son dos, en Colombia, en `*.workers.dev`— y que cada uno tenga su Worker, su base en Neon y su Hyperdrive, como pide `D-005`. Cada Worker dice el nombre de su tienda. |
 | [T-024](docs/tasks/T-024-la-direccion-alcanza-al-resto-de-pantallas.md) | `superseded` | Que la ficha del producto y el historial de ventas se vean diseñados y no heredados. Heredaron la paleta y los componentes de T-023 sin romperse, pero se nota que nadie las miró: el precio no manda donde se va a comprobar un precio, y quedan subrayados del look que el estudio ya rechazó. |
 
 ## Next
 
-**T-028** (`review`) — Que el servidor dé en una sola llamada lo que la portada nueva enseña (lo vendido hoy, las últimas ventas y lo que hay que reponer), que la lista de ventas sume su rango, y que una venta recién cobrada se pueda deshacer desde la misma pantalla de venta.
+**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
 
 ## Open decisions
 
@@ -50,10 +50,10 @@ None. All decisions are accepted or superseded.
 
 ## Journal — last 5
 
+- 2026-09-25 | T-031 | done | un Worker por negocio en Cloudflare, con pg por petición sobre Hyperdrive; Tienda Miriam desplegada | 18 files | test 71/71, e2e 106/106 Node, 105/106 Workers | D-001,D-005,D-009
+- 2026-09-25 | T-030 | done | la prueba del decodificador no depende de la red | 5 files | test 69/69, e2e 94/94 | D-005,D-006
+- 2026-09-25 | T-029 | done | Cobalto, Inicio como portada, venta recogida con Deshacer y Vaciar, formularios sin select | 73 files | test 71/71, e2e 106/106 | D-001,D-003,D-009
+- 2026-09-25 | T-028 | done | resumen del día y del rango desde ventasPorDia, por reponer y deshacerVenta compartida con la anulación | 13 files | test 71/71, e2e 95/95 | D-001,D-002,D-006
 - 2026-09-24 | T-027 | done | la columna de computador tiene tope y el total queda a la vista | 2 files | test 69/69, e2e 94/94 | D-007
-- 2026-09-24 | T-026 | done | total y botón apilados: ninguno empuja al otro fuera de la barra | 2 files | test 69/69, e2e 93/93 | D-007
-- 2026-09-24 | T-025 | done | la barra de la venta deja holgura a la cuadrícula, medida y no supuesta | 3 files | test 69/69, e2e 92/92 | D-007
-- 2026-09-14 | T-023 | done | identidad, paleta invertida y jerarquía en la venta, con la barra acotada | 14 files | test 69/69, e2e 92/92 | D-007,D-009
-- 2026-09-14 | T-022 | done | iconos que acompañan a la palabra, con el peso del paquete medido | 11 files | test 69/69, e2e 92/92 | D-003,D-007
 
 Full history: [`JOURNAL.md`](JOURNAL.md) · decisions: [`docs/decisions/`](docs/decisions/README.md)

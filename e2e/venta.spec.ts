@@ -6,6 +6,7 @@ import { eq, inArray, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
 import { nuevoId } from "../src/domain/ids";
 import { registrarVenta } from "../src/domain/venta";
+import { diaDelNegocio } from "../src/domain/zona";
 import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
@@ -570,6 +571,18 @@ test("deshacer un cobro anula esa venta, devuelve las existencias y la trae de v
   expect(await existenciasDe(p!.id)).toBe(10);
   const anulaciones = (await movimientosDe([p!.id])).filter((m) => m.type === "sale_void");
   expect(anulaciones.map((m) => m.quantity)).toEqual([3]);
+
+  // T-028: en la siguiente carga la venta deshecha sigue a la vista pero anulada, en Ventas y en
+  // las últimas de Inicio, y no suma. Se comprueba la marca y no el total: otras pruebas venden
+  // hoy en paralelo contra la misma base.
+  const deshecha = anulaciones[0]!.saleId!;
+  await page.goto(`/ventas?desde=${diaDelNegocio(new Date())}&hasta=${diaDelNegocio(new Date())}`);
+  await expect(page.getByTestId(`venta-${deshecha}`)).toContainText("Anulada");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await expect(page.locator(`a[href="/ventas/${deshecha}"]`)).toContainText("Anulada");
+  await page.goto("/vender");
+  await expect(page.getByTestId(`cantidad-${p!.id}`)).toHaveText("3");
 
   // Y cobrarla de nuevo es otra venta, no un reintento de la anulada (`AC-010`).
   await page.getByTestId("confirmar").click();

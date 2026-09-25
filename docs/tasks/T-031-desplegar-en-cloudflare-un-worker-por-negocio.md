@@ -1,7 +1,7 @@
 ---
 id: T-031
 title: Desplegar en Cloudflare, un Worker por negocio
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -106,8 +106,8 @@ implements: [FR-010, NFR-004]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Leon
+- Date: 25/09/2026
 
 ## Trace
 

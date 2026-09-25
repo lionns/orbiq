@@ -1,7 +1,7 @@
 ---
 id: T-028
 title: "Backend: lo que la portada y el deshacer necesitan del dominio"
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -58,7 +58,7 @@ Solo dominio, acciones de servidor y sus pruebas. **Ninguna pantalla**: eso es `
       anulada, devolver las existencias y registrar el movimiento igual que la anulación del detalle.
 - [x] CUANDO se llama `deshacerVenta` sin sesión, o sobre una venta ya anulada, EL SISTEMA DEBE
       rechazarlo sin tocar el libro.
-- [ ] CUANDO se deshace una venta desde la pantalla de venta EL SISTEMA DEBE sacarla del resumen del
+- [x] CUANDO se deshace una venta desde la pantalla de venta EL SISTEMA DEBE sacarla del resumen del
       día y de la lista de ventas en la siguiente carga (prueba e2e que registra, deshace y comprueba).
 
 ## Verification
@@ -98,13 +98,16 @@ Solo dominio, acciones de servidor y sus pruebas. **Ninguna pantalla**: eso es `
 - **El último criterio queda para `T-029`**, que tiene el suyo: «Deshacer» desde Vender no existe
   hasta que exista la pantalla. Aquí se prueba la misma acción, `deshacerVenta`, desde el detalle,
   que ahora pasa por ella; «anular dos veces se rechaza» de `ventas.spec.ts` cubre la venta ya anulada.
+- **El último criterio, al cerrar:** validado a mano por el estudio en producción (2026-09-25). La
+  prueba e2e que lo fija se añadió a «deshacer un cobro» de `venta.spec.ts` —anulada en Ventas y en
+  Inicio—; typecheck limpio, pero no se pudo correr: la base de desarrollo rechazaba la contraseña.
 - **Nota para `T-029`:** `por-reponer` no está en `ESTADOS`, porque ese arreglo alimenta las
   etiquetas del selector actual. Al hacer las píldoras de filtro hay que añadirlo ahí con su nombre.
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Leon
+- Date: 25/09/2026
 
 ## Trace
 

@@ -1,7 +1,7 @@
 ---
 id: T-030
 title: La prueba del decodificador no depende de la red
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -70,8 +70,8 @@ implements: [FR-003]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Leon
+- Date: 25/09/2026
 
 ## Trace
 

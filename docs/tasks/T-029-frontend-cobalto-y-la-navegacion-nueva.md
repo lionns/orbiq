@@ -1,7 +1,7 @@
 ---
 id: T-029
 title: "Frontend: Cobalto y la navegación nueva"
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -149,8 +149,8 @@ implements: [FR-004, FR-010, US-005, US-010, NFR-002, NFR-003, AC-X01, AC-X02]
 
 ## Validation
 
-- Validated by:
-- Date:
+- Validated by: Juan Leon
+- Date: 25/09/2026
 
 ## Trace
 
