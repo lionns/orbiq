@@ -124,12 +124,13 @@ cambiaba de día cinco horas antes de tiempo (`T-019`).
 ## Deployment
 
 - Un Worker, una base de Neon y un Hyperdrive por negocio (`D-005`). Cada negocio es un entorno de
-  `wrangler.jsonc` (`negocio-1`, `negocio-2` hasta que tengan nombre): su Worker, su Hyperdrive, su
-  `NEGOCIO_NOMBRE` y su `BETTER_AUTH_URL`. En Wrangler los bindings no se heredan entre entornos;
+  `wrangler.jsonc` con el nombre de la tienda (`tienda-miriam`; `negocio-2` hasta tenerlo): su
+  Worker, su Hyperdrive, su `NEGOCIO_NOMBRE` y su `BETTER_AUTH_URL`. En Wrangler los bindings no se heredan entre entornos;
   cada negocio los repite.
 - `npm run deploy -- --env negocio-N` compila con OpenNext y despliega solo ese negocio.
-  `npm run preview` corre la app en el runtime de Workers en local, contra la base de
-  `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` (el string directo de Neon).
+  `npm run preview` corre la app en el runtime de Workers en local. Los dos leen `.env`, y los dos
+  piden `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` (el string directo de la base de
+  desarrollo): OpenNext levanta el binding en local al compilar. No se sube.
 - Las migraciones corren antes de desplegar la versión que las necesita, contra la base de ese
   negocio.
 - Reversión: `npx wrangler rollback --env negocio-N`. Una migración destructiva no se revierte sola;
@@ -153,11 +154,10 @@ Pasos de la cuenta del estudio, en orden. `N` es el número del negocio.
 6. `npx wrangler secret put BETTER_AUTH_SECRET --env negocio-N`, con `openssl rand -base64 32`. Un
    secreto por negocio.
 7. En `wrangler.jsonc`, `NEGOCIO_NOMBRE` y `BETTER_AUTH_URL`: la dirección es
-   `https://orbiq-negocio-N.<subdominio>.workers.dev`, y el subdominio es el de la cuenta (lo
-   enseña el primer despliegue).
-8. `npm run deploy -- --env negocio-N`. Si el subdominio no se conocía, corregir `BETTER_AUTH_URL`
-   y desplegar otra vez: de ella sale el `baseURL` de Better Auth, y con él que la cookie de sesión
-   lleve `Secure` (`src/lib/auth.ts`).
+   `https://orbiq-<tienda>.juan-account.workers.dev` (el subdominio de la cuenta).
+8. `npm run deploy -- --env negocio-N`. `BETTER_AUTH_URL` tiene que ser la dirección real: de ella
+   sale el `baseURL` de Better Auth, y con él que la cookie de sesión lleve `Secure`
+   (`src/lib/auth.ts`).
 
 ## Known Constraints
 

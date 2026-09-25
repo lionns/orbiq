@@ -20,8 +20,8 @@
     "alta-dueno": "tsx scripts/alta-dueno.mts",
     "sembrar-demo": "tsx scripts/sembrar-demo.mts",
     "codigos": "tsx scripts/hoja-de-codigos.mts",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "node --env-file-if-exists=.env node_modules/@opennextjs/cloudflare/dist/cli/index.js build && node --env-file-if-exists=.env node_modules/@opennextjs/cloudflare/dist/cli/index.js preview",
+    "deploy": "node --env-file-if-exists=.env node_modules/@opennextjs/cloudflare/dist/cli/index.js build && node --env-file-if-exists=.env node_modules/@opennextjs/cloudflare/dist/cli/index.js deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "type": "module",

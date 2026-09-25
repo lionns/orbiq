@@ -81,6 +81,9 @@ implements: [FR-010, NFR-004]
   Acceso, Inicio y el menú · `wrangler deploy --dry-run --env negocio-1`: sus bindings, 1,9 MB gzip.
 - Decisions recorded: ninguna. `D-005` ya decía un despliegue por negocio; el proveedor es de
   `architecture.md` y se revierte en una tarde.
+- Desplegado: Tienda Miriam en https://orbiq-tienda-miriam.juan-account.workers.dev (2026-09-25),
+  con `npm run deploy -- --env tienda-miriam`. Al desplegar salió que OpenNext pide el binding
+  local también al compilar: `preview` y `deploy` leen ahora `.env`. Sin direcciones de vista previa.
 - Follow-up: ninguno de código. Los pasos 1–8 de § Dar de alta un negocio son de la cuenta del
   estudio.
 
