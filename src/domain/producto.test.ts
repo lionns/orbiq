@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatearPrecio, parsearPrecio } from "./moneda";
-import { validarAlta } from "./producto";
+import { validarAlta, validarCodigoNuevo, validarEdicion } from "./producto";
 
 const completo = {
   nombre: "Arroz 500 g",
@@ -89,5 +89,33 @@ describe("validarAlta", () => {
   it("junta todos los errores en vez de soltarlos de a uno", () => {
     const r = validarAlta({ nombre: "", precio: "no", existenciasIniciales: "-1" });
     expect(!r.ok && Object.keys(r.errores)).toHaveLength(3);
+  });
+});
+
+describe("editar no toca los códigos (D-010)", () => {
+  it("la edición no lleva código aunque venga en el formulario", () => {
+    const r = validarEdicion({ nombre: "Arroz", precio: "3500", codigoDeBarras: "7701234567890" });
+    expect(r.ok && "codigoDeBarras" in r.valor).toBe(false);
+  });
+});
+
+describe("añadir un código a un producto (D-010)", () => {
+  it("acepta el código con las unidades que llegaron", () => {
+    expect(validarCodigoNuevo({ codigo: " 7702511004432 ", llegaron: "24" })).toEqual({
+      ok: true,
+      valor: { codigo: "7702511004432", llegaron: 24 },
+    });
+  });
+
+  it("sin cantidad son cero: el código se añade y se cuenta después", () => {
+    const r = validarCodigoNuevo({ codigo: "7702511004432", llegaron: "" });
+    expect(r.ok && r.valor.llegaron).toBe(0);
+  });
+
+  it("rechaza el código vacío y las cantidades negativas o partidas", () => {
+    const r = validarCodigoNuevo({ codigo: "  ", llegaron: "-2" });
+    expect(r.ok).toBe(false);
+    expect(!r.ok && Object.keys(r.errores).sort()).toEqual(["codigo", "llegaron"]);
+    expect(validarCodigoNuevo({ codigo: "1", llegaron: "1.5" }).ok).toBe(false);
   });
 });

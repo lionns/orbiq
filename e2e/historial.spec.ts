@@ -6,7 +6,15 @@ import { eq, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
 import { nuevoId } from "../src/domain/ids";
 import { registrarVenta } from "../src/domain/venta";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import {
+  borrarDueno,
+  borrarProductos,
+  crearDueno,
+  entrarComo,
+  sembrarCodigo,
+  type DuenoDePrueba,
+} from "./apoyo";
+import { codigoAleatorio } from "./apoyo/ean13";
 
 /**
  * T-011 · US-008, US-009. El libro, visto desde la pantalla y contrastado contra la base.
@@ -25,7 +33,7 @@ test.afterAll(async () => {
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
   await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${ventas})`);
   await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
-  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 
@@ -245,9 +253,12 @@ test("retirar un producto lo saca de la venta y del catálogo, sin perder su his
   await page.getByTestId("cambiar-estado").click();
   await expect(page.getByTestId("evento-activacion")).toContainText("Dejó de venderse");
 
-  // AC-022: fuera de la cuadrícula y del catálogo activo…
+  // AC-022: fuera de la venta —buscarlo no lo encuentra— y del catálogo activo…
   await page.goto("/vender");
-  await expect(page.getByTestId(`casilla-${p.id}`)).toHaveCount(0);
+  await page.getByTestId("codigo-tecleado").fill(p.nombre);
+  await page.getByTestId("codigo-tecleado").press("Enter");
+  await expect(page.getByTestId("sin-resultados")).toBeVisible();
+  await expect(page.getByTestId(`resultado-${p.id}`)).toHaveCount(0);
   await page.goto(`/catalogo?q=${encodeURIComponent(p.nombre)}`);
   await expect(page.getByTestId("catalogo-vacio")).toBeVisible();
 
@@ -261,9 +272,6 @@ test("retirar un producto lo saca de la venta y del catálogo, sin perder su his
 
 test("devolver a la venta lo reactiva, y las dos cosas quedan en el historial", async ({ page }) => {
   const p = await sembrar("Café", 11000, 100);
-  // Vendido de verdad, para que tenga sitio en los 24 de la cuadrícula aunque las pruebas vecinas
-  // vendan a la vez; sin ventas, su casilla dependía de cuántos otros tuvieran (`venta.spec`).
-  await registrarVenta(nuevoId(), [{ productoId: p.id, cantidad: 60 }], dueno.id);
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${p.id}`);
 
@@ -277,14 +285,18 @@ test("devolver a la venta lo reactiva, y las dos cosas quedan en el historial", 
 
   await expect(page.getByTestId("evento-activacion")).toHaveCount(2);
   await page.goto("/vender");
-  await expect(page.getByTestId(`casilla-${p.id}`)).toHaveCount(1);
+  await page.getByTestId("codigo-tecleado").fill(p.nombre);
+  await page.getByTestId("codigo-tecleado").press("Enter");
+  await expect(page.getByTestId(`resultado-${p.id}`)).toHaveCount(1);
 });
 
 test("al editar, un código de barras de otro producto se rechaza nombrándolo", async ({ page }) => {
-  const codigo = `79${Date.now()}${Math.floor(Math.random() * 100)}`.slice(0, 13);
+  const codigo = codigoAleatorio();
   const dueno1 = await sembrar("Leche", 4300, 5);
-  await db.update(schema.product).set({ barcode: codigo }).where(eq(schema.product.id, dueno1.id));
+  await sembrarCodigo(dueno1.id, codigo);
+  // La impostora tiene su propio código: lo que se edita es el número de un código (`D-010`).
   const otro = await sembrar("Impostora", 4300, 5);
+  await sembrarCodigo(otro.id, codigoAleatorio());
 
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${otro.id}`);

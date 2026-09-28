@@ -7,7 +7,7 @@ import { db, schema } from "../src/db";
 import { nuevoId } from "../src/domain/ids";
 import { anularVenta, registrarVenta } from "../src/domain/venta";
 import { diaDelNegocio } from "../src/domain/zona";
-import { borrarDueno, crearDueno, entrarComo, entrarPorPantalla, type DuenoDePrueba } from "./apoyo";
+import { borrarDueno, borrarProductos, crearDueno, entrarComo, entrarPorPantalla, type DuenoDePrueba } from "./apoyo";
 
 /**
  * T-029 · los criterios de Cobalto que no son de una pantalla sola: la portada, la navegación, lo
@@ -26,7 +26,7 @@ test.afterAll(async () => {
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${suyos})`);
   await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${suyas})`);
   await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
-  await db.delete(schema.product).where(sql`${schema.product.name} like ${`%${MARCA}%`}`);
+  await borrarProductos(sql`${schema.product.name} like ${`%${MARCA}%`}`);
   await borrarDueno(dueno);
 });
 
@@ -141,6 +141,13 @@ test("los filtros y la hoja del conteo se cierran con «Cerrar», con Escape y t
 }) => {
   const abierto = (sel: string) => page.locator(sel).evaluate((d) => (d as HTMLDetailsElement).open);
   const filtros = "details:has([data-testid=abrir-filtros])";
+  // Un producto propio, con su conteo cuadrando. La prueba abría «el primero del catálogo», y eso
+  // fallaba de dos formas: con la base vacía no había ninguno, y si el primero era uno que otra
+  // prueba había dejado descuadrado, la hoja del conteo ya venía abierta y tapaba el clic.
+  const [propio] = await db
+    .insert(schema.product)
+    .values({ name: `Hoja ${MARCA}`, price: 1000, stock: 0 })
+    .returning({ id: schema.product.id });
 
   for (const [ancho, alto] of [
     [360, 740],
@@ -160,8 +167,9 @@ test("los filtros y la hoja del conteo se cierran con «Cerrar», con Escape y t
     await page.mouse.click(ancho - 8, 12);
     expect(await abierto(filtros), `a ${ancho} px tocar fuera no cierra los filtros`).toBe(false);
 
+    await page.goto(`/catalogo?q=${encodeURIComponent(`Hoja ${MARCA}`)}`);
     await page.getByTestId("lista-catalogo").getByRole("link").first().click();
-    await page.waitForURL(/ficha=|\/catalogo\/[0-9a-f-]+/);
+    await page.waitForURL(new RegExp(propio!.id));
     const conteo = page.getByTestId("abrir-ajuste");
     await conteo.locator("summary").click();
     await expect(page.getByRole("dialog", { name: "Corregir el conteo" })).toBeVisible();

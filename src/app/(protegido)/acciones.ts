@@ -4,14 +4,18 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
+  anadirCodigo,
+  buscarParaAnadirCodigo,
   contarCatalogo,
   crearProducto,
   resolverCodigo,
+  type CandidatoParaCodigo,
   type Resuelto,
   type ResultadoAlta,
+  type ResultadoCodigo,
 } from "@/domain/catalogo";
 import { leerFiltros } from "@/domain/filtros";
-import { validarAlta } from "@/domain/producto";
+import { validarAlta, validarCodigoNuevo } from "@/domain/producto";
 import {
   registrarVenta,
   anularVenta,
@@ -65,15 +69,16 @@ export async function buscarPorCodigo(codigo: string): Promise<Resuelto> {
 /**
  * El alta desde un código desconocido, sin salir de la venta (`FR-003`, `AC-007`).
  *
- * Pide lo mínimo para poder cobrar —nombre y precio—; el resto del producto se completa después en
- * su ficha. Nace sin existencias a propósito: lo que hay en el mostrador no se sabe, y el libro no
- * admite un número inventado (`D-002`). La venta lo dejará en negativo, que es justamente lo que el
- * catálogo ya sabe mostrar.
+ * Pide lo mínimo para poder cobrar —nombre y precio— y, si se sabe, cuántas hay
+ * (`.diseno/codigos/Nuevo`). Sin ese número nace en cero: el libro no admite uno inventado
+ * (`D-002`), y la venta lo dejará en negativo, que el catálogo ya sabe mostrar. El resto del
+ * producto se completa después en su ficha.
  */
 export async function altaRapida(
   codigo: string,
   nombre: string,
   precio: string,
+  cuantas = "",
 ): Promise<ResultadoAlta> {
   const sesion = await sesionActual(await headers());
   if (!sesion) redirect("/acceso");
@@ -82,7 +87,7 @@ export async function altaRapida(
     nombre,
     precio,
     codigoDeBarras: codigo,
-    existenciasIniciales: "0",
+    existenciasIniciales: cuantas,
   });
   if (!validado.ok) {
     const [campo, mensaje] = Object.entries(validado.errores)[0]!;
@@ -91,6 +96,40 @@ export async function altaRapida(
 
   const resultado = await crearProducto(validado.valor, sesion.usuarioId);
   if (resultado.ok) revalidatePath("/catalogo");
+  return resultado;
+}
+
+/** Los productos a los que añadirles un código que cambió, buscados por nombre (`AC-025`). */
+export async function buscarParaCodigo(texto: string): Promise<CandidatoParaCodigo[]> {
+  const sesion = await sesionActual(await headers());
+  if (!sesion) redirect("/acceso");
+  return buscarParaAnadirCodigo(texto);
+}
+
+/**
+ * Añade el código escaneado a un producto que ya se vende, con lo que llegó (`D-010`, `AC-026`).
+ * Sirve igual a la venta, que después lo añade al carrito, que a Productos, que abre su ficha.
+ */
+export async function anadirCodigoAProducto(
+  productoId: string,
+  codigo: string,
+  llegaron: string,
+): Promise<ResultadoCodigo> {
+  const sesion = await sesionActual(await headers());
+  if (!sesion) redirect("/acceso");
+
+  const validado = validarCodigoNuevo({ codigo, llegaron });
+  if (!validado.ok) {
+    const [campo, mensaje] = Object.entries(validado.errores)[0]!;
+    return { ok: false, campo: campo as "codigo" | "llegaron", mensaje };
+  }
+
+  const resultado = await anadirCodigo(productoId, validado.valor, sesion.usuarioId);
+  if (resultado.ok) {
+    revalidatePath(`/catalogo/${productoId}`);
+    revalidatePath("/catalogo");
+    revalidatePath("/");
+  }
   return resultado;
 }
 

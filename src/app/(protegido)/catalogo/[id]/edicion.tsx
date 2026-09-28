@@ -12,10 +12,13 @@ const inicial: EstadoEdicion = { errores: {}, hecho: false };
 export function FormularioEdicion({
   productoId,
   producto,
+  codigos,
   categorias,
 }: {
   productoId: string;
-  producto: { nombre: string; precio: number; categoria: string | null; codigoDeBarras: string | null };
+  producto: { nombre: string; precio: number; categoria: string | null };
+  /** Se corrige el número de cada uno; añadir otro es «Por código» (`D-010`). */
+  codigos: { id: string; numero: string }[];
   categorias: string[];
 }) {
   const [estado, accion, enviando] = useActionState(editar.bind(null, productoId), inicial);
@@ -44,15 +47,21 @@ export function FormularioEdicion({
         valorInicial={producto.categoria ?? ""}
         error={estado.errores.categoria}
       />
-      <Campo
-        etiqueta="Código de barras"
-        nombre="codigoDeBarras"
-        defaultValue={producto.codigoDeBarras ?? ""}
-        error={estado.errores.codigoDeBarras}
-        inputMode="numeric"
-        icono="escanear"
-        opcional
-      />
+      {codigos.map((c, i) => (
+        <div key={c.id}>
+          <Campo
+            etiqueta={codigos.length === 1 ? "Código de barras" : `Código ${i + 1}`}
+            nombre={`codigo:${c.id}`}
+            defaultValue={c.numero}
+            error={estado.errores[`codigo:${c.id}`]}
+            ayuda={i === 0 ? "Corrige el número si quedó mal escrito. Sus ventas siguen con él." : undefined}
+            inputMode="numeric"
+            icono="escanear"
+            required
+          />
+          <input type="hidden" name={`antes:${c.id}`} value={c.numero} />
+        </div>
+      ))}
 
       {estado.hecho ? (
         <p role="status" className="text-text-muted" data-testid="edicion-hecha">

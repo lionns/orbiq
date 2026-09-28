@@ -2,7 +2,14 @@ import "dotenv/config";
 import { expect, test, type Page } from "@playwright/test";
 import { eq, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import {
+  borrarDueno,
+  borrarProductos,
+  crearDueno,
+  entrarComo,
+  sembrarCodigo,
+  type DuenoDePrueba,
+} from "./apoyo";
 import { codigoAleatorio } from "./apoyo/ean13";
 
 /**
@@ -24,9 +31,10 @@ test.beforeAll(async () => {
   dueno = await crearDueno("escaneo");
   const [creado] = await db
     .insert(schema.product)
-    .values({ name: `Panela ${MARCA}`, price: 3500, stock: 10, barcode: CONOCIDO })
+    .values({ name: `Panela ${MARCA}`, price: 3500, stock: 10 })
     .returning({ id: schema.product.id });
   panelaId = creado!.id;
+  await sembrarCodigo(panelaId, CONOCIDO);
 });
 
 test.afterAll(async () => {
@@ -35,8 +43,8 @@ test.afterAll(async () => {
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
   await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${ventas})`);
   await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
-  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
-  await db.delete(schema.product).where(eq(schema.product.barcode, DESCONOCIDO));
+  // El dado de alta desde el código desconocido se llama como quiso la prueba, con la marca dentro.
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 
@@ -92,6 +100,9 @@ test("AC-007 · un código desconocido se da de alta sin perder la venta", async
   await page.getByTestId("codigo-tecleado").fill(DESCONOCIDO);
   await page.getByTestId("codigo-tecleado").press("Enter");
 
+  // Dos salidas, y «ya lo vendo» primero (`AC-025`). Aquí es un producto nuevo de verdad.
+  await expect(page.getByTestId("codigo-desconocido")).toContainText(DESCONOCIDO);
+  await page.getByTestId("camino-nuevo").click();
   const alta = page.getByTestId("alta-rapida");
   await expect(alta).toContainText(DESCONOCIDO);
   await alta.getByTestId("alta-rapida-nombre").fill(`Bolsa ${MARCA}`);
@@ -105,9 +116,10 @@ test("AC-007 · un código desconocido se da de alta sin perder la venta", async
 
   // Y quedó en la base con su código, no solo en la pantalla.
   const [creado] = await db
-    .select({ codigo: schema.product.barcode, precio: schema.product.price })
-    .from(schema.product)
-    .where(eq(schema.product.barcode, DESCONOCIDO));
+    .select({ precio: schema.product.price })
+    .from(schema.productBarcode)
+    .innerJoin(schema.product, eq(schema.product.id, schema.productBarcode.productId))
+    .where(eq(schema.productBarcode.code, DESCONOCIDO));
   expect(creado?.precio).toBe(1200);
 });
 
@@ -124,7 +136,7 @@ test("lo que no tiene forma de código se busca como nombre", async ({ page }) =
   await page.getByTestId("codigo-tecleado").press("Enter");
   await expect(page.getByTestId("escaneo-ilegible")).toHaveCount(0);
   await expect(page.getByTestId("encabezado-resultados")).toContainText("1 resultado");
-  await expect(page.getByTestId(`casilla-${panelaId}`)).toBeVisible();
+  await expect(page.getByTestId(`resultado-${panelaId}`)).toBeVisible();
 });
 
 test("desde el catálogo, el lector abre la ficha del producto", async ({ page }) => {

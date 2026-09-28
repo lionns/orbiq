@@ -1,6 +1,13 @@
 import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { listarCatalogo, resolverCodigo, type ProductoDelCatalogo } from "./catalogo";
+import {
+  conCodigoParecido,
+  listarCatalogo,
+  resolverCodigo,
+  type CodigoResuelto,
+  type ProductoDelCatalogo,
+} from "./catalogo";
+import { repartir, type Grupo, type Porcion } from "./codigos";
 import { normalizarCodigo } from "./escaneo";
 import { leerFiltros } from "./filtros";
 import { resumirDias, type ResumenDelRango } from "./resumen";
@@ -14,19 +21,24 @@ type Escritor = Parameters<Parameters<typeof db.transaction>[0]>[0];
  * escribe, y el saldo se recalcula desde él — nunca se resta a mano.
  */
 
-/** Ventana de «reciente» para ordenar la cuadrícula. Pendiente de validar con un dueño usándolo. */
-export const VENTANA_DIAS = 30;
-/** Casillas de la cuadrícula. Dos columnas en celular: doce filas de alcance con el pulgar. */
-export const CASILLAS = 24;
-
-export type CasillaDeVenta = {
+/** Un producto tal como la venta lo necesita: para añadirlo y mostrar su línea. */
+export type ProductoParaVender = {
   id: string;
   nombre: string;
   precio: number;
   existencias: number;
 };
 
-export type LineaPedida = { productoId: string; cantidad: number };
+export type LineaPedida = {
+  productoId: string;
+  cantidad: number;
+  /**
+   * El código escaneado, si lo hubo: lo vendido sale de ese código. Sin él, sale del más antiguo
+   * que tenga unidades (`AC-027`). Opcional para que una venta guardada antes de `D-010` —sin este
+   * campo— se pueda seguir cobrando.
+   */
+  codigoId?: string | null | undefined;
+};
 
 export type ResultadoVenta = {
   ventaId: string;
@@ -36,50 +48,14 @@ export type ResultadoVenta = {
 };
 
 /**
- * Lo que el dueño ve al abrir. Ordena por lo más vendido en la ventana reciente y, mientras no
- * haya historial, cae en el catálogo por nombre: una tienda nueva la ve llena desde el primer día
- * sin administrar favoritos (decidido con el estudio el 2026-09-06).
- */
-export async function cuadricula(): Promise<CasillaDeVenta[]> {
-  /**
-   * Uniones de verdad y no una subconsulta correlacionada escrita a mano.
-   *
-   * Drizzle **no cualifica** los nombres de columna dentro de una plantilla `sql` en un `select`:
-   * emitía `where "product_id" = "id"`, y ahí `"id"` se ata a `sale_line.id`, no a `product.id`.
-   * La comparación no acertaba nunca y la cuadrícula ordenaba todo por cero. En un `update` sí
-   * cualifica, que es por lo que el saldo del libro siempre estuvo bien.
-   */
-  const vendidoReciente = sql<number>`coalesce(sum(
-    case when ${schema.sale.voidedAt} is null
-          and ${schema.sale.createdAt} > now() - ${`${VENTANA_DIAS} days`}::interval
-         then ${schema.saleLine.quantity} else 0 end
-  ), 0)::int`;
-
-  return db
-    .select({
-      id: schema.product.id,
-      nombre: schema.product.name,
-      precio: schema.product.price,
-      existencias: schema.product.stock,
-    })
-    .from(schema.product)
-    .leftJoin(schema.saleLine, eq(schema.saleLine.productId, schema.product.id))
-    .leftJoin(schema.sale, eq(schema.sale.id, schema.saleLine.saleId))
-    .where(eq(schema.product.isActive, true))
-    .groupBy(schema.product.id)
-    .orderBy(desc(vendidoReciente), asc(schema.product.name))
-    .limit(CASILLAS);
-}
-
-/**
  * Lo que el dueño escribe en la venta, resuelto. Una sola función decide qué era, y la pantalla no
  * tiene que adivinarlo (`D-001`): un código se busca como código y cualquier otra cosa se busca
  * como nombre.
  */
 export type EntradaDeVenta =
-  | { tipo: "producto"; producto: CasillaDeVenta }
+  | { tipo: "producto"; producto: ProductoParaVender; codigo: CodigoResuelto }
   | { tipo: "codigoDesconocido"; codigo: string }
-  | { tipo: "resultados"; texto: string; resultados: CasillaDeVenta[] };
+  | { tipo: "resultados"; texto: string; resultados: ProductoParaVender[] };
 
 /** Suficientes para encontrar lo que se busca, pocos para que quepan sin empujar el total. */
 export const RESULTADOS = 12;
@@ -94,7 +70,7 @@ export async function resolverEntradaDeVenta(texto: string): Promise<EntradaDeVe
     const resuelto = await resolverCodigo(codigo);
     if (!resuelto.ok) return { tipo: "codigoDesconocido", codigo };
     const { id, nombre, precio, existencias } = resuelto.producto;
-    return { tipo: "producto", producto: { id, nombre, precio, existencias } };
+    return { tipo: "producto", producto: { id, nombre, precio, existencias }, codigo: resuelto.codigo };
   }
 
   if (!limpio) return { tipo: "resultados", texto: limpio, resultados: [] };
@@ -114,7 +90,7 @@ export async function resolverEntradaDeVenta(texto: string): Promise<EntradaDeVe
         // También por código: un trozo de código —«7702»— no es un código válido y caería aquí.
         or(
           ilike(schema.product.name, `%${limpio}%`),
-          ilike(schema.product.barcode, `%${limpio}%`),
+          inArray(schema.product.id, conCodigoParecido(limpio)),
         ),
       ),
     )
@@ -148,6 +124,8 @@ export async function registrarVenta(
       const faltante = ids.find((id) => !precioDe.has(id));
       if (faltante) throw new Error(`El producto ${faltante} ya no existe.`);
 
+      const salidas = await deQueCodigoSale(tx, lineas);
+
       // AC-009: el precio se copia del catálogo al momento de vender, no de lo que mandó la
       // pantalla. Subirlo mañana no puede reescribir lo que se cobró hoy.
       const conPrecio = lineas.map((l) => ({ ...l, precio: precioDe.get(l.productoId)! }));
@@ -163,10 +141,11 @@ export async function registrarVenta(
         })),
       );
       await tx.insert(schema.stockMovement).values(
-        conPrecio.map((l) => ({
-          productId: l.productoId,
+        salidas.map((p) => ({
+          productId: p.productoId,
+          barcodeId: p.codigoId,
           // Con signo: vender descuenta. El libro no se edita, se le suma (`D-002`).
-          quantity: -l.cantidad,
+          quantity: -p.cantidad,
           type: "sale" as const,
           saleId: ventaId,
           userId: usuarioId,
@@ -185,6 +164,75 @@ export async function registrarVenta(
     }
     throw error;
   }
+}
+
+/**
+ * De qué código sale cada unidad vendida (`AC-027`). Lo escaneado sale de su código; lo que se
+ * añadió sin escanear se reparte desde el más antiguo con unidades (`codigos.ts`).
+ *
+ * Primero lo escaneado y después lo demás, y sobre el mismo saldo: si en la venta van dos del código
+ * viejo escaneadas y una sin escanear, esa una ya no cuenta con las dos que se van.
+ */
+async function deQueCodigoSale(
+  tx: Escritor,
+  lineas: LineaPedida[],
+): Promise<(Porcion & { productoId: string })[]> {
+  const ids = [...new Set(lineas.map((l) => l.productoId))];
+  const [codigos, saldos] = await Promise.all([
+    tx
+      .select({
+        id: schema.productBarcode.id,
+        productoId: schema.productBarcode.productId,
+        desde: schema.productBarcode.createdAt,
+      })
+      .from(schema.productBarcode)
+      .where(inArray(schema.productBarcode.productId, ids)),
+    tx
+      .select({
+        productoId: schema.stockMovement.productId,
+        codigoId: schema.stockMovement.barcodeId,
+        cantidad: sql<number>`sum(${schema.stockMovement.quantity})::int`,
+      })
+      .from(schema.stockMovement)
+      .where(inArray(schema.stockMovement.productId, ids))
+      .groupBy(schema.stockMovement.productId, schema.stockMovement.barcodeId),
+  ]);
+
+  const grupos = new Map<string, Grupo[]>();
+  for (const id of ids) {
+    const sinCodigo = saldos.find((s) => s.productoId === id && s.codigoId === null);
+    grupos.set(id, [
+      ...(sinCodigo ? [{ id: null, desde: 0, cantidad: sinCodigo.cantidad }] : []),
+      ...codigos
+        .filter((c) => c.productoId === id)
+        .map((c) => ({
+          id: c.id,
+          desde: c.desde.getTime(),
+          cantidad: saldos.find((s) => s.codigoId === c.id)?.cantidad ?? 0,
+        })),
+    ]);
+  }
+
+  const salidas: (Porcion & { productoId: string })[] = [];
+  const descontar = (productoId: string, codigoId: string | null, cantidad: number) => {
+    salidas.push({ productoId, codigoId, cantidad });
+    const g = grupos.get(productoId)!.find((x) => x.id === codigoId);
+    if (g) g.cantidad -= cantidad;
+  };
+
+  for (const l of lineas.filter((x) => x.codigoId)) {
+    const esSuyo = grupos.get(l.productoId)!.some((g) => g.id === l.codigoId);
+    // Un código que no es del producto —una venta guardada vieja, un envío fabricado— no se cree:
+    // se reparte como si no se hubiera escaneado.
+    if (esSuyo) descontar(l.productoId, l.codigoId!, l.cantidad);
+    else for (const p of repartir(grupos.get(l.productoId)!, l.cantidad)) descontar(l.productoId, p.codigoId, p.cantidad);
+  }
+  for (const l of lineas.filter((x) => !x.codigoId)) {
+    for (const p of repartir(grupos.get(l.productoId)!, l.cantidad)) {
+      descontar(l.productoId, p.codigoId, p.cantidad);
+    }
+  }
+  return salidas;
 }
 
 async function buscarVenta(ventaId: string): Promise<ResultadoVenta | null> {
@@ -268,7 +316,10 @@ export async function ventasPorDia(rango: RangoDeFechas): Promise<DiaDeVentas[]>
       // En la zona del negocio: `to_char` a secas usaba la de la sesión de Postgres, que en Neon es
       // UTC, y ahí una venta de las nueve de la noche en Bogotá ya es del día siguiente.
       dia: sql<string>`to_char(timezone(${ZONA_DEL_NEGOCIO}, ${schema.sale.createdAt}), 'YYYY-MM-DD')`,
-      // Por unión y no por subconsulta correlacionada: ver el comentario de `cuadricula`.
+      // Por unión y no por subconsulta correlacionada. Drizzle **no cualifica** los nombres de
+      // columna dentro de una plantilla `sql` en un `select`: una correlación escrita a mano emitía
+      // `where "product_id" = "id"`, y ahí `"id"` se ataba a `sale_line.id`. Nunca acertaba y la
+      // antigua cuadrícula ordenaba todo por cero. En un `update` sí cualifica.
       articulos: sql<number>`coalesce(sum(${schema.saleLine.quantity}), 0)::int`,
     })
     .from(schema.sale)
@@ -397,11 +448,17 @@ export async function anularVenta(ventaId: string, usuarioId: string): Promise<R
     // AC-012: anular dos veces devolvería las existencias dos veces.
     if (venta.anuladaEn !== null) return { ok: false as const, mensaje: "Esa venta ya está anulada." };
 
-    const lineas = await tx
-      .select({ productoId: schema.saleLine.productId, cantidad: schema.saleLine.quantity })
-      .from(schema.saleLine)
-      .where(eq(schema.saleLine.saleId, ventaId));
-    if (lineas.length === 0) return { ok: false as const, mensaje: "Esa venta no tiene líneas." };
+    // Se compensa lo que el libro dice que salió, código por código: cada unidad vuelve al código
+    // del que se fue (`D-010`). Las líneas de venta no lo saben; los movimientos sí.
+    const salidas = await tx
+      .select({
+        productoId: schema.stockMovement.productId,
+        codigoId: schema.stockMovement.barcodeId,
+        cantidad: schema.stockMovement.quantity,
+      })
+      .from(schema.stockMovement)
+      .where(and(eq(schema.stockMovement.saleId, ventaId), eq(schema.stockMovement.type, "sale")));
+    if (salidas.length === 0) return { ok: false as const, mensaje: "Esa venta no tiene líneas." };
 
     await tx
       .update(schema.sale)
@@ -409,16 +466,17 @@ export async function anularVenta(ventaId: string, usuarioId: string): Promise<R
       .where(eq(schema.sale.id, ventaId));
 
     await tx.insert(schema.stockMovement).values(
-      lineas.map((l) => ({
+      salidas.map((l) => ({
         productId: l.productoId,
-        // Positivo: devuelve lo que la venta se llevó.
-        quantity: l.cantidad,
+        barcodeId: l.codigoId,
+        // Positivo: devuelve exactamente lo que la venta se llevó.
+        quantity: -l.cantidad,
         type: "sale_void" as const,
         saleId: ventaId,
         userId: usuarioId,
       })),
     );
-    await recalcularSaldos(tx, lineas.map((l) => l.productoId));
+    await recalcularSaldos(tx, salidas.map((l) => l.productoId));
 
     return { ok: true as const };
   });

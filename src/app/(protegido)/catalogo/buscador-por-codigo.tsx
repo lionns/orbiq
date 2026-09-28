@@ -32,14 +32,24 @@ export function BuscadorPorCodigo() {
     <>
       <ObjetivoDeEscaneo onCodigo={alEscanear} conCampo={false} comoEscanear />
       {noEncontrado ? (
+        // Las mismas dos salidas que en la venta, en el mismo orden (`AC-025`): si el proveedor
+        // cambió el código, lo que falta es añadirlo al producto, no darlo de alta otra vez.
         <p className="basis-full" role="alert" data-testid="codigo-no-encontrado">
           Ningún producto tiene el código {noEncontrado}.{" "}
+          <a
+            href={`/catalogo/codigo?codigo=${encodeURIComponent(noEncontrado)}`}
+            className="font-semibold text-accent"
+          >
+            Añadirlo a un producto
+          </a>{" "}
+          o{" "}
           <a
             href={`/catalogo/nuevo?codigo=${encodeURIComponent(noEncontrado)}`}
             className="font-semibold text-accent"
           >
-            Darlo de alta
+            darlo de alta
           </a>
+          .
         </p>
       ) : null}
     </>

@@ -7,7 +7,14 @@ import { db, schema } from "../src/db";
 import { nuevoId } from "../src/domain/ids";
 import { registrarVenta } from "../src/domain/venta";
 import { diaDelNegocio } from "../src/domain/zona";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import {
+  borrarDueno,
+  borrarProductos,
+  crearDueno,
+  entrarComo,
+  sembrarCodigo,
+  type DuenoDePrueba,
+} from "./apoyo";
 
 /**
  * T-004 · US-005. La venta recorrida entera contra la base real (`D-006`).
@@ -25,7 +32,7 @@ test.afterAll(async () => {
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
   await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${ventas})`);
   await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
-  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 
@@ -66,44 +73,31 @@ const movimientosDe = (ids: string[]) =>
   db.select().from(schema.stockMovement).where(inArray(schema.stockMovement.productId, ids));
 
 /**
- * Añade un producto como lo haría el dueño: tocando su casilla si está entre los frecuentes y, si
- * no, buscándolo por nombre. La cuadrícula enseña los 24 más vendidos de **toda** la base, y las
- * pruebas de este archivo venden decenas de unidades en paralelo: depender de entrar en ella hacía
- * que pasaran o fallaran según el orden (`T-018` lo arregló para una; esto, para todas).
+ * Añade un producto como lo haría el dueño con algo que no escanea: buscándolo por nombre y tocando
+ * el resultado. Desde `T-033` Vender no enseña productos al abrir, así que es el único camino sin
+ * código — y no compite con las pruebas vecinas, como hacía la cuadrícula de los 24 más vendidos.
  */
 const nombres = new Map<string, string>();
 async function tocar(page: Page, id: string, veces = 1) {
+  if (!nombres.has(id)) {
+    const [p] = await db
+      .select({ nombre: schema.product.name })
+      .from(schema.product)
+      .where(eq(schema.product.id, id));
+    nombres.set(id, p!.nombre);
+  }
   for (let i = 0; i < veces; i++) {
-    const casilla = page.getByTestId(`casilla-${id}`);
-    if (!(await casilla.isVisible())) {
-      if (!nombres.has(id)) {
-        const [p] = await db
-          .select({ nombre: schema.product.name })
-          .from(schema.product)
-          .where(eq(schema.product.id, id));
-        nombres.set(id, p!.nombre);
-      }
-      await page.getByTestId("codigo-tecleado").fill(nombres.get(id)!);
-      await page.getByTestId("codigo-tecleado").press("Enter");
-    }
-    await casilla.click();
+    await page.getByTestId("codigo-tecleado").fill(nombres.get(id)!);
+    await page.getByTestId("codigo-tecleado").press("Enter");
+    await page.getByTestId(`resultado-${id}`).click();
   }
 }
 
-/**
- * En el celular la venta está recogida en una línea (`T-029`, punto 3): las cantidades y el total
- * grande están dentro, a un toque. En computador siempre está desplegada y no hay nada que abrir.
- */
 async function ventaNueva(page: Page) {
   // La venta en curso sobrevive a recargar (`T-029`, punto 1). Una prueba que recorre varios
   // anchos en la misma sesión empieza cada vuelta sin la de la vuelta anterior.
   await page.evaluate(() => localStorage.removeItem("orbiq.venta"));
   await page.reload();
-}
-
-async function abrirVenta(page: Page) {
-  const ver = page.getByTestId("ver-venta");
-  if (await ver.isVisible()) await ver.click();
 }
 
 test("una venta de tres artículos baja las existencias y escribe un movimiento por cada uno", async ({
@@ -124,9 +118,9 @@ test("una venta de tres artículos baja las existencias y escribe un movimiento 
   await expect(page.getByTestId("total")).toContainText("11.700");
   await page.getByTestId("confirmar").click();
 
-  // Sin diálogo que cerrar: la pantalla queda lista para la siguiente.
+  // Sin diálogo que cerrar: la pantalla queda lista para la siguiente, vacía (`AC-028`).
   await expect(page.getByTestId("venta-anterior")).toContainText("11.700");
-  await expect(page.getByTestId("total")).toContainText("0");
+  await expect(page.getByTestId("venta-vacia")).toBeVisible();
 
   expect(await existenciasDe(arroz!.id)).toBe(8);
   expect(await existenciasDe(pan!.id)).toBe(19);
@@ -219,20 +213,12 @@ test("si la red falla, lo dice sin rodeos, no descuenta, y reintentar cobra una 
 
 test("vender más de lo que hay se permite y el saldo queda negativo", async ({ page }) => {
   // Decidido con el estudio: la aplicación registra lo que pasó, no decide lo que se puede vender.
-  /**
-   * Se llega a la única unidad **vendiendo**, no sembrándola. La cuadrícula ordena por lo más
-   * vendido y corta en 24 casillas, así que un producto recién sembrado y sin ventas se cae de
-   * ella en cuanto la base tiene datos de las otras pruebas — y esta fallaba solo con la suite
-   * completa, que es la peor forma de fallar. Es el mismo obstáculo que ya sorteó la prueba de los
-   * colores de alerta, y se sortea igual: como se llega en la vida real.
-   */
+  // Se llega a la única unidad vendiendo, como se llega en la vida real.
   const [huevos] = await sembrar([{ nombre: "Huevos", precio: 800, existencias: 31 }]);
   await registrarVenta(nuevoId(), [{ productoId: huevos!.id, cantidad: 30 }], dueno.id);
   expect(await existenciasDe(huevos!.id)).toBe(1);
 
   await entrarComo(page, dueno);
-  // Antes de tocarla: si no estuviera, el fallo dice que falta la casilla y no que expiró un clic.
-  await expect(page.getByTestId(`casilla-${huevos!.id}`)).toHaveCount(1);
   await tocar(page, huevos!.id, 3);
   await page.getByTestId("confirmar").click();
   await expect(page.getByTestId("venta-anterior")).toBeVisible();
@@ -240,31 +226,26 @@ test("vender más de lo que hay se permite y el saldo queda negativo", async ({ 
   expect(await existenciasDe(huevos!.id)).toBe(-2);
 });
 
-test("en la cuadrícula, el cero y el negativo se ven en rojo", async ({ page }) => {
+test("en los resultados de la venta, el cero y el negativo se ven en rojo", async ({ page }) => {
   // Ninguna prueba miraba esto y las dos pantallas no coincidían: el catálogo alerta solo en
   // negativo y la venta también en cero. Ahora la diferencia está fijada, no heredada.
-  /**
-   * Las cantidades son grandes a propósito. Desde `T-014` la cuadrícula ordena de verdad por lo más
-   * vendido y muestra 24 casillas; un producto sin ventas se queda fuera cuando la base tiene datos.
-   * Se llega al cero y al negativo **vendiendo**, que además es como se llega en la vida real.
-   */
   const [agotado, negativo, normal] = await sembrar([
-    { nombre: "Agotado", precio: 1000, existencias: 30 },
-    { nombre: "Debe", precio: 1000, existencias: 30 },
-    { nombre: "Normal", precio: 1000, existencias: 100 },
+    { nombre: "Alerta agotado", precio: 1000, existencias: 30 },
+    { nombre: "Alerta debe", precio: 1000, existencias: 30 },
+    { nombre: "Alerta normal", precio: 1000, existencias: 100 },
   ]);
   await registrarVenta(nuevoId(), [{ productoId: agotado!.id, cantidad: 30 }], dueno.id);
   await registrarVenta(nuevoId(), [{ productoId: negativo!.id, cantidad: 34 }], dueno.id);
-  await registrarVenta(nuevoId(), [{ productoId: normal!.id, cantidad: 30 }], dueno.id);
 
   await entrarComo(page, dueno);
-  // Si alguna casilla no estuviera, el fallo sería el mismo que el de la alerta: se comprueba antes.
+  await page.getByTestId("codigo-tecleado").fill(`Alerta`);
+  await page.getByTestId("codigo-tecleado").press("Enter");
   for (const p of [agotado, negativo, normal]) {
-    await expect(page.getByTestId(`casilla-${p!.id}`)).toHaveCount(1);
+    await expect(page.getByTestId(`resultado-${p!.id}`)).toHaveCount(1);
   }
-  await expect(page.getByTestId(`casilla-${agotado!.id}`).locator("[data-alerta]")).toHaveCount(1);
-  await expect(page.getByTestId(`casilla-${negativo!.id}`).locator("[data-alerta]")).toHaveCount(1);
-  await expect(page.getByTestId(`casilla-${normal!.id}`).locator("[data-alerta]")).toHaveCount(0);
+  await expect(page.getByTestId(`resultado-${agotado!.id}`).locator("[data-alerta]")).toHaveCount(1);
+  await expect(page.getByTestId(`resultado-${negativo!.id}`).locator("[data-alerta]")).toHaveCount(1);
+  await expect(page.getByTestId(`resultado-${normal!.id}`).locator("[data-alerta]")).toHaveCount(0);
 });
 
 test("tocar dos veces suma, y se puede corregir la cantidad sin rehacer la venta", async ({
@@ -275,7 +256,6 @@ test("tocar dos veces suma, y se puede corregir la cantidad sin rehacer la venta
   await tocar(page, cafe!.id, 3);
   await expect(page.getByTestId(`cantidad-${cafe!.id}`)).toHaveText("3");
 
-  await abrirVenta(page);
   await page.getByRole("button", { name: /^Quitar uno de Café/ }).click();
   await expect(page.getByTestId(`cantidad-${cafe!.id}`)).toHaveText("2");
   await expect(page.getByTestId("total")).toContainText("22.000");
@@ -283,39 +263,34 @@ test("tocar dos veces suma, y se puede corregir la cantidad sin rehacer la venta
   // Bajar de uno saca la línea; una línea en cero no es una venta.
   await page.getByRole("button", { name: /^Quitar uno de Café/ }).click();
   await page.getByRole("button", { name: /^Quitar uno de Café/ }).click();
-  await expect(page.getByTestId("venta-en-curso")).toBeEmpty();
+  await expect(page.getByTestId("venta-en-curso")).toHaveCount(0);
+  await expect(page.getByTestId("venta-vacia")).toBeVisible();
   await expect(page.getByTestId("confirmar")).toBeDisabled();
 });
 
 /**
  * Reportado por el estudio: «cuando selecciono muchos productos no puedo bajar del todo en la lista,
- * queda por detrás». La cuadrícula reservaba un hueco fijo para la barra del total, pero la barra
- * crece con el carrito: con ocho artículos medía 379 px contra 304 reservados, y esos 75 px de
- * diferencia tapaban el final de la cuadrícula sin que se pudiera desplazar más.
+ * queda por detrás». Pasaba con la cuadrícula y la barra del total; desde `T-033` lo que queda
+ * detrás de la barra sería la última línea de la venta, que es peor: es lo que se está cobrando.
  */
-test("con el carrito lleno se sigue llegando al final de la cuadrícula", async ({ page }) => {
-  // Ocho productos **vendidos**, para que entren en la cuadrícula por donde ella ordena (`T-018`).
+test("con la venta larga se sigue llegando a su última línea", async ({ page }) => {
   const suyos = await sembrar(
     Array.from({ length: 8 }, (_, i) => ({ nombre: `Carga${i}`, precio: 1000 + i, existencias: 40 })),
   );
-  for (const p of suyos) {
-    await registrarVenta(nuevoId(), [{ productoId: p!.id, cantidad: 30 - suyos.indexOf(p) }], dueno.id);
-  }
 
   // 560 de alto: un teléfono corto con la barra del navegador desplegada, que es donde la barra de
-  // la venta llegaba a comerse más de la mitad de la pantalla.
+  // cobrar llegaba a comerse más de la mitad de la pantalla.
   await page.setViewportSize({ width: 360, height: 560 });
   await entrarComo(page, dueno);
   for (const p of suyos) await tocar(page, p!.id);
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  // Recogida, el total va dentro de Cobrar (`T-029`, punto 8): es lo que tiene que verse.
   await expect(page.getByTestId("confirmar")).toBeVisible();
 
   const medido = await page.evaluate(() => {
-    const todas = [...document.querySelectorAll('[data-testid^="casilla-"]')];
-    const ultima = todas[todas.length - 1]!.getBoundingClientRect();
-    const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
+    const lineas = [...document.querySelectorAll('[data-testid="venta-en-curso"] > li')];
+    const ultima = lineas[lineas.length - 1]!.getBoundingClientRect();
+    const barra = document.querySelector('[aria-label="Cobrar"]')!.getBoundingClientRect();
     return { fondoUltima: ultima.bottom, techoBarra: barra.top, altoBarra: barra.height,
              pantalla: window.innerHeight };
   });
@@ -323,24 +298,20 @@ test("con el carrito lleno se sigue llegando al final de la cuadrícula", async 
   // en el navegador de prueba cuadraba y en un teléfono real —donde la barra del navegador encoge
   // lo visible— la última fila quedaba debajo. El estudio lo reportó dos veces.
   expect(medido.techoBarra - medido.fondoUltima).toBeGreaterThanOrEqual(16);
-  // Y la barra no puede quedarse con media pantalla: la cuadrícula es la razón de estar aquí.
+  // Y la barra no puede quedarse con media pantalla: la venta es la razón de estar aquí.
   expect(medido.altoBarra).toBeLessThan(medido.pantalla / 2);
 });
 
 test("a 360 px el total se ve siempre y nada del flujo de venta vive arriba", async ({ page }) => {
-  // Se llega a la cuadrícula vendiendo, no sembrando: ordena por lo más vendido y corta en 24, así
-  // que un producto sin ventas se cae de ella en cuanto la base tiene datos. Mismo remedio que
-  // `T-018` aplicó a su vecina, y lo destapó la prueba del carrito lleno de aquí arriba.
   const [galleta] = await sembrar([{ nombre: "Galleta ancha", precio: 2500, existencias: 42 }]);
-  await registrarVenta(nuevoId(), [{ productoId: galleta!.id, cantidad: 30 }], dueno.id);
   await page.setViewportSize({ width: 360, height: 740 });
   await entrarComo(page, dueno);
   await tocar(page, galleta!.id);
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 
-  // AC-X01: el total está a la vista sin desplazarse. Con la venta recogida va dentro de Cobrar
-  // (`T-029`, punto 8), así que es Cobrar lo que tiene que verse entero y con el importe.
+  // AC-X01: el total está a la vista sin desplazarse: va dentro de Cobrar (`T-029`, punto 8), así
+  // que es Cobrar lo que tiene que verse entero y con el importe.
   const confirmar = await page.getByTestId("confirmar").boundingBox();
   await expect(page.getByTestId("confirmar")).toContainText("2.500");
   expect(confirmar!.y + confirmar!.height).toBeLessThanOrEqual(740);
@@ -350,8 +321,7 @@ test("a 360 px el total se ve siempre y nada del flujo de venta vive arriba", as
   expect(confirmar!.height).toBeGreaterThanOrEqual(48);
   const escanear = await page.getByTestId("escanear").boundingBox();
   expect(escanear!.y).toBeGreaterThan(740 / 3);
-  // Desplegada, el total grande también se ve entero.
-  await abrirVenta(page);
+  // El total de la lista también se ve entero.
   const total = await page.getByTestId("total").boundingBox();
   expect(total!.y + total!.height).toBeLessThanOrEqual(740);
   const menos = await page.getByRole("button", { name: /^Quitar uno de/ }).boundingBox();
@@ -359,31 +329,22 @@ test("a 360 px el total se ve siempre y nada del flujo de venta vive arriba", as
   expect(menos!.height).toBeGreaterThanOrEqual(48);
 });
 
-test("la cuadrícula ordena por lo más vendido, no por cualquier cosa", async ({ page }) => {
-  /**
-   * Esto no funcionó nunca hasta `T-014`. Drizzle no cualifica los nombres de columna dentro de una
-   * plantilla `sql` en un `select`, así que la subconsulta comparaba `sale_line.product_id` con
-   * `sale_line.id` —nunca acertaba— y la cuadrícula ordenaba todo por cero y luego por nombre.
-   * Con datos sembrados en orden alfabético el resultado parecía razonable, que es lo que hizo que
-   * pasara desapercibido.
-   */
-  const [zeta, alfa] = await sembrar([
-    { nombre: "Zzz poco vendido", precio: 1000, existencias: 200 },
-    { nombre: "Aaa muy vendido", precio: 1000, existencias: 200 },
-  ]);
-  // El de nombre alfabéticamente posterior se vende más: si el orden fuera por nombre, perdería.
-  // Por encima de lo que venden las pruebas vecinas (hasta 50 en la de computador): con 9 y 1, las
-  // que corren en paralelo los echaban de los 24 que enseña la cuadrícula — lo mismo que `T-018`.
-  await registrarVenta(nuevoId(), [{ productoId: zeta!.id, cantidad: 90 }], dueno.id);
-  await registrarVenta(nuevoId(), [{ productoId: alfa!.id, cantidad: 60 }], dueno.id);
+test("AC-028 · Vender abre vacía, sin productos sugeridos, aunque haya lo más vendido", async ({
+  page,
+}) => {
+  // Lo que antes llenaba la cuadrícula: productos muy vendidos. El cliente no los quiere aquí.
+  const [vendido] = await sembrar([{ nombre: "Muy vendido", precio: 1000, existencias: 200 }]);
+  await registrarVenta(nuevoId(), [{ productoId: vendido!.id, cantidad: 90 }], dueno.id);
 
   await entrarComo(page, dueno);
-  const casillas = await page.getByTestId(/^casilla-/).all();
-  const nombres = await Promise.all(casillas.map((c) => c.innerText()));
-  const posicion = (parte: string) => nombres.findIndex((n) => n.includes(parte));
-
-  expect(posicion("Zzz poco vendido")).toBeGreaterThanOrEqual(0);
-  expect(posicion("Zzz poco vendido")).toBeLessThan(posicion("Aaa muy vendido"));
+  await expect(page.getByTestId("venta-vacia")).toContainText("Escanea para empezar");
+  await expect(page.locator('[data-testid^="resultado-"], [data-testid^="casilla-"]')).toHaveCount(0);
+  await expect(page.getByText("Más vendidos")).toHaveCount(0);
+  // Se puede escanear y buscar, y todavía no se puede cobrar.
+  await expect(page.getByTestId("codigo-tecleado")).toBeVisible();
+  await expect(page.getByTestId("escanear")).toBeVisible();
+  await expect(page.getByTestId("confirmar")).toBeDisabled();
+  await expect(page.getByTestId("vaciar")).toHaveCount(0);
 });
 
 /**
@@ -400,7 +361,6 @@ test("el botón de confirmar se queda dentro de la barra con un total de seis ci
   page,
 }) => {
   const [caro] = await sembrar([{ nombre: "Canasta", precio: 58_010, existencias: 40 }]);
-  await registrarVenta(nuevoId(), [{ productoId: caro!.id, cantidad: 30 }], dueno.id);
 
   // 360 es el ancho más estrecho que el producto promete; de 1024 para arriba la barra deja de ser
   // una franja y pasa a ser una columna de 352 px — más estrecha que casi cualquier teléfono, que
@@ -415,12 +375,9 @@ test("el botón de confirmar se queda dentro de la barra con un total de seis ci
     await ventaNueva(page);
     await tocar(page, caro!.id, 3);
     await expect(page.getByTestId("total")).toContainText("174.030");
-    // En el celular el total grande está dentro de la venta desplegada: se mide ahí, que es donde
-    // conviven el total y el botón. Recogida, el importe va dentro del propio botón.
-    await abrirVenta(page);
 
     const medido = await page.evaluate(() => {
-      const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
+      const barra = document.querySelector('[aria-label="Cobrar"]')!.getBoundingClientRect();
       const boton = document.querySelector('[data-testid="confirmar"]')!.getBoundingClientRect();
       const total = document.querySelector('[data-testid="total"]')!.getBoundingClientRect();
       return {
@@ -448,12 +405,12 @@ test("el botón de confirmar se queda dentro de la barra con un total de seis ci
 });
 
 /**
- * Preguntado por el estudio: «¿el total y el botón no deberían estar siempre visibles?». Lo estaban
- * en celular —la barra va fija abajo, con tope desde `T-025`— y no en computador: la columna no
- * tenía tope, así que crecía con el carrito hasta 1447 px y el total caía en y=1344 sobre una
- * pantalla de 900. `sticky` no lo alcanza cuando la tarjeta es más alta que la ventana.
+ * Preguntado por el estudio: «¿el total y el botón no deberían estar siempre visibles?». En
+ * computador la columna crecía con el carrito y el total caía fuera de la pantalla (`T-027`). Desde
+ * `T-033` la venta es la página y crece con ella: lo que no puede irse es Cobrar, que lleva el
+ * total dentro y va pegado al pie, arriba y abajo de la lista.
  */
-test("en computador el total sigue a la vista con el carrito más largo que la pantalla", async ({
+test("en computador Cobrar y su total siguen a la vista con la venta más larga que la pantalla", async ({
   page,
 }) => {
   const suyos = await sembrar(
@@ -463,14 +420,9 @@ test("en computador el total sigue a la vista con el carrito más largo que la p
       existencias: 60,
     })),
   );
-  // Vendidos, para que entren en la cuadrícula por donde ella ordena (`T-018`). A la vez: una tras
-  // otra eran veinte transacciones seguidas, y con la base lejos se comían el plazo de la prueba.
-  await Promise.all(
-    suyos.map((p, i) => registrarVenta(nuevoId(), [{ productoId: p!.id, cantidad: 50 - i }], dueno.id)),
-  );
+  const total = suyos.reduce((s, p) => s + p!.precio, 0);
 
-  // 900 de alto es una pantalla de escritorio holgada; 768, el portátil corriente. El defecto
-  // aparecía en las dos, porque no dependía de la pantalla sino de que la columna no tuviera tope.
+  // 900 de alto es una pantalla de escritorio holgada; 768, el portátil corriente.
   for (const [ancho, alto] of [
     [1280, 900],
     [1366, 768],
@@ -479,50 +431,35 @@ test("en computador el total sigue a la vista con el carrito más largo que la p
     await entrarComo(page, dueno);
     await ventaNueva(page);
     for (const p of suyos) await tocar(page, p!.id);
-    await expect(page.getByTestId("total")).toBeVisible();
+    await expect(page.getByTestId("confirmar")).toContainText(total.toLocaleString("es-CO"));
 
-    const medido = await page.evaluate(() => {
-      const barra = document.querySelector('[aria-label="Venta en curso"]')!.getBoundingClientRect();
-      const boton = document.querySelector('[data-testid="confirmar"]')!.getBoundingClientRect();
-      const total = document.querySelector('[data-testid="total"]')!.getBoundingClientRect();
-      const lista = document.querySelector('[data-testid="venta-en-curso"]')!;
-      return {
-        altoBarra: Math.round(barra.height),
-        pantalla: window.innerHeight,
-        totalDentro: total.top >= 0 && total.bottom <= window.innerHeight,
-        botonDentro: boton.top >= 0 && boton.bottom <= window.innerHeight,
-        fueraPorAbajo: Math.round(boton.bottom - window.innerHeight),
-        listaSeDesplaza: lista.scrollHeight > lista.clientHeight,
-      };
-    });
-
-    // Enteros dentro de la ventana, sin desplazar la página: es lo que se mira mientras se cobra.
-    expect(
-      medido.totalDentro,
-      `a ${ancho}×${alto} el total no cabe en la ventana`,
-    ).toBe(true);
-    expect(
-      medido.botonDentro,
-      `a ${ancho}×${alto} el botón se sale ${medido.fueraPorAbajo} px por abajo`,
-    ).toBe(true);
-    // Y lo que cede es la lista, que se desplaza por dentro — no el total, que se queda.
-    expect(medido.altoBarra).toBeLessThanOrEqual(medido.pantalla);
-    expect(medido.listaSeDesplaza, "la lista no está desplazándose por dentro").toBe(true);
+    for (const hacia of ["arriba", "abajo"] as const) {
+      await page.evaluate((h) => window.scrollTo(0, h === "abajo" ? document.body.scrollHeight : 0), hacia);
+      const medido = await page.evaluate(() => {
+        const boton = document.querySelector('[data-testid="confirmar"]')!.getBoundingClientRect();
+        return {
+          dentro: boton.top >= 0 && boton.bottom <= window.innerHeight,
+          fueraPorAbajo: Math.round(boton.bottom - window.innerHeight),
+          largo: document.documentElement.scrollHeight > window.innerHeight,
+        };
+      });
+      expect(medido.largo, "la venta no llegó a ser más larga que la pantalla").toBe(true);
+      expect(
+        medido.dentro,
+        `a ${ancho}×${alto}, desplazada ${hacia}, Cobrar se sale ${medido.fueraPorAbajo} px`,
+      ).toBe(true);
+    }
   }
 });
 
 // ——— T-029: lo que Cobalto añadió a la venta (`.diseno/cobalto`, puntos 1, 5, 11, 13 y 14) ———
 
-/**
- * Añade por búsqueda y no por la cuadrícula. La cuadrícula enseña los 24 más vendidos, y registrar
- * ventas para entrar en ella echa fuera a los productos de las pruebas vecinas que corren en
- * paralelo: el mismo defecto que ya corrigió `T-018`. Buscar por nombre no compite con nadie.
- */
+/** Añade buscando por nombre, como `tocar`, con el nombre ya a mano. */
 async function anadir(page: Page, p: { id: string; nombre: string }, veces = 1) {
   for (let i = 0; i < veces; i++) {
     await page.getByTestId("codigo-tecleado").fill(p.nombre);
     await page.getByTestId("codigo-tecleado").press("Enter");
-    await page.getByTestId(`casilla-${p.id}`).click();
+    await page.getByTestId(`resultado-${p.id}`).click();
   }
 }
 
@@ -601,7 +538,6 @@ test("vaciar no pregunta, no llama al servidor, y deshacer devuelve los nueve ar
   await entrarComo(page, dueno);
   await anadir(page, a!, 6);
   await anadir(page, b!, 3);
-  await abrirVenta(page);
 
   const alServidor: string[] = [];
   page.on("request", (r) => {
@@ -624,7 +560,6 @@ test("la cantidad se escribe: seis huevos son un toque y un número", async ({ p
   const [h] = await sembrar([{ nombre: "Huevo", precio: 800, existencias: 90 }]);
   await entrarComo(page, dueno);
   await anadir(page, h!);
-  await abrirVenta(page);
 
   await page.getByTestId(`cantidad-${h!.id}`).click();
   await page.getByTestId(`editar-cantidad-${h!.id}`).fill("6");
@@ -636,7 +571,7 @@ test("la cantidad se escribe: seis huevos son un toque y un número", async ({ p
 test("en computador el lector escribe en la búsqueda sin tocar nada, y F2 cobra", async ({ page }) => {
   const codigo = `77${Date.now()}`.slice(0, 13);
   const [p] = await sembrar([{ nombre: "Leído", precio: 3100, existencias: 20 }]);
-  await db.update(schema.product).set({ barcode: codigo }).where(eq(schema.product.id, p!.id));
+  await sembrarCodigo(p!.id, codigo);
   await page.setViewportSize({ width: 1280, height: 900 });
   await entrarComo(page, dueno);
 

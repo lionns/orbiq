@@ -2,9 +2,14 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 import { eq, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
-import { nuevoId } from "../src/domain/ids";
-import { registrarVenta } from "../src/domain/venta";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import {
+  borrarDueno,
+  borrarProductos,
+  crearDueno,
+  entrarComo,
+  sembrarCodigo,
+  type DuenoDePrueba,
+} from "./apoyo";
 import { codigoAleatorio } from "./apoyo/ean13";
 
 /**
@@ -23,13 +28,11 @@ test.beforeAll(async () => {
   dueno = await crearDueno("busqueda");
   const [panela] = await db
     .insert(schema.product)
-    .values({ name: `${MARCA} Panela`, price: 3500, stock: 100, barcode: CODIGO })
+    .values({ name: `${MARCA} Panela`, price: 3500, stock: 100 })
     .returning({ id: schema.product.id });
   panelaId = panela!.id;
-  // La panela se toca en la cuadrícula: tiene que haberse vendido, y más que lo que venden las
-  // pruebas vecinas a la vez, o queda fuera de los 24 que se enseñan (`venta.spec`).
-  await registrarVenta(nuevoId(), [{ productoId: panelaId, cantidad: 60 }], dueno.id);
-  // Sin código y sin ventas: no sale en la cuadrícula de frecuentes, que es el caso del brief.
+  await sembrarCodigo(panelaId, CODIGO);
+  // Sin código: solo se llega a él buscándolo por nombre, que es el caso del brief.
   await db.insert(schema.product).values({ name: `${MARCA} Queso costeño`, price: 9800, stock: 5 });
   await db
     .insert(schema.product)
@@ -42,7 +45,7 @@ test.afterAll(async () => {
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
   await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${ventas})`);
   await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
-  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 
@@ -60,11 +63,14 @@ test("AC-023 · buscar por nombre no recarga ni pierde la venta en curso", async
   await expect(page.getByTestId("encabezado-resultados")).toContainText("1 resultado");
   // El producto retirado existe y también se llama «Queso»: no puede aparecer.
   await expect(page.getByText(`${MARCA} Queso retirado`)).toHaveCount(0);
-  // Y la venta sigue ahí, que es el criterio.
+  // Y la venta sigue ahí, que es el criterio. Mientras se busca, los resultados ocupan su sitio
+  // (`T-033`), pero Cobrar sigue diciendo lo que lleva; y al dejar de buscar vuelve entera.
+  await expect(page.getByTestId("confirmar")).toContainText("3.500");
+  await page.getByTestId("codigo-tecleado").fill("");
   await expect(page.getByTestId(`cantidad-${panelaId}`)).toHaveText("1");
 });
 
-test("tocar un resultado lo añade y devuelve la cuadrícula de frecuentes", async ({ page }) => {
+test("tocar un resultado lo añade y vuelve a la venta, con el campo vacío", async ({ page }) => {
   await entrarComo(page, dueno);
   await page.getByTestId("codigo-tecleado").fill(`${MARCA} Queso`);
   await page.getByTestId("codigo-tecleado").press("Enter");
@@ -74,9 +80,11 @@ test("tocar un resultado lo añade y devuelve la cuadrícula de frecuentes", asy
 
   await expect(page.getByTestId("venta-en-curso")).toContainText("Queso costeño");
   await expect(page.getByTestId("encabezado-resultados")).toHaveCount(0);
+  // Lo buscado ya entró: el texto no se queda arriba sin resultados debajo (`T-033`).
+  await expect(page.getByTestId("codigo-tecleado")).toHaveValue("");
 });
 
-test("vaciar el campo vuelve a los frecuentes sin tocar la venta", async ({ page }) => {
+test("vaciar el campo vuelve a la venta sin tocarla", async ({ page }) => {
   await entrarComo(page, dueno);
   await page.getByTestId("codigo-tecleado").fill(CODIGO);
   await page.getByTestId("codigo-tecleado").press("Enter");
@@ -120,14 +128,15 @@ test("NFR-002 · una venta de tres artículos, uno buscado por nombre, cabe en v
 
   // El cronómetro empieza con la pantalla ya abierta: lo que se mide es registrar la venta, no
   // arrancar la aplicación. Los tres artículos son los del caso de `brief.md` § Success Measures:
-  // uno escaneado, uno de la cuadrícula y uno **sin código**, que antes obligaba a salir de aquí.
+  // dos escaneados y uno **sin código**, que antes obligaba a salir de aquí.
   const desde = Date.now();
 
   await page.getByTestId("codigo-tecleado").fill(CODIGO);
   await page.getByTestId("codigo-tecleado").press("Enter");
   await expect(page.getByTestId(`cantidad-${panelaId}`)).toHaveText("1");
 
-  await page.getByTestId(`casilla-${panelaId}`).click();
+  await page.getByTestId("codigo-tecleado").fill(CODIGO);
+  await page.getByTestId("codigo-tecleado").press("Enter");
   await expect(page.getByTestId(`cantidad-${panelaId}`)).toHaveText("2");
 
   await page.getByTestId("codigo-tecleado").fill(`${MARCA} Queso`);

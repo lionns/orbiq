@@ -21,7 +21,7 @@
     {
       "id": "FR-004",
       "title": "Registro de venta",
-      "description": "El dueño arma una venta escaneando o tocando desde una cuadrícula de frecuentes en la misma pantalla, con el total siempre visible, y la confirma. Confirmar descuenta existencias en una sola operación.",
+      "description": "El dueño arma una venta escaneando o buscando por nombre en la misma pantalla, con el total siempre visible, y la confirma. Confirmar descuenta existencias en una sola operación.",
       "source": "brief.md § In Scope"
     },
     {
@@ -87,8 +87,20 @@
     {
       "id": "FR-015",
       "title": "Buscar un producto durante la venta",
-      "description": "El dueño encuentra un producto por nombre o código sin salir de la pantalla de venta, y lo añade a la venta en curso desde el resultado. La cuadrícula muestra los frecuentes; la búsqueda alcanza al resto del catálogo.",
+      "description": "El dueño encuentra un producto por nombre o código sin salir de la pantalla de venta, y lo añade a la venta en curso desde el resultado. Es el camino de lo que no trae código: desde `FR-017` la venta no sugiere productos.",
       "source": "pedido por el estudio el 2026-09-07"
+    },
+    {
+      "id": "FR-016",
+      "title": "Varios códigos por producto, con su cantidad",
+      "description": "Cuando el proveedor cambia el código de un producto que ya se vende, el dueño añade el código nuevo a ese producto en vez de darlo de alta otra vez. Cada código lleva su propia cantidad, y la suma de todas es la del producto. El precio es del producto.",
+      "source": "pedido por el cliente el 2026-09-27; D-010; .diseno/codigos/"
+    },
+    {
+      "id": "FR-017",
+      "title": "Vender muestra solo la venta",
+      "description": "La pantalla de venta no muestra productos por defecto. Se ve la venta que se arma escaneando o buscando, y nada más.",
+      "source": "pedido por el cliente el 2026-09-27; .diseno/codigos/Vender"
     }
   ],
   "nonFunctional": [

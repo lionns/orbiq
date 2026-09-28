@@ -2,7 +2,7 @@ import { and, asc, count, eq, gte, ilike, inArray, lt, lte, ne, or, sql, type SQ
 import { db, schema } from "@/db";
 import { equivalentes, normalizarCodigo } from "./escaneo";
 import type { FiltrosCatalogo } from "./filtros";
-import type { AltaDeProducto, EdicionDeProducto } from "./producto";
+import type { AltaDeProducto, CodigoNuevo, EdicionDeProducto } from "./producto";
 
 /**
  * El catálogo contra la base. Consulta con Drizzle directamente: sin puertos ni repositorios
@@ -14,12 +14,12 @@ export type ProductoDelCatalogo = {
   precio: number;
   existencias: number;
   categoria: string | null;
-  codigoDeBarras: string | null;
   activo: boolean;
 };
 
 export type ResultadoAlta =
-  | { ok: true; id: string }
+  /** `codigoId` es el código con que nació, para que la venta sepa de cuál descontar (`AC-027`). */
+  | { ok: true; id: string; codigoId: string | null }
   | { ok: false; campo: string; mensaje: string };
 
 export type PaginaDelCatalogo = {
@@ -37,12 +37,12 @@ function condiciones(f: FiltrosCatalogo): SQL {
   // (`AC-022`).
   if (!f.incluirDesactivados) partes.push(eq(schema.product.isActive, true));
 
-  // El dueño busca por lo que ve en el empaque: el nombre o el código impreso.
+  // El dueño busca por lo que ve en el empaque: el nombre o cualquiera de sus códigos.
   if (f.busqueda) {
     partes.push(
       or(
         ilike(schema.product.name, `%${f.busqueda}%`),
-        ilike(schema.product.barcode, `%${f.busqueda}%`),
+        inArray(schema.product.id, conCodigoParecido(f.busqueda)),
       ),
     );
   }
@@ -59,6 +59,18 @@ function condiciones(f: FiltrosCatalogo): SQL {
   return and(...partes)!;
 }
 
+/**
+ * Los productos con algún código que contiene el texto. Subconsulta **sin correlacionar** a
+ * propósito: dentro de una plantilla `sql` Drizzle no cualifica los nombres de columna, y una
+ * correlación escrita a mano se ataba a la tabla equivocada (ver `ventasPorDia` en `venta.ts`).
+ * Un `in (select …)` no tiene ese problema.
+ */
+export function conCodigoParecido(texto: string) {
+  return db
+    .select({ id: schema.productBarcode.productId })
+    .from(schema.productBarcode)
+    .where(ilike(schema.productBarcode.code, `%${texto}%`));
+}
 
 export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatalogo> {
   const donde = condiciones(f);
@@ -74,7 +86,6 @@ export async function listarCatalogo(f: FiltrosCatalogo): Promise<PaginaDelCatal
         precio: schema.product.price,
         existencias: schema.product.stock,
         categoria: schema.category.name,
-        codigoDeBarras: schema.product.barcode,
         activo: schema.product.isActive,
       })
       .from(schema.product)
@@ -103,8 +114,11 @@ export async function contarCatalogo(f: FiltrosCatalogo): Promise<number> {
   return conteo?.n ?? 0;
 }
 
+export type CodigoResuelto = { id: string; numero: string };
+
 export type Resuelto =
-  | { ok: true; producto: ProductoDelCatalogo }
+  /** El producto **y** el código que se leyó: lo vendido sale de ese código (`AC-027`). */
+  | { ok: true; producto: ProductoDelCatalogo; codigo: CodigoResuelto }
   | { ok: false; motivo: "desconocido" | "ilegible"; codigo: string };
 
 /**
@@ -119,21 +133,48 @@ export async function resolverCodigo(crudo: string): Promise<Resuelto> {
   const codigo = normalizarCodigo(crudo);
   if (codigo === null) return { ok: false, motivo: "ilegible", codigo: crudo.trim() };
 
-  const [producto] = await db
+  const [fila] = await db
     .select({
       id: schema.product.id,
       nombre: schema.product.name,
       precio: schema.product.price,
       existencias: schema.product.stock,
       categoria: schema.category.name,
-      codigoDeBarras: schema.product.barcode,
       activo: schema.product.isActive,
+      codigoId: schema.productBarcode.id,
+      numero: schema.productBarcode.code,
     })
-    .from(schema.product)
+    .from(schema.productBarcode)
+    .innerJoin(schema.product, eq(schema.product.id, schema.productBarcode.productId))
     .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
-    .where(inArray(schema.product.barcode, equivalentes(codigo)));
+    .where(inArray(schema.productBarcode.code, equivalentes(codigo)));
 
-  return producto ? { ok: true, producto } : { ok: false, motivo: "desconocido", codigo };
+  if (!fila) return { ok: false, motivo: "desconocido", codigo };
+  const { codigoId, numero, ...producto } = fila;
+  return { ok: true, producto, codigo: { id: codigoId, numero } };
+}
+
+/**
+ * Quién tiene ya un código, contando sus formas equivalentes: un UPC-A de doce dígitos y su EAN-13
+ * con un cero delante son el mismo empaque (`escaneo.ts`). `AC-004` pide nombrarlo.
+ */
+async function quienLoTiene(
+  tx: Escritor,
+  codigo: string,
+  excepto?: string,
+): Promise<{ nombre: string } | undefined> {
+  const formas = equivalentes(normalizarCodigo(codigo) ?? codigo);
+  const [chocando] = await tx
+    .select({ nombre: schema.product.name })
+    .from(schema.productBarcode)
+    .innerJoin(schema.product, eq(schema.product.id, schema.productBarcode.productId))
+    .where(
+      excepto
+        ? and(inArray(schema.productBarcode.code, formas), ne(schema.productBarcode.id, excepto))
+        : inArray(schema.productBarcode.code, formas),
+    )
+    .limit(1);
+  return chocando;
 }
 
 export async function categoriasExistentes(): Promise<string[]> {
@@ -152,11 +193,7 @@ export async function crearProducto(
   // El driver es el de WebSocket precisamente por esto (`architecture.md` § Data).
   return db.transaction(async (tx) => {
     if (alta.codigoDeBarras) {
-      const [chocando] = await tx
-        .select({ nombre: schema.product.name })
-        .from(schema.product)
-        .where(eq(schema.product.barcode, alta.codigoDeBarras))
-        .limit(1);
+      const chocando = await quienLoTiene(tx, alta.codigoDeBarras);
       // AC-004: nombrar el producto que ya lo tiene. «Código repetido» a secas obliga a buscarlo
       // a mano con alguien esperando en el mostrador.
       if (chocando) {
@@ -170,19 +207,27 @@ export async function crearProducto(
 
     const categoriaId = alta.categoria ? await idDeCategoria(tx, alta.categoria) : null;
 
-    let producto;
+    const [producto] = await tx
+      .insert(schema.product)
+      .values({
+        name: alta.nombre,
+        price: alta.precio,
+        categoryId: categoriaId,
+        // Nace en cero. Las existencias entran por el libro, nunca escritas sueltas (`D-002`).
+        stock: 0,
+      })
+      .returning({ id: schema.product.id });
+    const id = producto!.id;
+
+    let codigoId: string | null = null;
     try {
-      [producto] = await tx
-        .insert(schema.product)
-        .values({
-          name: alta.nombre,
-          price: alta.precio,
-          categoryId: categoriaId,
-          barcode: alta.codigoDeBarras,
-          // Nace en cero. Las existencias entran por el libro, nunca escritas sueltas (`D-002`).
-          stock: 0,
-        })
-        .returning({ id: schema.product.id });
+      if (alta.codigoDeBarras) {
+        const [codigo] = await tx
+          .insert(schema.productBarcode)
+          .values({ productId: id, code: alta.codigoDeBarras })
+          .returning({ id: schema.productBarcode.id });
+        codigoId = codigo!.id;
+      }
     } catch (error) {
       // La comprobación de arriba deja una rendija: entre leer y escribir cabe otra alta con el
       // mismo código. La restricción de la base la cierra, y aquí se traduce a un mensaje en vez
@@ -197,11 +242,10 @@ export async function crearProducto(
       throw error;
     }
 
-    const id = producto!.id;
-
     if (alta.existenciasIniciales > 0) {
       await tx.insert(schema.stockMovement).values({
         productId: id,
+        barcodeId: codigoId,
         quantity: alta.existenciasIniciales,
         type: "initial",
         userId: usuarioId,
@@ -213,7 +257,7 @@ export async function crearProducto(
         .where(eq(schema.product.id, id));
     }
 
-    return { ok: true as const, id };
+    return { ok: true as const, id, codigoId };
   });
 }
 
@@ -221,7 +265,7 @@ export async function crearProducto(
 function esCodigoDeBarrasRepetido(error: unknown): boolean {
   const causa = error instanceof Error && "cause" in error ? error.cause : error;
   const detalle = causa as { code?: string; constraint?: string } | null;
-  return detalle?.code === "23505" && detalle?.constraint === "product_barcode_unique";
+  return detalle?.code === "23505" && detalle?.constraint === "product_barcode_code_unique";
 }
 
 /** El saldo es la suma del libro. Aquí como subconsulta para que nunca se calcule en memoria. */
@@ -250,27 +294,6 @@ export async function editarProducto(
       .limit(1);
     if (!actual) return { ok: false as const, campo: "nombre", mensaje: "Ese producto ya no existe." };
 
-    if (edicion.codigoDeBarras) {
-      const [chocando] = await tx
-        .select({ nombre: schema.product.name })
-        .from(schema.product)
-        .where(
-          and(
-            eq(schema.product.barcode, edicion.codigoDeBarras),
-            ne(schema.product.id, productoId),
-          ),
-        )
-        .limit(1);
-      // Igual que en el alta: nombrar al otro, no decir «repetido» y dejar buscarlo a mano.
-      if (chocando) {
-        return {
-          ok: false as const,
-          campo: "codigoDeBarras",
-          mensaje: `Ese código ya es de «${chocando.nombre}».`,
-        };
-      }
-    }
-
     const categoriaId = edicion.categoria
       ? await idDeCategoria(tx, edicion.categoria)
       : null;
@@ -281,7 +304,6 @@ export async function editarProducto(
         name: edicion.nombre,
         price: edicion.precio,
         categoryId: categoriaId,
-        barcode: edicion.codigoDeBarras,
         updatedAt: new Date(),
       })
       .where(eq(schema.product.id, productoId));
@@ -350,3 +372,136 @@ async function idDeCategoria(tx: Escritor, nombre: string): Promise<string> {
 
 /** La transacción de Drizzle no es la misma forma que `db`, pero para escribir es intercambiable. */
 type Escritor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export type ResultadoCodigo =
+  | { ok: true; codigoId: string }
+  | { ok: false; campo: "codigo" | "llegaron" | "producto"; mensaje: string };
+
+/**
+ * Añadir un código a un producto que ya se vende (`D-010`, `AC-026`). Es lo que se hace cuando el
+ * proveedor cambió el código: el producto, su precio y su historial siguen siendo los mismos.
+ *
+ * Lo que llegó con el código entra al libro como `purchase` de ese código, y el total del producto
+ * se vuelve a leer del libro (`D-002`). Cero unidades es válido: se añade el código y se cuenta
+ * después.
+ */
+export async function anadirCodigo(
+  productoId: string,
+  nuevo: CodigoNuevo,
+  usuarioId: string,
+): Promise<ResultadoCodigo> {
+  try {
+    return await db.transaction(async (tx) => {
+      const [producto] = await tx
+        .select({ id: schema.product.id })
+        .from(schema.product)
+        .where(eq(schema.product.id, productoId))
+        .limit(1);
+      if (!producto) return { ok: false as const, campo: "producto" as const, mensaje: "Ese producto ya no existe." };
+
+      const chocando = await quienLoTiene(tx, nuevo.codigo);
+      if (chocando) {
+        return {
+          ok: false as const,
+          campo: "codigo" as const,
+          mensaje: `Ese código ya es de «${chocando.nombre}».`,
+        };
+      }
+
+      const [codigo] = await tx
+        .insert(schema.productBarcode)
+        .values({ productId: productoId, code: nuevo.codigo })
+        .returning({ id: schema.productBarcode.id });
+
+      if (nuevo.llegaron > 0) {
+        await tx.insert(schema.stockMovement).values({
+          productId: productoId,
+          barcodeId: codigo!.id,
+          quantity: nuevo.llegaron,
+          type: "purchase",
+          userId: usuarioId,
+        });
+        await tx
+          .update(schema.product)
+          .set({ stock: sql`coalesce(${saldoDelLibro(productoId)}, 0)` })
+          .where(eq(schema.product.id, productoId));
+      }
+
+      return { ok: true as const, codigoId: codigo!.id };
+    });
+  } catch (error) {
+    // La misma rendija que en el alta: otro lo añadió entre leer y escribir.
+    if (esCodigoDeBarrasRepetido(error)) {
+      return { ok: false, campo: "codigo", mensaje: "Ese código ya es de otro producto." };
+    }
+    throw error;
+  }
+}
+
+export type ResultadoCorreccion = { ok: true } | { ok: false; mensaje: string };
+
+/**
+ * Corregir el número de un código mal tecleado. Sus movimientos siguen siendo suyos: se corrige cómo
+ * se llama, no de qué fue cada venta. Un código no se borra, porque el libro lo nombra (`D-010`).
+ */
+export async function corregirCodigo(
+  codigoId: string,
+  numeroCrudo: string,
+): Promise<ResultadoCorreccion> {
+  const numero = numeroCrudo.replace(/\s/g, "");
+  if (!numero) return { ok: false, mensaje: "El código no puede quedar vacío." };
+  try {
+    return await db.transaction(async (tx) => {
+      const chocando = await quienLoTiene(tx, numero, codigoId);
+      if (chocando) return { ok: false as const, mensaje: `Ese código ya es de «${chocando.nombre}».` };
+      await tx
+        .update(schema.productBarcode)
+        .set({ code: numero })
+        .where(eq(schema.productBarcode.id, codigoId));
+      return { ok: true as const };
+    });
+  } catch (error) {
+    if (esCodigoDeBarrasRepetido(error)) return { ok: false, mensaje: "Ese código ya es de otro producto." };
+    throw error;
+  }
+}
+
+export type CandidatoParaCodigo = {
+  id: string;
+  nombre: string;
+  precio: number;
+  existencias: number;
+  codigos: string[];
+};
+
+/**
+ * Los productos a los que se les puede añadir un código nuevo, buscados por nombre (`AC-025`). Cada
+ * uno dice qué códigos tiene ya: es lo que ayuda a reconocer «este es el mismo, cambió el código».
+ */
+export async function buscarParaAnadirCodigo(texto: string): Promise<CandidatoParaCodigo[]> {
+  const limpio = texto.trim();
+  if (!limpio) return [];
+  const productos = await db
+    .select({
+      id: schema.product.id,
+      nombre: schema.product.name,
+      precio: schema.product.price,
+      existencias: schema.product.stock,
+    })
+    .from(schema.product)
+    .where(and(eq(schema.product.isActive, true), ilike(schema.product.name, `%${limpio}%`)))
+    .orderBy(asc(schema.product.name))
+    .limit(12);
+  if (productos.length === 0) return [];
+
+  const codigos = await db
+    .select({ productoId: schema.productBarcode.productId, numero: schema.productBarcode.code })
+    .from(schema.productBarcode)
+    .where(inArray(schema.productBarcode.productId, productos.map((p) => p.id)))
+    .orderBy(asc(schema.productBarcode.createdAt));
+
+  return productos.map((p) => ({
+    ...p,
+    codigos: codigos.filter((c) => c.productoId === p.id).map((c) => c.numero),
+  }));
+}

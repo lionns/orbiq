@@ -89,3 +89,46 @@ export function acumular(
     codigo: null,
   };
 }
+
+/**
+ * Lo que el visor puede ofrecer según la cámara (`T-034`). Solo se enseña lo que la cámara permite:
+ * un botón que no hace nada, o un círculo que dice «enfoqué aquí» sin haber enfocado, es peor que
+ * no tenerlos. Chrome en Android permite las dos cosas; Safari en iPhone reciente, el zoom.
+ */
+export type AjustesDeCamara = {
+  /** El zoom de «2×», o `null` si la cámara no llega a 2 aumentos. */
+  zoom: { normal: number; acercado: number } | null;
+  /** Tocar la imagen enfoca en ese punto. */
+  enfocarAlTocar: boolean;
+};
+
+export type CapacidadesDeCamara = {
+  zoom?: { min?: number; max?: number } | undefined;
+  focusMode?: string[] | undefined;
+};
+
+export const ACERCAR = 2;
+
+export function ajustesDeCamara(
+  capacidades: CapacidadesDeCamara | undefined,
+  admitidas: Record<string, boolean | undefined>,
+  /** El zoom con el que la cámara abrió (`getSettings().zoom`). */
+  zoomAlAbrir?: number | undefined,
+): AjustesDeCamara {
+  const zoom = capacidades?.zoom;
+  /**
+   * «Normal» es como abrió la cámara, no su mínimo. En un iPhone con varias cámaras el mínimo es el
+   * gran angular y la cámara abre más adelante: tomando el mínimo, «1×» alejaba más allá de como
+   * se abrió, y parecía que el botón funcionaba al revés (reportado probando en un iPhone).
+   */
+  const normal = zoomAlAbrir ?? zoom?.min ?? 1;
+  return {
+    zoom:
+      zoom?.max !== undefined && zoom.max >= normal * ACERCAR
+        ? { normal, acercado: normal * ACERCAR }
+        : null,
+    enfocarAlTocar:
+      admitidas.pointsOfInterest === true &&
+      (capacidades?.focusMode?.includes("single-shot") ?? false),
+  };
+}

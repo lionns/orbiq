@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Añadir otro código</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&amp;display=swap">
+<style>
+body{margin:0;font-family:"Geist",system-ui,sans-serif;color:#12152a}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 360px; height: 844px; background: #e8ebf4; color: #12152a; font-family: 'Geist',system-ui,sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5;">
+<main style="flex-grow: 1; padding: 16px 16px 24px; display: flex; flex-direction: column;">
+  <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">Por código</h2>
+  <p style="margin: 0 0 12px; color: #50566f;">Cada código lleva su propia cuenta. Suman 4.</p>
+  <div style="border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 10px 16px 10px 14px;">
+      <span style="display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; background: #e8ebf4; flex-shrink: 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg></span>
+      <span style="flex-grow: 1; min-width: 0;"><span class="num" style="display: block; font-weight: 600;">7702511000014</span><span style="display: block; color: #50566f;">Desde el 06/09/2026</span></span>
+      <span class="num" style="font-size: 22px; font-weight: 700;">4</span>
+    </div>
+    <div style="height: 1px; background: #dcdfec;"></div>
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px;">
+      <span style="display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; background: #e3e7fc; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+      <span style="flex-grow: 1; min-width: 0;"><span style="display: block; font-weight: 600;">Añadir otro código</span><span style="display: block; color: #50566f;">Cuando el proveedor lo cambia.</span></span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+    </div>
+    <div style="padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label for="codigo-ficha" style="font-weight: 600;">Código</label>
+        <div style="display: flex; gap: 8px;">
+          <input id="codigo-ficha" type="text" inputmode="numeric" placeholder="Escríbelo o escanéalo" style="flex-grow: 1; min-width: 0; min-height: 52px; padding: 0 14px; border-radius: 16px; border: 1px solid #767b95; background: #ffffff; font: inherit; font-size: 17px; color: #12152a; box-sizing: border-box;">
+          <a href="Visor.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 52px; padding: 0 14px; border-radius: 16px; background: #e3e7fc; border: 1px solid #2f47d6; font-weight: 600; flex-shrink: 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg>Escanear</a>
+        </div>
+        <span style="color: #50566f;">Al leerlo, el número queda puesto aquí.</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label for="llegaron-ficha" style="font-weight: 600;">¿Cuántas llegaron con este código? <span style="font-weight: 400; color: #50566f;">(opcional)</span></label>
+        <input id="llegaron-ficha" type="text" inputmode="numeric" placeholder="0" style="min-height: 52px; padding: 0 14px; border-radius: 16px; border: 1px solid #767b95; background: #ffffff; font: inherit; font-size: 17px; color: #12152a; box-sizing: border-box;">
+      </div>
+      <span style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; border-radius: 16px; background: #2f47d6; color: #ffffff; font-size: 17px; font-weight: 700;">Añadir el código</span>
+    </div>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Vender, solo la venta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&amp;display=swap">
+<style>
+body{margin:0;font-family:"Geist",system-ui,sans-serif;color:#12152a}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+input:focus{outline:none}
+</style>
+</helmet>
+<div style="width: 360px; height: 844px; background: #e8ebf4; color: #12152a; font-family: 'Geist',system-ui,sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5;">
+<main style="flex-grow: 1; min-height: 0; padding: 16px 16px 180px; display: flex; flex-direction: column; overflow-y: auto;">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <h1 style="margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -0.03em;">Vender</h1>
+    <sc-if value="{{hayVenta}}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{vaciar}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 14px; border-radius: 16px; border: 1px solid #b42318; background: #fbe4e1; font: inherit; font-weight: 600; color: #b42318;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b42318" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>Vaciar</button>
+    </sc-if>
+  </div>
+  <label for="buscar-venta" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Buscar por nombre o código</label>
+  <div style="margin-top: 8px; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border-radius: 16px; background: #ffffff; border: 1px solid #767b95; box-sizing: border-box;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="buscar-venta" type="search" value="{{busqueda}}" onChange="{{alEscribir}}" placeholder="Buscar por nombre o código" autocomplete="off" style="flex-grow: 1; min-width: 0; border: none; background: transparent; font: inherit; font-size: 17px; color: #12152a; padding: 0;">
+  </div>
+
+  <sc-if value="{{hayVaciada}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 16px; background: #12152a; color: #ffffff;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      <span class="num" style="flex-grow: 1; min-width: 0; font-weight: 600;">{{textoVaciada}}</span>
+      <button type="button" onClick="{{deshacer}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 14px; border-radius: 12px; border: none; background: rgba(255,255,255,0.15); color: #ffffff; font: inherit; font-weight: 700;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Deshacer</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{buscando}}" hint-placeholder-val="{{ false }}">
+    <p class="num" style="margin: 16px 0 8px; color: #50566f; font-weight: 500;">{{encabezado}}</p>
+    <div style="border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; box-shadow: 0 1px 2px rgba(15,20,25,0.06), 0 8px 24px rgba(15,20,25,0.06); overflow: hidden;">
+      <sc-for list="{{resultados}}" as="r" hint-placeholder-count="3">
+        <sc-if value="{{r.separador}}" hint-placeholder-val="{{ false }}"><div style="height: 1px; background: #dcdfec; margin-left: 16px;"></div></sc-if>
+        <button type="button" onClick="{{r.agregar}}" style="width: 100%; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px 10px 16px; border: none; background: #ffffff; font: inherit; color: #12152a; text-align: left;">
+          <span style="flex-grow: 1; min-width: 0;"><span style="display: block; font-weight: 600;">{{r.nombre}}</span><span class="num" style="display: block; color: #50566f;">{{r.hay}}</span></span>
+          <span class="num" style="font-weight: 700;">{{r.precioTexto}}</span>
+          <span style="display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; background: #e3e7fc; flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{vacia}}" hint-placeholder-val="{{ true }}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 24px 12px;">
+      <span style="display: grid; place-items: center; width: 88px; height: 88px; border-radius: 9999px; background: #e3e7fc;"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg></span>
+      <span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Escanea para empezar</span>
+      <span style="color: #50566f; max-width: 260px;">Lo que no trae código, como el pan o los huevos, búscalo por nombre arriba.</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{conLineas}}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{hayAviso}}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; background: #e3e7fc;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M20 6 9 17l-5-5"/></svg>
+        <span style="font-weight: 600;">{{aviso}}</span>
+      </div>
+    </sc-if>
+    <p class="num" style="margin: 16px 0 8px; font-weight: 600;">{{conteo}}</p>
+    <div style="border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; box-shadow: 0 1px 2px rgba(15,20,25,0.06), 0 8px 24px rgba(15,20,25,0.06); overflow: hidden;">
+      <sc-for list="{{lineas}}" as="l" hint-placeholder-count="3">
+        <sc-if value="{{l.separador}}" hint-placeholder-val="{{ false }}"><div style="height: 1px; background: #dcdfec;"></div></sc-if>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 12px 12px 16px;">
+          <div style="display: flex; gap: 12px;"><span style="flex-grow: 1; font-size: 17px; font-weight: 600;">{{l.nombre}}</span><span class="num" style="font-size: 17px; font-weight: 700;">{{l.totalTexto}}</span></div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="num" style="flex-grow: 1; color: #50566f;">{{l.detalle}}</span>
+            <span style="display: flex; align-items: center; gap: 4px;">
+              <button type="button" aria-label="{{l.etiquetaMenos}}" onClick="{{l.menos}}" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #767b95; background: #ffffff; font: inherit; font-size: 20px; color: #12152a;">−</button>
+              <span class="num" style="min-width: 32px; text-align: center; font-size: 18px; font-weight: 700;">{{l.cantidad}}</span>
+              <button type="button" aria-label="{{l.etiquetaMas}}" onClick="{{l.mas}}" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #767b95; background: #ffffff; font: inherit; font-size: 20px; color: #12152a;">+</button>
+            </span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+</main>
+<aside style="position: absolute; left: 0; right: 0; bottom: 76px; background: #ffffff; border-top: 1px solid #dcdfec; box-shadow: 0 -12px 32px rgba(15,20,25,0.10); padding: 12px 16px; display: flex; gap: 8px;">
+  <button type="button" onClick="{{escanear}}" style="flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 64px; border-radius: 16px; border: none; background: #e3e7fc; color: #12152a; font: inherit; font-size: 17px; font-weight: 600;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg>Escanear</button>
+  <button type="button" disabled="{{sinVenta}}" style="flex: 2 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 64px; border-radius: 16px; border: none; background: {{fondoCobrar}}; color: {{textoCobrar}}; font: inherit; font-size: 20px; font-weight: 700;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="num">{{cobrar}}</span></button>
+</aside>
+<nav style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 4px 8px 8px; background: #ffffff; border-top: 1px solid #dcdfec;">
+  <a href="#" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; color: #50566f; font-size: 14px; font-weight: 500;"><span style="display: grid; place-items: center; width: 56px; height: 30px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Inicio</a>
+  <a href="Vender.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; color: #2f47d6; font-size: 14px; font-weight: 700;"><span style="display: grid; place-items: center; width: 56px; height: 30px; border-radius: 9999px; background: #e3e7fc;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 11-1 9"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="M4.5 15.5h15"/><path d="m5 11 4-7"/><path d="m9 11 1 9"/></svg></span>Vender</a>
+  <a href="#" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; color: #50566f; font-size: 14px; font-weight: 500;"><span style="display: grid; place-items: center; width: 56px; height: 30px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></svg></span>Ventas</a>
+  <a href="Ficha.dc.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; color: #50566f; font-size: 14px; font-weight: 500;"><span style="display: grid; place-items: center; width: 56px; height: 30px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg></span>Productos</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { lineas: [], busqueda: '', aviso: '', escaneos: 0, vaciada: null };
+}
+componentWillUnmount() {
+clearTimeout(this.temporizador);
+}
+catalogo() {
+return [
+{ id: 'arroz', nombre: 'Arroz Diana 500 g', precio: 3500, codigo: '…0014', hay: 27 },
+{ id: 'leche', nombre: 'Leche Alquería 1 L', precio: 4200, codigo: '…0021', hay: 3 },
+{ id: 'cafe', nombre: 'Café Sello Rojo 250 g', precio: 11000, codigo: '…7730', hay: 6 },
+{ id: 'panela', nombre: 'Panela redonda', precio: 2800, codigo: null, hay: 31 },
+{ id: 'huevos', nombre: 'Huevos AA unidad', precio: 800, codigo: null, hay: 40 },
+{ id: 'pan', nombre: 'Pan tajado', precio: 5200, codigo: null, hay: 9 }
+];
+}
+pesos(n) {
+return '$ ' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+agregar(p, porEscaneo) {
+var lineas = this.state.lineas.slice();
+var i = lineas.findIndex(function (l) { return l.id === p.id; });
+if (i === -1) lineas.unshift(Object.assign({}, p, { cantidad: 1 }));
+else lineas[i] = Object.assign({}, lineas[i], { cantidad: lineas[i].cantidad + 1 });
+clearTimeout(this.temporizador);
+this.setState({ lineas: lineas, busqueda: '', vaciada: null, aviso: (porEscaneo ? 'Escaneado: ' : 'Añadido: ') + p.nombre });
+}
+cambiar(id, delta) {
+var lineas = this.state.lineas
+.map(function (l) { return l.id === id ? Object.assign({}, l, { cantidad: l.cantidad + delta }) : l; })
+.filter(function (l) { return l.cantidad > 0; });
+this.setState({ lineas: lineas, aviso: '' });
+}
+renderVals() {
+var self = this;
+var s = this.state;
+var q = s.busqueda.trim().toLowerCase();
+var buscando = q !== '';
+var encontrados = this.catalogo().filter(function (p) { return p.nombre.toLowerCase().indexOf(q) !== -1; });
+var total = 0;
+var unidades = 0;
+var lineas = s.lineas.map(function (l, i) {
+total += l.precio * l.cantidad;
+unidades += l.cantidad;
+return {
+separador: i > 0,
+nombre: l.nombre,
+cantidad: l.cantidad,
+totalTexto: self.pesos(l.precio * l.cantidad),
+detalle: (l.codigo ? 'Código ' + l.codigo : 'Sin código') + ' · ' + self.pesos(l.precio) + ' c/u',
+etiquetaMenos: 'Una menos de ' + l.nombre,
+etiquetaMas: 'Una más de ' + l.nombre,
+menos: function () { self.cambiar(l.id, -1); },
+mas: function () { self.cambiar(l.id, 1); }
+};
+});
+var hayVenta = lineas.length > 0;
+var conCodigo = this.catalogo().filter(function (p) { return p.codigo; });
+return {
+busqueda: s.busqueda,
+alEscribir: function (e) { self.setState({ busqueda: e.target.value }); },
+buscando: buscando,
+encabezado: encontrados.length === 0 ? 'Ningún producto se llama así' : (encontrados.length === 1 ? '1 producto' : encontrados.length + ' productos'),
+resultados: encontrados.map(function (p, i) {
+return { separador: i > 0, nombre: p.nombre, hay: 'Hay ' + p.hay, precioTexto: self.pesos(p.precio), agregar: function () { self.agregar(p, false); } };
+}),
+vacia: !buscando && !hayVenta,
+conLineas: !buscando && hayVenta,
+hayVenta: hayVenta,
+sinVenta: !hayVenta,
+hayAviso: s.aviso !== '',
+aviso: s.aviso,
+conteo: (lineas.length === 1 ? '1 producto' : lineas.length + ' productos') + ' · ' + (unidades === 1 ? '1 unidad' : unidades + ' unidades'),
+lineas: lineas,
+hayVaciada: s.vaciada !== null,
+textoVaciada: s.vaciada ? 'Venta vaciada, ' + s.vaciada.reduce(function (n, l) { return n + l.cantidad; }, 0) + ' artículos' : '',
+vaciar: function () {
+clearTimeout(self.temporizador);
+self.setState({ vaciada: s.lineas, lineas: [], aviso: '' });
+// Como hoy en la app: el «Deshacer» dura 10 segundos y se va solo.
+self.temporizador = setTimeout(function () { self.setState({ vaciada: null }); }, 10000);
+},
+deshacer: function () {
+clearTimeout(self.temporizador);
+self.setState({ lineas: s.vaciada || [], vaciada: null, aviso: '' });
+},
+escanear: function () {
+var p = conCodigo[s.escaneos % conCodigo.length];
+self.setState({ escaneos: s.escaneos + 1 });
+self.agregar(p, true);
+},
+cobrar: hayVenta ? 'Cobrar ' + self.pesos(total) : 'Cobrar',
+fondoCobrar: hayVenta ? '#2f47d6' : '#dcdfec',
+textoCobrar: hayVenta ? '#ffffff' : '#50566f'
+};
+}
+}
+</script>
+</body>
+</html>

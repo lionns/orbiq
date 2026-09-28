@@ -6,7 +6,7 @@ import { nuevoId } from "../src/domain/ids";
 import { listarCatalogo } from "../src/domain/catalogo";
 import { leerFiltros } from "../src/domain/filtros";
 import { resumenDelDia, registrarVenta, ventasDelRango } from "../src/domain/venta";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /** T-028: datos reales, consulta de dominio y las rutas existentes de catálogo y ventas. */
 let dueno: DuenoDePrueba;
@@ -24,7 +24,7 @@ test.afterAll(async () => {
     await db.delete(schema.saleLine).where(inArray(schema.saleLine.saleId, ventas));
     await db.delete(schema.sale).where(inArray(schema.sale.id, ventas));
   }
-  if (productos.length) await db.delete(schema.product).where(inArray(schema.product.id, productos));
+  if (productos.length) await borrarProductos(inArray(schema.product.id, productos));
   await borrarDueno(dueno);
 });
 

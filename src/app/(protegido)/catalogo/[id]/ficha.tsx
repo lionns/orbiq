@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { categoriasExistentes } from "@/domain/catalogo";
+import { cola } from "@/domain/codigos";
 import {
   ETIQUETA_MOVIMIENTO,
   libroDelProducto,
@@ -15,7 +16,10 @@ import { Cantidad, Existencias, Precio } from "@/ui/cifras";
 import { Icono, type NombreDeIcono } from "@/ui/iconos";
 import { cambiarEstado } from "./acciones";
 import { FormularioAjuste } from "./ajuste";
+import { FormularioCodigo } from "./codigo";
 import { FormularioEdicion } from "./edicion";
+
+const fecha = new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeZone: ZONA_DEL_NEGOCIO });
 
 const cuando = new Intl.DateTimeFormat("es-CO", {
   dateStyle: "medium",
@@ -47,6 +51,17 @@ export async function FichaDelProducto({
   const [libro, categorias] = await Promise.all([libroDelProducto(id), categoriasExistentes()]);
   if (!libro) notFound();
   const p = libro.producto;
+  const { codigos, sinCodigo } = libro.porCodigo;
+  // Lo que se puede contar por separado: cada código y, si lo hay, lo que no tiene código. Un
+  // producto sin códigos es un solo grupo, y el conteo no pregunta nada (`D-010`).
+  const grupos = [
+    ...(sinCodigo !== null || codigos.length === 0
+      ? [{ id: null, etiqueta: "Sin código", cantidad: sinCodigo ?? libro.saldoMaterializado }]
+      : []),
+    ...codigos.map((c) => ({ id: c.id, etiqueta: c.numero, cantidad: c.cantidad })),
+  ];
+  // Lo que se vende sin escanear sale del grupo más antiguo con unidades (`AC-027`): se dice cuál.
+  const primero = codigos.length > 1 ? grupos.find((g) => g.cantidad > 0)?.id : undefined;
 
   return (
     <div className="flex flex-col">
@@ -94,10 +109,11 @@ export async function FichaDelProducto({
         </span>
       </section>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        {enPanel ? null : <Ficha icono="categoria">{p.categoria ?? "Sin categoría"}</Ficha>}
-        {p.codigoDeBarras ? <Ficha icono="escanear">{p.codigoDeBarras}</Ficha> : null}
-      </div>
+      {enPanel ? null : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Ficha icono="categoria">{p.categoria ?? "Sin categoría"}</Ficha>
+        </div>
+      )}
 
       {/* NFR-005: si la copia y el libro divergen, se dice. Un número que no cuadra y se calla es
           peor que uno que no cuadra y lo avisa. */}
@@ -109,6 +125,49 @@ export async function FichaDelProducto({
           </Aviso>
         </div>
       ) : null}
+
+      {/* `.diseno/codigos/Ficha`. Cada código lleva su cuenta y la suma es el total (`D-010`). */}
+      <section className="mt-7" aria-labelledby="por-codigo">
+        <h2 id="por-codigo" className="text-xl font-bold tracking-tight">
+          Por código
+        </h2>
+        <p className="mb-3 text-text-muted">
+          {codigos.length === 0
+            ? "Todavía no tiene código. Se vende buscándolo por nombre."
+            : `Cada código lleva su propia cuenta. Suman ${libro.saldoMaterializado}.`}
+        </p>
+        <div className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
+          {codigos.length > 0 ? (
+            <ul className="divide-y divide-border" data-testid="por-codigo">
+              {codigos.map((c, i) => (
+                <FilaDeCodigo
+                  key={c.id}
+                  numero={c.numero}
+                  detalle={`Desde el ${fecha.format(c.desde)}${c.id === primero ? " · se vende primero" : ""}`}
+                  cantidad={c.cantidad}
+                  reciente={i === codigos.length - 1 && codigos.length > 1}
+                />
+              ))}
+              {sinCodigo !== null ? (
+                <FilaDeCodigo
+                  numero="Sin código"
+                  detalle={`Lo registrado antes de tener código${primero === null ? " · se vende primero" : ""}`}
+                  cantidad={sinCodigo}
+                />
+              ) : null}
+            </ul>
+          ) : null}
+          <SeccionPlegable
+            titulo={codigos.length === 0 ? "Añadir un código" : "Añadir otro código"}
+            descripcion="Cuando el proveedor lo cambia. Di cuántas llegaron."
+            icono="nuevo"
+            enGrupo
+            data-testid="abrir-codigo"
+          >
+            <FormularioCodigo productoId={p.id} />
+          </SeccionPlegable>
+        </div>
+      </section>
 
       <section className="mt-7" aria-labelledby="historial">
         <h2 id="historial" className="text-xl font-bold tracking-tight">
@@ -125,7 +184,7 @@ export async function FichaDelProducto({
             data-testid="historial"
           >
             {libro.linea.map((e) => (
-              <FilaDelHistorial key={e.id} evento={e} />
+              <FilaDelHistorial key={e.id} evento={e} conCodigo={codigos.length > 0} />
             ))}
           </ol>
         ) : null}
@@ -149,17 +208,22 @@ export async function FichaDelProducto({
             data-testid="abrir-ajuste"
             abierta={!libro.cuadra}
           >
-            <FormularioAjuste productoId={p.id} saldo={libro.saldoMaterializado} />
+            <FormularioAjuste productoId={p.id} grupos={grupos} />
           </SeccionPlegable>
 
           <SeccionPlegable
             titulo="Editar los datos"
-            descripcion="Nombre, precio, categoría y código."
+            descripcion={codigos.length > 0 ? "Nombre, precio, categoría y códigos." : "Nombre, precio y categoría."}
             icono="editar"
             enGrupo
             data-testid="abrir-edicion"
           >
-            <FormularioEdicion productoId={p.id} producto={p} categorias={categorias} />
+            <FormularioEdicion
+              productoId={p.id}
+              producto={p}
+              codigos={codigos.map((c) => ({ id: c.id, numero: c.numero }))}
+              categorias={categorias}
+            />
           </SeccionPlegable>
 
           {/* Separado de editar a propósito: dejar de vender no es corregir un dato, es sacar algo
@@ -168,8 +232,8 @@ export async function FichaDelProducto({
             titulo={p.activo ? "Dejar de vender" : "Devolver a la venta"}
             descripcion={
               p.activo
-                ? "Sale de la cuadrícula y del catálogo. El historial se queda."
-                : "Ya no se vende. Volverá a la cuadrícula y al catálogo."
+                ? "Sale de la venta y del catálogo. El historial se queda."
+                : "Ya no se vende. Volverá a la venta y al catálogo."
             }
             icono="retirar"
             enGrupo
@@ -196,9 +260,44 @@ function Ficha({ icono, children }: { icono: NombreDeIcono; children: React.Reac
   );
 }
 
+function FilaDeCodigo({
+  numero,
+  detalle,
+  cantidad,
+  reciente = false,
+}: {
+  numero: string;
+  detalle: string;
+  cantidad: number;
+  reciente?: boolean;
+}) {
+  return (
+    <li className="flex min-h-17 items-center gap-3 px-4 py-2.5" data-testid="fila-codigo">
+      <span
+        className={`grid size-10 shrink-0 place-items-center rounded-full ${
+          reciente ? "bg-accent-soft text-accent" : "bg-bg text-text-muted"
+        }`}
+      >
+        <Icono nombre="escanear" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold tabular-nums">{numero}</span>
+        <span className="block text-text-muted">{detalle}</span>
+      </span>
+      <Cantidad
+        valor={cantidad}
+        className={`text-2xl font-bold ${cantidad < 0 ? "text-danger" : ""}`}
+      />
+    </li>
+  );
+}
+
 /** Una sola línea de tiempo: el dueño pregunta qué le pasó al producto, no de qué bitácora salió. */
-function FilaDelHistorial({ evento: e }: { evento: EventoDelProducto }) {
-  const pie = `${cuando.format(e.cuando)} · ${e.quien}`;
+function FilaDelHistorial({ evento: e, conCodigo }: { evento: EventoDelProducto; conCodigo: boolean }) {
+  // El código solo se dice cuando el producto tiene alguno: en uno que nunca tuvo, «Sin código» en
+  // cada fila sería ruido.
+  const codigo = e.clase === "movimiento" && conCodigo ? `${e.codigo ? cola(e.codigo) : "Sin código"} · ` : "";
+  const pie = `${codigo}${cuando.format(e.cuando)} · ${e.quien}`;
 
   if (e.clase === "precio") {
     return (
@@ -232,7 +331,11 @@ function FilaDelHistorial({ evento: e }: { evento: EventoDelProducto }) {
     />
   );
   const icono: NombreDeIcono =
-    e.tipo === "sale" || e.tipo === "sale_void" ? "ventas" : e.tipo === "adjustment" ? "contar" : "productos";
+    e.tipo === "sale" || e.tipo === "sale_void"
+      ? "ventas"
+      : e.tipo === "adjustment"
+        ? "contar"
+        : "productos";
 
   return (
     <Fila

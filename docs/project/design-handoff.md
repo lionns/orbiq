@@ -113,7 +113,8 @@ un `text-xs` ni un `text-sm`, y tampoco nada que destacara. El nombre de un prod
 sus existencias se leían igual de grandes, así que la vista no tenía dónde agarrarse y había que
 leer la casilla entera para saber cuánto costaba algo.
 
-En una casilla de la cuadrícula manda el precio, le sigue el nombre y las existencias son la nota:
+En un producto que se elige para vender —la casilla de la antigua cuadrícula, hoy la fila de
+resultados (`T-033`)— manda el precio, le sigue el nombre y las existencias son la nota:
 
 | Elemento | Tamaño | Por qué |
 | --- | --- | --- |
@@ -147,13 +148,13 @@ suave desaparece. Sombra solo en la barra fija de total, para separarla de lo qu
 
 Se diseña en 360 px y se ensancha. Un solo código, nunca dos interfaces (`FR-010`, `D-007`).
 
-- **< 640 px (celular, el caso que manda):** una columna. Cuadrícula de frecuentes de 2 columnas.
-  **Barra de secciones fija abajo** (Inicio, Vender, Ventas, Productos) y, en Vender, la venta
-  recogida en una línea encima, con Escanear y «Cobrar $ N» juntos — abajo porque ahí llega el
-  pulgar, no arriba (`T-029`).
-- **640–1024 px (tablet):** cuadrícula de 3-4 columnas. La barra de total sigue fija.
-- **> 1024 px (computador):** dos columnas — cuadrícula a la izquierda, venta en curso a la derecha
-  y siempre visible. La navegación pasa a un menú lateral, con el dueño y Ajustes al pie.
+- **< 640 px (celular, el caso que manda):** una columna. **Barra de secciones fija abajo**
+  (Inicio, Vender, Ventas, Productos) y, en Vender, Escanear y «Cobrar $ N» juntos encima — abajo
+  porque ahí llega el pulgar, no arriba (`T-029`). Vender no sugiere productos: la pantalla es la
+  venta que se arma escaneando o buscando (`T-033`, `.diseno/codigos/Vender`).
+- **640–1024 px (tablet):** la misma columna, más ancha. La barra de cobrar sigue fija.
+- **> 1024 px (computador):** Vender es una columna centrada con la venta y, pegada al pie, la
+  barra de cobrar. La navegación pasa a un menú lateral, con el dueño y Ajustes al pie.
 
 Regla de pulgar: en celular, ninguna acción del flujo de venta vive en el tercio superior de la
 pantalla.

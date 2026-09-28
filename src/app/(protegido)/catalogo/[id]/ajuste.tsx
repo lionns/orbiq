@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { cola } from "@/domain/codigos";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
@@ -19,9 +20,23 @@ const MOTIVOS = ["Se dañó", "Se venció", "Error al contar", "Consumo propio",
  *
  * El motivo sigue siendo obligatorio y sigue siendo un texto: se elige de un toque y el detalle es
  * opcional, y se guardan juntos («Se dañó: una bolsa rota»). El libro no cambia.
+ *
+ * Con varios códigos se cuenta uno a la vez (`D-010`): cada código es un grupo del estante con su
+ * propia cuenta, y la diferencia se escribe contra el libro de ese grupo.
  */
-export function FormularioAjuste({ productoId, saldo }: { productoId: string; saldo: number }) {
+export type GrupoContable = { id: string | null; etiqueta: string; cantidad: number };
+
+export function FormularioAjuste({
+  productoId,
+  grupos,
+}: {
+  productoId: string;
+  grupos: GrupoContable[];
+}) {
   const [estado, accion, enviando] = useActionState(ajustar.bind(null, productoId), inicial);
+  const [elegido, setElegido] = useState(0);
+  const grupo = grupos[elegido] ?? grupos[0]!;
+  const saldo = grupo.cantidad;
   const [conteo, setConteo] = useState(String(Math.max(saldo, 0)));
   const [razon, setRazon] = useState<string | null>(null);
   const [detalle, setDetalle] = useState("");
@@ -35,6 +50,35 @@ export function FormularioAjuste({ productoId, saldo }: { productoId: string; sa
 
   return (
     <form action={accion} className="flex flex-col gap-5">
+      <input type="hidden" name="codigoId" value={grupo.id ?? ""} />
+      {grupos.length > 1 ? (
+        <fieldset className="min-w-0">
+          <legend className="mb-2.5 text-lg font-bold">¿De qué código?</legend>
+          <div className="flex flex-wrap gap-2">
+            {grupos.map((g, i) => {
+              const este = i === elegido;
+              return (
+                <button
+                  key={g.id ?? "sin-codigo"}
+                  type="button"
+                  aria-pressed={este}
+                  onClick={() => {
+                    setElegido(i);
+                    setConteo(String(Math.max(g.cantidad, 0)));
+                  }}
+                  className={`flex min-h-11 items-center gap-1.5 rounded-full border px-4 font-semibold tabular-nums ${
+                    este ? "border-accent bg-accent text-accent-text" : "border-border-strong bg-surface"
+                  }`}
+                  data-testid={`grupo-${g.id ?? "sin-codigo"}`}
+                >
+                  {este ? <Icono nombre="cobrar" className="size-4" /> : null}
+                  {g.id ? cola(g.etiqueta) : g.etiqueta} · hay {g.cantidad}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`conteo-${productoId}`} className="font-semibold">
           ¿Cuántas hay en el estante?

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Visor en computador</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&amp;display=swap">
+<style>
+body{margin:0;font-family:"Geist",system-ui,sans-serif;color:#12152a}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; background: #e8ebf4; color: #12152a; font-family: 'Geist',system-ui,sans-serif; position: relative; overflow: hidden; display: flex; font-size: 16px; line-height: 1.5;">
+  <aside style="width: 232px; flex-shrink: 0; background: #ffffff; border-right: 1px solid #dcdfec; padding: 20px 14px; display: flex; flex-direction: column; gap: 6px;">
+    <span style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; margin-bottom: 18px;"><span style="width: 34px; height: 34px; border-radius: 10px; background: #2f47d6;"></span>Mi tienda</span>
+    <span style="padding: 10px 12px; border-radius: 14px; color: #50566f;">Inicio</span>
+    <span style="padding: 10px 12px; border-radius: 14px; background: #e3e7fc; color: #2f47d6; font-weight: 700;">Vender</span>
+    <span style="padding: 10px 12px; border-radius: 14px; color: #50566f;">Ventas</span>
+    <span style="padding: 10px 12px; border-radius: 14px; color: #50566f;">Productos</span>
+  </aside>
+  <main style="flex-grow: 1; display: flex; justify-content: center; padding: 40px 32px;">
+    <div style="width: 600px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h1 style="margin: 0; font-size: 36px; font-weight: 700; letter-spacing: -0.03em;">Vender</h1>
+        <span style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 16px; border: 1px solid #b42318; background: #fbe4e1; color: #b42318; font-weight: 600;">Vaciar</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <span style="flex-grow: 1; display: flex; align-items: center; min-height: 52px; padding: 0 16px; border-radius: 16px; background: #ffffff; border: 1px solid #767b95; color: #50566f;">Nombre o código</span>
+        <span style="display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px; border-radius: 16px; background: #e3e7fc; border: 1px solid #2f47d6; font-weight: 600;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg>Escanear</span>
+      </div>
+      <div style="margin-top: 12px; border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; height: 150px;"></div>
+      <div style="border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; height: 120px;"></div>
+    </div>
+  </main>
+
+  <div style="position: absolute; inset: 0; background: rgba(13,15,28,0.72);"></div>
+  <section role="dialog" aria-label="Cámara" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 600px; border-radius: 28px; background: #0d0f1c; color: #eef0fb; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 64px rgba(0,0,0,0.4);">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Apunta al código</span>
+      <a href="#" style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 9999px; background: rgba(255,255,255,0.14); font-weight: 600; color: #ffffff;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Cerrar · Esc</a>
+    </div>
+    <div style="position: relative; height: 380px; border-radius: 20px; overflow: hidden; background: radial-gradient(circle at 50% 45%, #3a3f58 0%, #1c2038 55%, #111427 100%);">
+      <span style="position: absolute; top: 12px; left: 14px; font-size: 14px; color: #a1a7c4;">Imagen de la cámara</span>
+      <div style="position: absolute; left: 50%; top: 50%; width: 180px; height: 110px; transform: translate(-50%, -50%); border-radius: 8px; background: #f4f4f0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+        <div style="width: 140px; height: 66px; background: repeating-linear-gradient(90deg, #111 0 2px, transparent 2px 4px, #111 4px 7px, transparent 7px 9px, #111 9px 10px, transparent 10px 13px);"></div>
+        <span class="num" style="font-size: 12px; color: #111; letter-spacing: 0.08em;">7702511004432</span>
+      </div>
+      <div style="position: absolute; left: 140px; right: 140px; top: 100px; bottom: 100px;">
+        <span style="position: absolute; left: 0; top: 0; width: 40px; height: 40px; border-left: 4px solid #8397ff; border-top: 4px solid #8397ff; border-radius: 12px 0 0 0;"></span>
+        <span style="position: absolute; right: 0; top: 0; width: 40px; height: 40px; border-right: 4px solid #8397ff; border-top: 4px solid #8397ff; border-radius: 0 12px 0 0;"></span>
+        <span style="position: absolute; left: 0; bottom: 0; width: 40px; height: 40px; border-left: 4px solid #8397ff; border-bottom: 4px solid #8397ff; border-radius: 0 0 0 12px;"></span>
+        <span style="position: absolute; right: 0; bottom: 0; width: 40px; height: 40px; border-right: 4px solid #8397ff; border-bottom: 4px solid #8397ff; border-radius: 0 0 12px 0;"></span>
+        <span style="position: absolute; left: 8px; right: 8px; top: 50%; height: 2px; background: #8397ff; box-shadow: 0 0 12px #8397ff;"></span>
+      </div>
+    </div>
+    <p style="margin: 0; text-align: center; color: #a1a7c4;">Se lee solo. ¿Se ve borroso? Aleja un poco el código de la cámara. Con el lector de códigos no hace falta abrirla.</p>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

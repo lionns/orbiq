@@ -4,7 +4,7 @@ import "dotenv/config";
 import { expect, test, type Page } from "@playwright/test";
 import { like } from "drizzle-orm";
 import { db, schema } from "../src/db";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
  * T-010. El contrato visual, en las cuatro pantallas y en los dos temas.
@@ -16,8 +16,8 @@ import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo
  */
 let dueno: DuenoDePrueba;
 
-// Productos propios: la cuadrícula tiene que tener casillas que medir aunque la base esté vacía, como
-// la que se entrega al negocio. Antes contaba con los de demostración.
+// Productos propios: los resultados de la venta tienen que tener filas que medir aunque la base esté
+// vacía, como la que se entrega al negocio. Antes contaba con los de demostración.
 const MARCA = `t10-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
 test.beforeAll(async () => {
@@ -31,7 +31,7 @@ test.beforeAll(async () => {
   );
 });
 test.afterAll(async () => {
-  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 
@@ -138,38 +138,35 @@ for (const tema of ["claro", "oscuro"] as const) {
 }
 
 /**
- * La cuadrícula de venta tiene que ser una rejilla, no un mosaico. Dos formas de romperse, y las dos
- * pasaban todas las demás pruebas porque el comportamiento era correcto:
- *
- * - el `<li>` se estira al alto de su fila y el `<button>` de dentro no lo sigue;
- * - una fila cuyos nombres caben en una línea encoge, y la cuadrícula queda dentada.
+ * Los resultados de la venta son una lista, no un mosaico: cada fila ocupa el ancho de la lista
+ * entero y es un objetivo táctil de verdad. Heredado de la prueba de la cuadrícula (`T-033`), que
+ * se rompía de dos formas que ninguna otra prueba veía: el botón que no llenaba su celda y la fila
+ * que encogía.
  */
-test("las casillas de la cuadrícula de venta son todas del mismo tamaño", async ({ page }) => {
+test("las filas de resultados de la venta llenan la lista y se tocan con el pulgar", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await entrarComo(page, dueno);
+  await page.getByTestId("codigo-tecleado").fill(MARCA);
+  await page.getByTestId("codigo-tecleado").press("Enter");
+  await expect(page.locator('[data-testid^="resultado-"]').first()).toBeVisible();
 
-  const casillas = await page.evaluate(() =>
-    [...document.querySelectorAll("section ul > li")].map((li) => {
-      const b = li.querySelector("button")!;
-      const rl = li.getBoundingClientRect();
+  const filas = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-testid^="resultado-"]')].map((b) => {
+      // Por dentro del borde: la línea que separa una fila de la de arriba es del `li`, no del botón.
+      const li = b.closest("li")!;
       const rb = b.getBoundingClientRect();
       return {
         nombre: (b.textContent ?? "").trim().slice(0, 20),
-        celda: [Math.round(rl.width), Math.round(rl.height)],
+        celda: [li.clientWidth, li.clientHeight],
         boton: [Math.round(rb.width), Math.round(rb.height)],
       };
     }),
   );
 
-  expect(casillas.length).toBeGreaterThan(3);
-
-  // El botón llena su celda: si no, en una fila con un nombre largo el vecino queda corto.
-  const cortos = casillas.filter(
-    (c) => c.boton[0] !== c.celda[0] || c.boton[1] !== c.celda[1],
-  );
-  expect(cortos, `botones que no llenan su celda: ${JSON.stringify(cortos)}`).toEqual([]);
-
-  // Y todas las casillas miden lo mismo, fila con fila.
-  const tamanos = [...new Set(casillas.map((c) => c.celda.join("x")))];
-  expect(tamanos, `tamaños distintos en la cuadrícula: ${JSON.stringify(casillas)}`).toHaveLength(1);
+  expect(filas.length).toBeGreaterThan(3);
+  const cortos = filas.filter((c) => c.boton[0] !== c.celda[0] || c.boton[1] !== c.celda[1]);
+  expect(cortos, `botones que no llenan su fila: ${JSON.stringify(cortos)}`).toEqual([]);
+  // Todas del mismo ancho, y ninguna por debajo de los 48 px de `NFR-003`.
+  expect(new Set(filas.map((c) => c.celda[0])).size).toBe(1);
+  expect(filas.filter((c) => c.boton[1]! < 48)).toEqual([]);
 });

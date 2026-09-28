@@ -15,8 +15,10 @@ const fail = (t: string, e?: unknown) => {
 };
 
 async function nuevoProducto(name: string, barcode: string | null) {
-  const [p] = await db.insert(schema.product).values({ name, price: 100, barcode }).returning();
+  const [p] = await db.insert(schema.product).values({ name, price: 100 }).returning();
   if (p) creados.push(p.id);
+  // Los códigos viven en su tabla desde `D-010`; la unicidad es la de `product_barcode.code`.
+  if (barcode) await db.insert(schema.productBarcode).values({ productId: p!.id, code: barcode });
   return p!;
 }
 
@@ -83,7 +85,10 @@ try {
   }
 
   await db.delete(schema.stockMovement).where(eq(schema.stockMovement.productId, prod.id));
-  for (const id of creados) await db.delete(schema.product).where(eq(schema.product.id, id));
+  for (const id of creados) {
+    await db.delete(schema.productBarcode).where(eq(schema.productBarcode.productId, id));
+    await db.delete(schema.product).where(eq(schema.product.id, id));
+  }
   await db.delete(schema.user).where(eq(schema.user.id, usuario!.id));
   console.log("  · base devuelta a su estado inicial");
 } finally {

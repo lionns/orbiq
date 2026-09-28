@@ -1,5 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { existenciasPorCodigo, type ExistenciasPorCodigo } from "./codigos";
 import { saldoCoincide, saldoDesdeLibro } from "./stock";
 
 /**
@@ -8,8 +9,10 @@ import { saldoCoincide, saldoDesdeLibro } from "./stock";
  */
 export type Movimiento = {
   id: string;
-  tipo: "initial" | "sale" | "sale_void" | "adjustment";
+  tipo: "initial" | "sale" | "sale_void" | "adjustment" | "purchase";
   cantidad: number;
+  /** El número del código del que fue, o `null` si fue sin código (`D-010`). */
+  codigo: string | null;
   motivo: string | null;
   ventaId: string | null;
   quien: string;
@@ -35,8 +38,9 @@ export type LibroDelProducto = {
     precio: number;
     activo: boolean;
     categoria: string | null;
-    codigoDeBarras: string | null;
   };
+  /** Cuánto hay de cada código, del más antiguo al más nuevo. La suma es el total (`D-010`). */
+  porCodigo: ExistenciasPorCodigo;
   movimientos: Movimiento[];
   /**
    * Movimientos y eventos en una sola línea de tiempo. El dueño no distingue «esto es del libro de
@@ -60,7 +64,6 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
       activo: schema.product.isActive,
       stock: schema.product.stock,
       categoria: schema.category.name,
-      codigoDeBarras: schema.product.barcode,
     })
     .from(schema.product)
     .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
@@ -73,6 +76,8 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
       id: schema.stockMovement.id,
       tipo: schema.stockMovement.type,
       cantidad: schema.stockMovement.quantity,
+      codigoId: schema.stockMovement.barcodeId,
+      codigo: schema.productBarcode.code,
       motivo: schema.stockMovement.reason,
       ventaId: schema.stockMovement.saleId,
       quien: schema.user.name,
@@ -80,6 +85,7 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
     })
     .from(schema.stockMovement)
     .innerJoin(schema.user, eq(schema.user.id, schema.stockMovement.userId))
+    .leftJoin(schema.productBarcode, eq(schema.productBarcode.id, schema.stockMovement.barcodeId))
     .where(eq(schema.stockMovement.productId, productoId))
     // Del más reciente al más antiguo: lo que se pregunta es «qué pasó ahora», no «qué pasó al
     // principio». `id` desempata porque dos movimientos de la misma venta comparten instante.
@@ -88,6 +94,15 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
   // `stock.ts` es la única definición de «cuánto hay»; se le pasa el libro en su forma, no se
   // reimplementa la suma aquí.
   const cantidades = filas.map((f) => ({ quantity: f.cantidad }));
+
+  const codigos = await db
+    .select({
+      id: schema.productBarcode.id,
+      numero: schema.productBarcode.code,
+      desde: schema.productBarcode.createdAt,
+    })
+    .from(schema.productBarcode)
+    .where(eq(schema.productBarcode.productId, productoId));
 
   const eventos = await db
     .select({
@@ -103,7 +118,7 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
     .where(eq(schema.productEvent.productId, productoId));
 
   const linea: EventoDelProducto[] = [
-    ...filas.map((m) => ({ clase: "movimiento" as const, ...m })),
+    ...filas.map(({ codigoId: _, ...m }) => ({ clase: "movimiento" as const, ...m })),
     ...eventos.map((e) =>
       e.tipo === "price_change"
         ? {
@@ -133,9 +148,12 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
       precio: producto.precio,
       activo: producto.activo,
       categoria: producto.categoria,
-      codigoDeBarras: producto.codigoDeBarras,
     },
-    movimientos: filas,
+    porCodigo: existenciasPorCodigo(
+      codigos,
+      filas.map((f) => ({ codigoId: f.codigoId, quantity: f.cantidad })),
+    ),
+    movimientos: filas.map(({ codigoId: _, ...m }) => m),
     saldoDelLibro: saldoDesdeLibro(cantidades),
     saldoMaterializado: producto.stock,
     cuadra: saldoCoincide(producto.stock, cantidades),
@@ -152,6 +170,8 @@ export type ResultadoAjuste =
  */
 export async function ajustarExistencias(
   productoId: string,
+  /** El código contado, o `null` para lo que no tiene código (`D-010`). */
+  codigoId: string | null,
   saldoContado: number,
   motivo: string,
   usuarioId: string,
@@ -171,6 +191,17 @@ export async function ajustarExistencias(
       .limit(1);
     if (!producto) return { ok: false as const, mensaje: "Ese producto ya no existe." };
 
+    if (codigoId !== null) {
+      const [codigo] = await tx
+        .select({ id: schema.productBarcode.id })
+        .from(schema.productBarcode)
+        .where(
+          and(eq(schema.productBarcode.id, codigoId), eq(schema.productBarcode.productId, productoId)),
+        )
+        .limit(1);
+      if (!codigo) return { ok: false as const, mensaje: "Ese código no es de este producto." };
+    }
+
     /**
      * La diferencia se calcula contra **el libro**, no contra `product.stock`.
      *
@@ -179,10 +210,18 @@ export async function ajustarExistencias(
      * la copia dice 50, y el ajuste escribiría −42 dejando el libro en −34. Contra el libro escribe
      * exactamente lo que falta (`D-002`).
      */
+    // Contra el libro **de ese código**: se contó un grupo del estante, no el producto entero.
     const [suma] = await tx
       .select({ total: sql<number>`coalesce(sum(${schema.stockMovement.quantity}), 0)::int` })
       .from(schema.stockMovement)
-      .where(eq(schema.stockMovement.productId, productoId));
+      .where(
+        and(
+          eq(schema.stockMovement.productId, productoId),
+          codigoId === null
+            ? isNull(schema.stockMovement.barcodeId)
+            : eq(schema.stockMovement.barcodeId, codigoId),
+        ),
+      );
 
     const enElLibro = suma?.total ?? 0;
     const diferencia = saldoContado - enElLibro;
@@ -193,6 +232,7 @@ export async function ajustarExistencias(
     if (diferencia !== 0) {
       await tx.insert(schema.stockMovement).values({
         productId: productoId,
+        barcodeId: codigoId,
         quantity: diferencia,
         type: "adjustment",
         reason: limpio,
@@ -209,11 +249,8 @@ export async function ajustarExistencias(
       })
       .where(eq(schema.product.id, productoId));
 
-    const [despues] = await tx
-      .select({ stock: schema.product.stock })
-      .from(schema.product)
-      .where(eq(schema.product.id, productoId));
-    return { ok: true as const, nuevoSaldo: despues!.stock, seEscribioMovimiento: diferencia !== 0 };
+    // El saldo que se informa es el del código contado: es el número que el dueño acaba de escribir.
+    return { ok: true as const, nuevoSaldo: saldoContado, seEscribioMovimiento: diferencia !== 0 };
   });
 }
 
@@ -224,4 +261,5 @@ export const ETIQUETA_MOVIMIENTO: Record<Movimiento["tipo"], string> = {
   // «Conteo corregido» y no «Ajuste»: es la acción que el dueño hizo, con el nombre que ve al hacerla
   // («Corregir el conteo», `T-029`).
   adjustment: "Conteo corregido",
+  purchase: "Llegaron",
 };

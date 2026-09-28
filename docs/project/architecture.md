@@ -33,7 +33,7 @@ eso vive aquí y no en una decisión.
 - Se diseña primero para pantalla pequeña y una mano, y se ensancha con breakpoints. Ensanchar sale
   más barato que reducir (`D-007`, `brief.md` § Constraints).
 - Componentes de servidor por defecto; componentes de cliente solo donde hay interacción real —
-  cámara, cuadrícula de venta, total en vivo.
+  cámara, la venta en curso, total en vivo.
 - El estado del servidor vive en el servidor y se revalida. No hay store global de cliente hasta que
   un caso lo pida (`D-003`).
 - El escaneo entra por un único componente objetivo que acepta cámara, lector de teclado y texto

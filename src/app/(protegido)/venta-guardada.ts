@@ -29,7 +29,10 @@ function esCarrito(x: unknown): x is Carrito {
         typeof a.nombre === "string" &&
         Number.isInteger(a.precio) &&
         Number.isInteger(a.cantidad) &&
-        a.cantidad > 0,
+        a.cantidad > 0 &&
+        // Opcionales: una venta guardada antes de que existieran (`D-010`) sigue valiendo.
+        (a.codigoId === undefined || a.codigoId === null || typeof a.codigoId === "string") &&
+        (a.codigo === undefined || a.codigo === null || typeof a.codigo === "string"),
     )
   );
 }

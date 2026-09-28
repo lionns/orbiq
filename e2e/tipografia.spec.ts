@@ -2,7 +2,9 @@
 // DATABASE_URL al cargarse.
 import "dotenv/config";
 import { expect, test, type Page } from "@playwright/test";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import { like } from "drizzle-orm";
+import { db, schema } from "../src/db";
+import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
  * T-021. El suelo tipográfico, comprobado y no prometido.
@@ -11,11 +13,21 @@ import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo
  * documento eso dura hasta el primer `text-xs` que alguien añada con prisa; aquí falla la suite.
  */
 let dueno: DuenoDePrueba;
+const MARCA = `t21-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+let medible: string;
 
 test.beforeAll(async () => {
   dueno = await crearDueno("tipografia");
+  // Propio: la jerarquía se mide en una fila de resultados, y no puede depender de lo que hayan
+  // sembrado las pruebas vecinas (la suite pasa contra una base vacía).
+  const [p] = await db
+    .insert(schema.product)
+    .values({ name: `Tipografía ${MARCA}`, price: 12500, stock: 7 })
+    .returning({ id: schema.product.id });
+  medible = p!.id;
 });
 test.afterAll(async () => {
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 
@@ -61,25 +73,24 @@ test("ninguna pantalla escribe por debajo del suelo de 14 px", async ({ page }) 
   expect(todo, JSON.stringify(todo, null, 1)).toEqual([]);
 });
 
-test("en la cuadrícula manda el precio, le sigue el nombre y las existencias no encogen", async ({
+test("en los resultados de la venta manda el precio, le sigue el nombre y las existencias no encogen", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await entrarComo(page, dueno);
+  await page.getByTestId("codigo-tecleado").fill(`Tipografía ${MARCA}`);
+  await page.getByTestId("codigo-tecleado").press("Enter");
 
-  // La primera casilla que haya: la jerarquía es del componente, no de un producto concreto.
-  const casilla = page.locator('[data-testid^="casilla-"]').first();
-  await expect(casilla).toBeVisible();
+  // Una fila de resultados: el nombre y las existencias apilados, luego el precio (`T-033`).
+  const fila = page.getByTestId(`resultado-${medible}`);
+  await expect(fila).toBeVisible();
 
-  const medido = await casilla.evaluate((el) => {
+  const medido = await fila.evaluate((el) => {
     const px = (sel: string) => parseFloat(getComputedStyle(el.querySelector(sel)!).fontSize);
-    const hijos = [...el.querySelectorAll("span")];
     return {
-      nombre: parseFloat(getComputedStyle(hijos[0]!).fontSize),
-      precio: px("[data-testid], span > span:first-child") ,
-      existencias: parseFloat(
-        getComputedStyle(el.querySelector("[data-alerta], span > span:last-child")!).fontSize,
-      ),
+      nombre: px(":scope > span:first-child > span:first-child"),
+      precio: px(":scope > span:nth-child(2)"),
+      existencias: px(":scope > span:first-child > span:last-child"),
     };
   });
 

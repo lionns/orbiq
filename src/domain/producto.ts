@@ -26,16 +26,43 @@ export type EntradaCruda = {
 
 const NOMBRE_MAXIMO = 120;
 
-/** Lo que se puede editar de un producto. Las existencias no: esas entran por el libro (`D-002`). */
-export type EdicionDeProducto = Omit<AltaDeProducto, "existenciasIniciales">;
+/**
+ * Lo que se puede editar de un producto. Las existencias no: esas entran por el libro (`D-002`).
+ * Los códigos tampoco: un producto puede tener varios y cada uno lleva su cantidad, así que se
+ * corrigen uno por uno (`D-010`).
+ */
+export type EdicionDeProducto = Omit<AltaDeProducto, "existenciasIniciales" | "codigoDeBarras">;
 
 export function validarEdicion(entrada: EntradaCruda): Validacion<EdicionDeProducto> {
-  // Las mismas reglas que el alta, sin el campo que aquí no existe. Escribirlas dos veces sería
+  // Las mismas reglas que el alta, sin los campos que aquí no existen. Escribirlas dos veces sería
   // garantizar que un día se contradigan.
-  const r = validarAlta({ ...entrada, existenciasIniciales: undefined });
+  const r = validarAlta({ ...entrada, existenciasIniciales: undefined, codigoDeBarras: undefined });
   if (!r.ok) return r;
-  const { existenciasIniciales: _, ...resto } = r.valor;
+  const { existenciasIniciales: _, codigoDeBarras: __, ...resto } = r.valor;
   return { ok: true, valor: resto };
+}
+
+export type CodigoNuevo = { codigo: string; llegaron: number };
+
+/**
+ * Añadir un código a un producto que ya existe (`D-010`): el número y cuántas unidades llegaron
+ * con él. Cero es válido —se añade el código y las unidades se cuentan después—; negativo no.
+ */
+export function validarCodigoNuevo(entrada: {
+  codigo?: string | undefined;
+  llegaron?: string | undefined;
+}): Validacion<CodigoNuevo> {
+  const errores: Record<string, string> = {};
+  const codigo = (entrada.codigo ?? "").replace(/\s/g, "");
+  if (!codigo) errores.codigo = "Escanea o escribe el código.";
+
+  const crudo = (entrada.llegaron ?? "").trim();
+  const llegaron = crudo ? Number(crudo.replace(/\s/g, "")) : 0;
+  if (!Number.isInteger(llegaron)) errores.llegaron = "Escribe una cantidad entera.";
+  else if (llegaron < 0) errores.llegaron = "No pueden llegar menos de cero.";
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, valor: { codigo, llegaron } };
 }
 
 export function validarAlta(entrada: EntradaCruda): Validacion<AltaDeProducto> {

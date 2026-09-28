@@ -8,7 +8,6 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 
@@ -88,7 +87,6 @@ export const product = pgTable(
     /** Entero en la unidad mínima de la moneda del negocio. Nunca coma flotante. */
     price: integer("price").notNull(),
     categoryId: text("category_id").references(() => category.id, { onDelete: "set null" }),
-    barcode: text("barcode"),
     /** Saldo materializado, recomputable desde el libro. Nunca es la verdad, solo la copia. */
     stock: integer("stock").notNull().default(0),
     isActive: boolean("is_active").notNull().default(true),
@@ -96,14 +94,34 @@ export const product = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    // AC-004 / AC-005: único entre los que tienen código; varios sin código es lo normal.
-    uniqueIndex("product_barcode_unique").on(t.barcode).where(sql`${t.barcode} is not null`),
     // El catálogo se ordena y se recorre por nombre, siempre (`FR-011`).
     index("product_name_idx").on(t.name),
     // Acotar por categoría es el filtro que más se usa.
     index("product_category_id_idx").on(t.categoryId),
     check("product_price_non_negative", sql`${t.price} >= 0`),
   ],
+);
+
+/**
+ * Los códigos de un producto (`D-010`). El proveedor cambia el código de lo que ya se vende, así que
+ * un producto puede tener varios; cada uno lleva su cantidad, que es la suma de sus movimientos.
+ * No hay fila para «sin código»: esos movimientos tienen `barcode_id` nulo.
+ *
+ * Un código no se borra —sus movimientos lo nombran—; se corrige su número.
+ */
+export const productBarcode = pgTable(
+  "product_barcode",
+  {
+    id: text("id").primaryKey().$defaultFn(uuidv7),
+    productId: text("product_id")
+      .notNull()
+      .references(() => product.id),
+    /** Único entre todos los productos (`AC-004`). Varios productos sin código sigue siendo lo normal. */
+    code: text("code").notNull().unique(),
+    /** Ordena los códigos de un producto: lo vendido sin escanear sale del más antiguo (`AC-027`). */
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("product_barcode_product_id_idx").on(t.productId)],
 );
 
 export const sale = pgTable(
@@ -119,7 +137,7 @@ export const sale = pgTable(
     voidedAt: timestamp("voided_at", { withTimezone: true }),
     voidedBy: text("voided_by").references(() => user.id),
   },
-  // La cuadrícula de frecuentes se deriva de las ventas recientes, no se guarda (US-005).
+  // Ventas e Inicio listan por fecha: el día del negocio y las últimas ventas (`T-014`, `T-028`).
   (t) => [index("sale_created_at_idx").on(t.createdAt)],
 );
 
@@ -145,7 +163,14 @@ export const saleLine = pgTable(
   ],
 );
 
-export const movementType = pgEnum("movement_type", ["initial", "sale", "sale_void", "adjustment"]);
+export const movementType = pgEnum("movement_type", [
+  "initial",
+  "sale",
+  "sale_void",
+  "adjustment",
+  // Llegó mercancía. Nace con «añadir un código» (`D-010`); una compra sin código nuevo entra igual.
+  "purchase",
+]);
 
 export const productEventType = pgEnum("product_event_type", [
   "price_change",
@@ -203,6 +228,8 @@ export const stockMovement = pgTable(
     /** Con signo. Negativo descuenta. */
     quantity: integer("quantity").notNull(),
     type: movementType("type").notNull(),
+    /** De qué código fue. Nulo: sin código, o vendido de un producto que no tiene ninguno (`D-010`). */
+    barcodeId: text("barcode_id").references(() => productBarcode.id),
     saleId: text("sale_id").references(() => sale.id),
     reason: text("reason"),
     userId: text("user_id")

@@ -7,9 +7,8 @@ import { registrarVenta } from "../src/domain/venta";
 /**
  * Catálogo de demostración: una tienda de barrio, precios en pesos colombianos.
  *
- * No es parte del producto. Existe para que la cuadrícula se vea llena y ordenada por lo más
- * vendido, que es lo que un dueño encontraría después de una semana usándola — y lo que una base
- * recién creada no puede mostrar.
+ * No es parte del producto. Existe para que Inicio, Ventas y Productos se vean con la forma que
+ * tendrían tras una semana de uso, que es lo que una base recién creada no puede mostrar.
  *
  *   npm run sembrar-demo            da de alta el catálogo y algunas ventas
  *   npm run sembrar-demo -- --forzar   lo hace aunque ya haya productos
@@ -33,7 +32,7 @@ const CATALOGO = [
   { nombre: "Bolsa de leche en polvo", precio: 15900, existencias: 8, categoria: "Lácteos", codigo: null },
 ];
 
-/** Ventas de ejemplo, para que la cuadrícula tenga por qué ordenarse. */
+/** Ventas de ejemplo, para que Inicio y Ventas tengan algo que mostrar. */
 const VENTAS_DE_EJEMPLO = [
   ["Pan tajado grande", "Leche Colanta 1 L", "Huevos AA (unidad)"],
   ["Gaseosa 400 ml", "Papas Margarita 25 g"],
@@ -80,14 +79,24 @@ async function principal() {
         name: item.nombre,
         price: item.precio,
         categoryId: categoriaId,
-        barcode: item.codigo,
         stock: 0,
       })
       .returning({ id: schema.product.id });
 
+    // Los códigos viven en su tabla desde `D-010`, y el movimiento inicial dice de cuál fue.
+    const codigo = item.codigo
+      ? (
+          await db
+            .insert(schema.productBarcode)
+            .values({ productId: producto!.id, code: item.codigo })
+            .returning({ id: schema.productBarcode.id })
+        )[0]!.id
+      : null;
+
     // Las existencias entran por el libro, igual que en el alta real (`D-002`).
     await db.insert(schema.stockMovement).values({
       productId: producto!.id,
+      barcodeId: codigo,
       quantity: item.existencias,
       type: "initial",
       userId: dueno.id,
@@ -111,7 +120,6 @@ async function principal() {
   console.log(
     `Sembrado: ${CATALOGO.length} productos y ${VENTAS_DE_EJEMPLO.length} ventas de ejemplo.`,
   );
-  console.log("La cuadrícula arranca con el pan, los huevos y la gaseosa arriba.");
 }
 
 try {

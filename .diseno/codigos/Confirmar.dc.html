@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Añadir el código</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&amp;display=swap">
+<style>
+body{margin:0;font-family:"Geist",system-ui,sans-serif;color:#12152a}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 360px; height: 844px; background: #e8ebf4; color: #12152a; font-family: 'Geist',system-ui,sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5;">
+<main style="flex-grow: 1; padding: 4px 16px 120px; display: flex; flex-direction: column;">
+  <a href="Elegir.dc.html" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; min-height: 48px; margin-left: -4px; padding-right: 12px; font-weight: 600; color: #50566f;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>Elegir otro</a>
+  <section style="border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; box-shadow: 0 1px 2px rgba(15,20,25,0.06), 0 8px 24px rgba(15,20,25,0.06); padding: 20px; display: flex; flex-direction: column;">
+    <h1 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600;">Arroz Diana 500 g</h1>
+    <span class="num" style="margin-top: 8px; font-size: 32px; line-height: 1; font-weight: 700; letter-spacing: -0.035em;">$ 3.500</span>
+    <span style="margin-top: 4px; color: #50566f;">El mismo precio para todos sus códigos.</span>
+  </section>
+  <h2 style="margin: 24px 0 8px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">Sus códigos</h2>
+  <div style="border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 16px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg>
+      <span class="num" style="flex-grow: 1; font-weight: 500;">7702511000014</span>
+      <span class="num" style="border-radius: 9999px; background: #e8ebf4; padding: 2px 10px; font-weight: 600; color: #50566f;">Hay 4</span>
+    </div>
+    <div style="height: 1px; background: #dcdfec; margin-left: 48px;"></div>
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 16px; background: #e3e7fc;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg>
+      <span class="num" style="flex-grow: 1; font-weight: 700;">7702511004432</span>
+      <span style="border-radius: 9999px; background: #2f47d6; padding: 2px 10px; font-weight: 600; color: #ffffff;">Nuevo</span>
+    </div>
+  </div>
+  <label for="llegaron" style="margin-top: 24px; font-size: 17px; font-weight: 600;">¿Cuántas llegaron con este código?</label>
+  <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+    <button type="button" aria-label="Una menos" onClick="{{menos}}" style="display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; border: 1px solid #767b95; background: #ffffff; color: #12152a; font: inherit;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12152a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+    <output id="llegaron" class="num" style="flex-grow: 1; display: grid; place-items: center; height: 56px; border-radius: 16px; border: 2px solid #2f47d6; background: #ffffff; font-size: 24px; font-weight: 700; box-sizing: border-box;">{{llegaron}}</output>
+    <button type="button" aria-label="Una más" onClick="{{mas}}" style="display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; border: 1px solid #767b95; background: #ffffff; color: #12152a; font: inherit;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12152a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+  </div>
+  <p class="num" style="margin: 8px 0 0; color: #50566f;">{{resumen}}</p>
+</main>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; background: #ffffff; border-top: 1px solid #dcdfec; padding: 12px 16px 16px;">
+  <a href="Vendiendo.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 64px; border-radius: 16px; background: #2f47d6; color: #ffffff; font-size: 18px; font-weight: 700;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Añadir código y vender</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { llegaron: 24 };
+}
+renderVals() {
+var self = this;
+var n = this.state.llegaron;
+return {
+llegaron: n,
+menos: function () { self.setState({ llegaron: Math.max(0, n - 1) }); },
+mas: function () { self.setState({ llegaron: n + 1 }); },
+resumen: 'Se suman a las 4 que ya hay: quedan ' + (4 + n) + ' en total.'
+};
+}
+}
+</script>
+</body>
+</html>

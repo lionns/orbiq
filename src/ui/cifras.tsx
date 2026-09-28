@@ -19,11 +19,11 @@ export function Precio({
 /**
  * Las existencias, en rojo cuando hay que mirarlas.
  *
- * Entra aquí con solo dos usos —la lista del catálogo y la cuadrícula de venta— y no por ahorrar
+ * Entra aquí con solo dos usos —la lista del catálogo y los resultados de la venta— y no por ahorrar
  * líneas: decidimos permitir el saldo negativo, así que **mostrarlo es la única salvaguarda que
  * queda**. Repartida en dos archivos, un día uno se queda sin el rojo y nadie se entera.
  *
- * Las dos pantallas no coincidían: el catálogo alertaba solo en negativo y la cuadrícula también en
+ * Las dos pantallas no coincidían: el catálogo alertaba solo en negativo y la venta también en
  * cero. Eso no se decidió, se escribió dos veces distinto — que es justo lo que este componente
  * evita. Se conserva cada comportamiento tal cual estaba y la diferencia queda a la vista, en un
  * parámetro con nombre, para poder decidirla en vez de heredarla.
@@ -39,7 +39,7 @@ export function Existencias({
   /** En la venta, cero ya merece aviso: se está por vender algo que el conteo dice que no hay. */
   alertarEnCero?: boolean;
   /**
-   * En la cuadrícula, donde el precio manda y el sitio se paga caro. «117 en existencia» a 16 px
+   * En los resultados de la venta, donde el precio manda y el sitio se paga caro. «117 en existencia» a 16 px
    * inflaba la casilla y competía con el precio.
    *
    * **La alerta conserva las palabras**: es donde el texto hace falta, porque es el estado que no

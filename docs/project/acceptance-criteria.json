@@ -155,7 +155,7 @@
     },
     {
       "id": "AC-022",
-      "criterion": "CUANDO se desactiva un producto EL SISTEMA DEBE sacarlo de la cuadrícula de venta y del catálogo activo, y DEBE seguir apareciendo con su nombre en los movimientos y las ventas anteriores.",
+      "criterion": "CUANDO se desactiva un producto EL SISTEMA DEBE sacarlo de la búsqueda de la venta y del catálogo activo, y DEBE seguir apareciendo con su nombre en los movimientos y las ventas anteriores.",
       "verifies": [
         "FR-014"
       ]
@@ -174,6 +174,37 @@
       "verifies": [
         "FR-006",
         "FR-012"
+      ]
+    },
+    {
+      "id": "AC-025",
+      "criterion": "CUANDO se escanea un código que ningún producto tiene EL SISTEMA DEBE ofrecer añadirlo a un producto existente además de darlo de alta, sin perder la venta en curso.",
+      "verifies": [
+        "FR-016",
+        "FR-003"
+      ]
+    },
+    {
+      "id": "AC-026",
+      "criterion": "CUANDO se añade un código a un producto con las unidades que llegaron EL SISTEMA DEBE escribir un movimiento de entrada de ese código, y la cantidad del código y la del producto DEBEN ser la suma de sus movimientos.",
+      "verifies": [
+        "FR-016",
+        "FR-008"
+      ]
+    },
+    {
+      "id": "AC-027",
+      "criterion": "CUANDO se vende un producto escaneando uno de sus códigos EL SISTEMA DEBE descontarlo de ese código; CUANDO se vende sin escanear DEBE descontarlo del código más antiguo que tenga unidades.",
+      "verifies": [
+        "FR-016",
+        "FR-004"
+      ]
+    },
+    {
+      "id": "AC-028",
+      "criterion": "CUANDO se abre la pantalla de venta sin nada en curso EL SISTEMA DEBE mostrarla vacía, sin productos sugeridos, y ofrecer escanear o buscar.",
+      "verifies": [
+        "FR-017"
       ]
     }
   ],

@@ -7,7 +7,7 @@ import { db, schema } from "../src/db";
 import { nuevoId } from "../src/domain/ids";
 import { registrarVenta } from "../src/domain/venta";
 import { diaDelNegocio } from "../src/domain/zona";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
  * T-014 · US-013, US-007. El historial de ventas y la anulación, contra la base real.
@@ -25,7 +25,7 @@ test.afterAll(async () => {
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
   await db.delete(schema.saleLine).where(sql`${schema.saleLine.saleId} in (${ventas})`);
   await db.delete(schema.sale).where(eq(schema.sale.userId, dueno.id));
-  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });
 

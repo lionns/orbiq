@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Elegir el producto</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&amp;display=swap">
+<style>
+body{margin:0;font-family:"Geist",system-ui,sans-serif;color:#12152a}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+input:focus{outline:none}
+</style>
+</helmet>
+<div style="width: 360px; height: 844px; background: #e8ebf4; color: #12152a; font-family: 'Geist',system-ui,sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5;">
+<main style="flex-grow: 1; padding: 4px 16px 24px; display: flex; flex-direction: column;">
+  <a href="Main.dc.html" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; min-height: 48px; margin-left: -4px; padding-right: 12px; font-weight: 600; color: #50566f;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>Volver a la venta</a>
+  <h1 style="margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -0.03em;">¿Qué producto es?</h1>
+  <p style="margin: 6px 0 0; color: #50566f;">El código <span class="num" style="font-weight: 600; color: #12152a;">7702511004432</span> se le añade al que elijas.</p>
+  <label for="buscar" style="margin-top: 16px; font-weight: 600;">Buscar por nombre</label>
+  <div style="margin-top: 6px; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border-radius: 16px; background: #ffffff; border: 2px solid #2f47d6; box-sizing: border-box;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="buscar" type="search" value="{{busqueda}}" onChange="{{alEscribir}}" autocomplete="off" style="flex-grow: 1; min-width: 0; border: none; background: transparent; font: inherit; font-size: 17px; color: #12152a; padding: 0;">
+  </div>
+  <p class="num" style="margin: 16px 0 8px; color: #50566f; font-weight: 500;">{{encabezado}}</p>
+  <div style="border-radius: 24px; background: #ffffff; border: 1px solid #dcdfec; box-shadow: 0 1px 2px rgba(15,20,25,0.06), 0 8px 24px rgba(15,20,25,0.06); overflow: hidden;">
+    <sc-for list="{{resultados}}" as="p" hint-placeholder-count="3">
+      <sc-if value="{{p.separador}}" hint-placeholder-val="{{ false }}"><div style="height: 1px; background: #dcdfec; margin-left: 16px;"></div></sc-if>
+      <a href="Confirmar.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 10px 12px 10px 16px;">
+        <span style="flex-grow: 1; min-width: 0;">
+          <span style="display: block; font-size: 17px; font-weight: 600;">{{p.nombre}}</span>
+          <span class="num" style="display: block; color: #50566f;">{{p.detalle}}</span>
+        </span>
+        <span class="num" style="font-size: 18px; font-weight: 700; letter-spacing: -0.02em;">{{p.precio}}</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#50566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    </sc-for>
+  </div>
+  <a href="Nuevo.dc.html" style="margin-top: 16px; display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; min-height: 48px; color: #2f47d6; font-weight: 600;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f47d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>No está: darlo de alta como nuevo</a>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { busqueda: 'arroz' };
+}
+renderVals() {
+var todos = [
+{ nombre: 'Arroz Diana 500 g', precio: '$ 3.500', detalle: '1 código · Hay 4' },
+{ nombre: 'Arroz Diana 1 kg', precio: '$ 6.900', detalle: '1 código · Hay 8' },
+{ nombre: 'Arroz Roa 500 g', precio: '$ 3.700', detalle: '2 códigos · Hay 15' },
+{ nombre: 'Panela redonda', precio: '$ 2.800', detalle: 'Sin código · Hay 31' },
+{ nombre: 'Leche Alquería 1 L', precio: '$ 4.200', detalle: '1 código · Hay 3' },
+{ nombre: 'Café Sello Rojo 250 g', precio: '$ 11.000', detalle: '1 código · Hay 6' }
+];
+var q = (this.state.busqueda || '').trim().toLowerCase();
+var lista = todos.filter(function (p) { return q === '' || p.nombre.toLowerCase().indexOf(q) !== -1; });
+var resultados = lista.map(function (p, i) { return Object.assign({}, p, { separador: i > 0 }); });
+var encabezado = q === '' ? 'Todos los productos' : (lista.length === 1 ? '1 producto' : lista.length + ' productos');
+var self = this;
+return {
+busqueda: this.state.busqueda,
+alEscribir: function (e) { self.setState({ busqueda: e.target.value }); },
+resultados: resultados,
+encabezado: encabezado
+};
+}
+}
+</script>
+</body>
+</html>

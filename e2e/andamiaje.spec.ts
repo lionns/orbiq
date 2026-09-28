@@ -4,7 +4,7 @@ import "dotenv/config";
 import { expect, test } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import { db, schema } from "../src/db";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
  * D-006: la rebanada es la prueba. Esta es la mínima que puede existir — que la aplicación cargue
@@ -43,6 +43,6 @@ test("lo que se escribe en la base aparece en la pantalla", async ({ page }) => 
     await page.goto(`/catalogo?q=${encodeURIComponent(nombre)}`);
     await expect(page.getByTestId("lista-catalogo")).toContainText(nombre);
   } finally {
-    await db.delete(schema.product).where(eq(schema.product.id, creado!.id));
+    await borrarProductos(eq(schema.product.id, creado!.id));
   }
 });

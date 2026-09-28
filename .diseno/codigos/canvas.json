@@ -1,0 +1,142 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Confirmar.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "3 · Añadir el código y cuántas llegaron",
+      "w": 360,
+      "x": 880,
+      "y": 0
+    },
+    "Elegir.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "2 · ¿Qué producto es?",
+      "w": 360,
+      "x": 440,
+      "y": 0
+    },
+    "Ficha.dc.html": {
+      "h": 1180,
+      "is_interactive": true,
+      "title": "5 · La ficha, con las existencias por código",
+      "w": 360,
+      "x": 1760,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "1 · Escaneo un código que no está",
+      "w": 360,
+      "x": 0,
+      "y": 0
+    },
+    "Nuevo.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "6 · Si es un producto nuevo",
+      "w": 360,
+      "x": 0,
+      "y": 1600
+    },
+    "Vendiendo.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "4 · De vuelta en la venta",
+      "w": 360,
+      "x": 1320,
+      "y": 0
+    },
+    "Vender.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Vender · solo la venta (pruébala: Escanear, buscar, + y −)",
+      "w": 360,
+      "x": 0,
+      "y": 2864
+    },
+    "Visor.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Escanear abre la cámara al centro (celular)",
+      "w": 360,
+      "x": 0,
+      "y": 4128
+    },
+    "Ficha-codigo.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Añadir otro código, con Escanear",
+      "w": 360,
+      "x": 440,
+      "y": 4128
+    },
+    "Visor-PC.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "Computador: «Escanear» y la cámara al centro",
+      "w": 1280,
+      "x": 880,
+      "y": 4128
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-27T15:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "maxW": 2120,
+      "text": "Le cambiaron el código a un producto que ya vendo",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 1200,
+      "text": "Es un producto nuevo",
+      "w": 240,
+      "x": 0,
+      "y": 1300
+    },
+    "t3": {
+      "kind": "title1",
+      "maxW": 1200,
+      "text": "Vender sin la cuadrícula",
+      "w": 240,
+      "x": 0,
+      "y": 2564
+    },
+    "t4": {
+      "kind": "title1",
+      "maxW": 2160,
+      "text": "La cámara, al centro",
+      "w": 240,
+      "x": 0,
+      "y": 3828
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Elegir.dc.html",
+    "Confirmar.dc.html",
+    "Vendiendo.dc.html",
+    "Ficha.dc.html",
+    "Nuevo.dc.html",
+    "Vender.dc.html",
+    "Visor.dc.html",
+    "Ficha-codigo.dc.html",
+    "Visor-PC.dc.html"
+  ],
+  "pages": [],
+  "title": "Códigos por producto"
+}

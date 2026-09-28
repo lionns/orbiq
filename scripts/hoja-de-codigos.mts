@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { writeFileSync } from "node:fs";
-import { isNotNull } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { db, pool, schema } from "../src/db";
 import { digitoDeControl, modulos } from "../e2e/apoyo/ean13";
@@ -43,15 +42,16 @@ function svg(codigo: string): string {
 async function principal() {
   const corregir = process.argv.includes("--corregir");
 
+  // Una tarjeta por código, no por producto: desde `D-010` un producto puede tener varios.
   const productos = await db
     .select({
-      id: schema.product.id,
+      id: schema.productBarcode.id,
       nombre: schema.product.name,
       precio: schema.product.price,
-      codigo: schema.product.barcode,
+      codigo: schema.productBarcode.code,
     })
-    .from(schema.product)
-    .where(isNotNull(schema.product.barcode));
+    .from(schema.productBarcode)
+    .innerJoin(schema.product, eq(schema.product.id, schema.productBarcode.productId));
 
   const imprimibles: { nombre: string; precio: number; codigo: string }[] = [];
   const rotos: { nombre: string; codigo: string; deberiaSer: string }[] = [];
@@ -67,9 +67,9 @@ async function principal() {
       codigo.length === 13 ? codigo.slice(0, 12) + digitoDeControl(codigo.slice(0, 12)) : null;
     if (corregir && arreglado) {
       await db
-        .update(schema.product)
-        .set({ barcode: arreglado })
-        .where(eq(schema.product.id, p.id));
+        .update(schema.productBarcode)
+        .set({ code: arreglado })
+        .where(eq(schema.productBarcode.id, p.id));
       imprimibles.push({ nombre: p.nombre, precio: p.precio, codigo: arreglado });
     } else {
       rotos.push({ nombre: p.nombre, codigo, deberiaSer: arreglado ?? "—" });

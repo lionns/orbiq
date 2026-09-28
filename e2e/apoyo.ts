@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { expect, type BrowserContext, type Page } from "@playwright/test";
-import { eq } from "drizzle-orm";
+import { eq, inArray, type SQL } from "drizzle-orm";
 import { db, schema } from "../src/db";
 import { auth } from "../src/lib/auth";
 
@@ -93,4 +93,24 @@ export async function entrarComo(page: Page, dueno: DuenoDePrueba): Promise<void
   // visita quien lo prueba.
   await page.goto("/vender");
   await expect(page.getByTestId("sesion-nombre")).toBeAttached();
+}
+
+/**
+ * Borra productos de prueba con sus códigos. Desde `D-010` los códigos viven en su tabla y cuelgan
+ * del producto, así que la base no deja borrar uno sin los otros. Los movimientos van antes: cada
+ * prueba los borra primero, porque nombran a los dos.
+ */
+export async function borrarProductos(donde: SQL | undefined): Promise<void> {
+  const ids = db.select({ id: schema.product.id }).from(schema.product).where(donde);
+  await db.delete(schema.productBarcode).where(inArray(schema.productBarcode.productId, ids));
+  await db.delete(schema.product).where(donde);
+}
+
+/** Le da un código a un producto sembrado, como lo haría el alta. Devuelve el id del código. */
+export async function sembrarCodigo(productoId: string, codigo: string): Promise<string> {
+  const [c] = await db
+    .insert(schema.productBarcode)
+    .values({ productId: productoId, code: codigo })
+    .returning({ id: schema.productBarcode.id });
+  return c!.id;
 }

@@ -15,6 +15,7 @@ import {
   EyeOff,
   House,
   Keyboard,
+  Link2,
   LogIn,
   LogOut,
   Mail,
@@ -89,6 +90,7 @@ export const ICONOS = {
   ocultar: EyeOff,
   alerta: CircleAlert,
   teclado: Keyboard,
+  enlazar: Link2,
 } as const;
 
 export type NombreDeIcono = keyof typeof ICONOS;

@@ -111,6 +111,15 @@
   --color-danger-soft: var(--paleta-danger-soft);
   --color-warning: var(--paleta-warning);
 
+  /* El visor de la cámara es oscuro en los dos temas (`T-034`, `.diseno/codigos/Visor`): alrededor
+     de la imagen de una cámara, un marco claro deslumbra y compite con lo que se está apuntando.
+     Toma la paleta oscura tal cual, así que sus contrastes son los ya medidos arriba. */
+  --color-visor: var(--oscuro-bg);
+  --color-visor-text: var(--oscuro-text);
+  --color-visor-muted: var(--oscuro-text-muted);
+  --color-visor-borde: var(--oscuro-border-strong);
+  --color-visor-marco: var(--oscuro-accent);
+
   --text-total: 2.5rem; /* 40px — el número que se mira mientras se cobra */
 
   /* Geist, autoalojada por `next/font` en `layout.tsx`: se sirve desde nuestro origen y se descarga
@@ -123,10 +132,10 @@
   --radius-bloque: 28px;
 
   /* Lo que puede llegar a medir la barra de la venta, dicho una vez y usado en dos sitios: el tope
-     de la barra y el hueco que la cuadrícula le reserva.
+     de la barra y el hueco que la lista de la venta le reserva.
 
      Proporcional y no fijo: 18rem en una pantalla de 740 px es cómodo, pero en una de 560 son más
-     de la mitad y la cuadrícula se queda sin sitio. `dvh` sigue a la barra del navegador cuando se
+     de la mitad y la lista se queda sin sitio. `dvh` sigue a la barra del navegador cuando se
      encoge, que es lo que en un teléfono real dejaba la última fila debajo. */
   --alto-barra-venta: min(18rem, 42dvh);
   --radius-button: 16px;

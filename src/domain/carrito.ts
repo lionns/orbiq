@@ -9,7 +9,24 @@ export type ArticuloEnVenta = {
   /** Precio vigente al momento de tocarlo. El servidor lo vuelve a leer al confirmar (`AC-009`). */
   precio: number;
   cantidad: number;
+  /**
+   * El código escaneado, si lo hubo (`D-010`). Lo vendido sale de ese código; sin él, el servidor
+   * lo descuenta del más antiguo con unidades. Opcional: una venta guardada en el dispositivo antes
+   * de que existiera sigue siendo válida.
+   */
+  codigoId?: string | null;
+  /** El número de ese código, para decirlo en la línea («Código …4432»). */
+  codigo?: string | null;
 };
+
+/**
+ * Qué hace que dos artículos sean la misma línea: el producto y el código del que salen. El mismo
+ * producto escaneado con su código viejo y con el nuevo son dos líneas, porque descuentan de dos
+ * sitios distintos. Sin código, la clave es el producto a secas.
+ */
+export function clave(a: Pick<ArticuloEnVenta, "productoId" | "codigoId">): string {
+  return a.codigoId ? `${a.productoId}:${a.codigoId}` : a.productoId;
+}
 
 export type Carrito = {
   /** Generado en el cliente antes de enviar. Su unicidad ES la idempotencia (`D-005`, `AC-010`). */
@@ -21,28 +38,33 @@ export function carritoVacio(id: string): Carrito {
   return { id, articulos: [] };
 }
 
-/** Tocar un producto que ya está en la venta suma uno, no lo duplica. */
+/**
+ * Añadir un producto que ya está en la venta suma uno, no lo duplica. Lo nuevo va **arriba**: es lo
+ * que se acaba de escanear, y es lo que el dueño busca con la vista (`T-033`).
+ */
 export function agregar(carrito: Carrito, producto: Omit<ArticuloEnVenta, "cantidad">): Carrito {
-  const existente = carrito.articulos.find((a) => a.productoId === producto.productoId);
+  const k = clave(producto);
+  const existente = carrito.articulos.find((a) => clave(a) === k);
   if (!existente) {
-    return { ...carrito, articulos: [...carrito.articulos, { ...producto, cantidad: 1 }] };
+    return { ...carrito, articulos: [{ ...producto, cantidad: 1 }, ...carrito.articulos] };
   }
   return {
     ...carrito,
-    articulos: carrito.articulos.map((a) =>
-      a.productoId === producto.productoId ? { ...a, cantidad: a.cantidad + 1 } : a,
-    ),
+    articulos: carrito.articulos.map((a) => (clave(a) === k ? { ...a, cantidad: a.cantidad + 1 } : a)),
   };
 }
 
-/** Bajar de uno saca el artículo. Un artículo con cantidad cero no es una línea de venta. */
-export function cambiarCantidad(carrito: Carrito, productoId: string, cantidad: number): Carrito {
+/**
+ * Bajar a cero saca el artículo. Un artículo con cantidad cero no es una línea de venta. `k` es la
+ * clave de la línea (`clave`), que sin código es el producto.
+ */
+export function cambiarCantidad(carrito: Carrito, k: string, cantidad: number): Carrito {
   if (cantidad <= 0) {
-    return { ...carrito, articulos: carrito.articulos.filter((a) => a.productoId !== productoId) };
+    return { ...carrito, articulos: carrito.articulos.filter((a) => clave(a) !== k) };
   }
   return {
     ...carrito,
-    articulos: carrito.articulos.map((a) => (a.productoId === productoId ? { ...a, cantidad } : a)),
+    articulos: carrito.articulos.map((a) => (clave(a) === k ? { ...a, cantidad } : a)),
   };
 }
 

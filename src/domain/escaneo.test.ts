@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   acumular,
+  ajustesDeCamara,
   equivalentes,
   LECTURA_VACIA,
   normalizarCodigo,
@@ -98,5 +99,53 @@ describe("equivalentes", () => {
 
   it("un EAN-8 se busca tal cual", () => {
     expect(equivalentes("96385074")).toEqual(["96385074"]);
+  });
+});
+
+describe("ajustes del visor según la cámara (T-034)", () => {
+  const android = {
+    capacidades: { zoom: { min: 1, max: 8 }, focusMode: ["continuous", "single-shot", "manual"] },
+    admitidas: { pointsOfInterest: true },
+  };
+
+  it("en una cámara que lo permite todo, ofrece 2× y enfocar al tocar", () => {
+    expect(ajustesDeCamara(android.capacidades, android.admitidas)).toEqual({
+      zoom: { normal: 1, acercado: 2 },
+      enfocarAlTocar: true,
+    });
+  });
+
+  it("sin capacidades —Safari en iPhone— no ofrece nada que no funcione", () => {
+    expect(ajustesDeCamara(undefined, {})).toEqual({ zoom: null, enfocarAlTocar: false });
+  });
+
+  it("en iPhone, «normal» es como abrió la cámara y no su mínimo: 1× no aleja más", () => {
+    // Varias cámaras en una: el mínimo es el gran angular y abre en 2.
+    expect(ajustesDeCamara({ zoom: { min: 1, max: 15 } }, {}, 2).zoom).toEqual({
+      normal: 2,
+      acercado: 4,
+    });
+  });
+
+  it("si acercar dos veces se pasa del máximo, no se ofrece", () => {
+    expect(ajustesDeCamara({ zoom: { min: 1, max: 3 } }, {}, 2).zoom).toBeNull();
+  });
+
+  it("un zoom que no llega a 2 aumentos no se ofrece", () => {
+    expect(ajustesDeCamara({ zoom: { min: 1, max: 1.5 } }, {}).zoom).toBeNull();
+  });
+
+  it("el 2× es sobre el zoom normal de la cámara, no sobre 1", () => {
+    expect(ajustesDeCamara({ zoom: { min: 0.5, max: 10 } }, {}).zoom).toEqual({
+      normal: 0.5,
+      acercado: 1,
+    });
+  });
+
+  it("enfocar al tocar necesita el punto y el enfoque de una vez; con uno solo no", () => {
+    expect(ajustesDeCamara({ focusMode: ["single-shot"] }, {}).enfocarAlTocar).toBe(false);
+    expect(
+      ajustesDeCamara({ focusMode: ["continuous"] }, { pointsOfInterest: true }).enfocarAlTocar,
+    ).toBe(false);
   });
 });

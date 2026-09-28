@@ -4,7 +4,7 @@ import "dotenv/config";
 import { expect, test, type Page } from "@playwright/test";
 import { eq, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
-import { borrarDueno, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
+import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
  * T-003 · US-002. El catálogo recorrido entero contra la base real (`D-006`).
@@ -27,7 +27,7 @@ test.afterAll(async () => {
   // también se borra y el siguiente arranque no arrastra basura.
   const mios = sql`select id from ${schema.product} where ${schema.product.name} like ${`%${MARCA}%`}`;
   await db.delete(schema.stockMovement).where(sql`${schema.stockMovement.productId} in (${mios})`);
-  await db.delete(schema.product).where(like(schema.product.name, `%${MARCA}%`));
+  await borrarProductos(like(schema.product.name, `%${MARCA}%`));
   await db.delete(schema.category).where(like(schema.category.name, `%${MARCA}%`));
   await borrarDueno(dueno);
 });

@@ -87,7 +87,8 @@ Plana. La jerarquía está fuera de alcance y entra como columna padre el día q
 
 ### product
 
-Cada cosa escaneable es un producto. No hay variantes (`brief.md` § In Scope).
+Cada cosa que se vende es un producto. No hay variantes (`brief.md` § In Scope): un producto con
+varios códigos sigue siendo uno solo, con un precio (`D-010`).
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
@@ -95,11 +96,26 @@ Cada cosa escaneable es un producto. No hay variantes (`brief.md` § In Scope).
 | name | text | yes | |
 | price | integer | yes | Unidad mínima de la moneda del negocio. Entero, nunca coma flotante |
 | category_id | uuid v7 | no | → `category.id` |
-| barcode | text | no | Único **entre los que lo tienen**: índice parcial. Sin código es normal — granel, pan, huevos |
 | stock | integer | yes | Saldo materializado, recomputable desde `stock_movement` (`D-002`). Nunca es la verdad, solo la copia rápida |
 | is_active | boolean | yes | Un producto no se borra: los movimientos lo referencian |
 | created_at | timestamptz | yes | |
 | updated_at | timestamptz | yes | |
+
+### product_barcode
+
+Los códigos de un producto (`D-010`). El proveedor cambia el código de lo que ya se vende, así que un
+producto puede tener varios, y cada uno lleva su cantidad. Sin código es normal —granel, pan,
+huevos—: esos productos no tienen fila aquí.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| id | uuid v7 | yes | |
+| product_id | uuid v7 | yes | → `product.id` |
+| code | text | yes | **Único entre todos los productos** (`AC-004`) |
+| created_at | timestamptz | yes | Ordena los códigos: lo vendido sin escanear sale del más antiguo con unidades (`AC-027`) |
+
+La cantidad de un código es la suma de sus movimientos; no se materializa. Un código no se borra
+—sus movimientos lo nombran—: se corrige su número.
 
 ### sale
 
@@ -131,7 +147,8 @@ El libro. Inmutable (`D-002`).
 | id | uuid v7 | yes | |
 | product_id | uuid v7 | yes | → `product.id` |
 | quantity | integer | yes | Con signo. Negativo descuenta |
-| type | enum `movement_type` | yes | `initial` · `sale` · `sale_void` · `adjustment`. Devoluciones, traslados y compras entran como tipos nuevos, sin tocar filas viejas — añadir un valor al enum es una migración de una línea |
+| type | enum `movement_type` | yes | `initial` · `sale` · `sale_void` · `adjustment` · `purchase` («Llegaron», `D-010`). Devoluciones y traslados entran como tipos nuevos, sin tocar filas viejas — añadir un valor al enum es una migración de una línea |
+| barcode_id | uuid v7 | no | → `product_barcode.id`. De qué código fue. Nulo: sin código (`D-010`) |
 | sale_id | uuid v7 | no | → `sale.id`. Obligatorio cuando `type` es `sale` o `sale_void` |
 | reason | text | no | **Obligatorio cuando `type` es `adjustment`** (`brief.md` § In Scope) |
 | user_id | text | yes | → `user.id` |
@@ -163,20 +180,22 @@ sostiene una propiedad que ya está escrita arriba.
 | Index | Sostiene |
 | --- | --- |
 | `stock_movement (product_id, occurred_at)` | Que el saldo sea **recomputable** desde el libro (`D-002`). Sin él, recomputar un producto recorre la tabla entera |
-| `sale (created_at)` | La cuadrícula de frecuentes, que se deriva de las ventas recientes (`US-005`) |
+| `sale (created_at)` | Las ventas de un día y las últimas de Inicio (`T-014`, `T-028`) |
+| `product_barcode (product_id)` | Los códigos de un producto, en la ficha y al repartir una venta (`D-010`) |
 | `sale_line (sale_id)` | Leer una venta con sus líneas |
 | `sale_line (product_id)` | Lo vendido de un producto |
 | `account (user_id, provider_id)` | La búsqueda exacta que hace el ingreso (`D-008`) |
 | `product_event (product_id, occurred_at)` | La ficha del producto los lee junto a sus movimientos, en una sola línea de tiempo |
 
-`product.barcode` tiene su índice único **parcial** — la unicidad y el índice son la misma cosa
-(`AC-004`, `AC-005`).
+`product_barcode.code` es único — la unicidad y el índice son la misma cosa (`AC-004`). Varios
+productos sin código no chocan, porque no tienen fila (`AC-005`).
 
 ## Relationships
 
 - `user` 1—N `account`, `session`, `sale`, `stock_movement`. Las credenciales cuelgan de `account`, nunca del usuario.
 - `category` 1—N `product`. La categoría es opcional.
-- `product` 1—N `sale_line`, `stock_movement`.
+- `product` 1—N `product_barcode`, `sale_line`, `stock_movement`.
+- `product_barcode` 1—N `stock_movement`. La suma de los movimientos de un código es su cantidad.
 - `sale` 1—N `sale_line`, y 1—N `stock_movement` (los del registro y los de su anulación).
 - `product.stock` == `SUM(stock_movement.quantity)` de ese producto. Es una copia, no una fuente:
   si divergen, manda el libro.
@@ -187,7 +206,9 @@ sostiene una propiedad que ya está escrita arriba.
 - Una venta tiene al menos una línea.
 - `sale.total` == suma de `quantity * unit_price` de sus líneas.
 - `stock_movement.reason` no vacío cuando `type` es `adjustment`.
-- `product.barcode` único entre los no nulos. Varios productos sin código es lo normal.
+- `product_barcode.code` único. Varios productos sin código es lo normal.
+- Lo vendido escaneando sale de ese código; sin escanear, del más antiguo con unidades, y lo que no
+  cabe, del más reciente (`AC-027`). Anular devuelve a cada código lo que salió de él.
 - Registrar una venta ya registrada (mismo `sale.id`) devuelve la venta existente sin descontar de
   nuevo — no es un error, es un reintento (`D-005`).
 - Anular una venta ya anulada se rechaza.
@@ -225,10 +246,8 @@ sostiene una propiedad que ya está escrita arriba.
   exactamente lo que se teclea. Vive en `src/domain/moneda.ts`, no en el esquema: un despliegue por
   negocio significa una moneda por base (`D-005`). Cambiar a una moneda **con** centavos seguiría
   costando una migración — habría que multiplicar los precios ya guardados.
-- **La cuadrícula de frecuentes se deriva, no se guarda.** Sale de las ventas recientes.
-  **Cerrado el 2026-09-06:** mientras no haya historial suficiente, la cuadrícula **es el catálogo**
-  ordenado por nombre, y se va reordenando sola a medida que se vende. Así una tienda nueva la ve
-  llena desde el primer día sin administrar favoritos. La ventana y el número de casillas siguen
-  siendo un valor fijado en código, pendiente de validar con un dueño usándolo de verdad.
+- ~~**La cuadrícula de frecuentes se deriva, no se guarda.**~~ **Retirada el 2026-09-27 (`T-033`):**
+  el cliente, usándola, pidió que Vender no sugiera productos. La venta se arma escaneando o
+  buscando; nunca se guardó nada, así que quitarla no tocó el esquema.
 - **Alta inicial del catálogo.** `brief.md` § Open Questions ya pregunta cuántos productos hay. Si
   son cientos, la carga masiva deja de estar fuera de alcance y necesita su propia decisión.
