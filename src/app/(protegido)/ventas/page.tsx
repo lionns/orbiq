@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ventasDelRango, type VentaDelDia } from "@/domain/venta";
+import { DIAS_POR_PAGINA, ventasDelRango, type VentaDelDia } from "@/domain/venta";
+import { conDesde } from "@/domain/volver";
 import { diaDelNegocio, ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Boton } from "@/ui/boton";
 import { Campo } from "@/ui/campo";
@@ -49,12 +50,20 @@ export default async function Ventas({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const rango = { desde: fecha(params.desde), hasta: fecha(params.hasta) };
-  const { dias, resumen } = await ventasDelRango(rango);
+  const hoy = diaDelNegocio(new Date());
+  // Sin fechas, hoy (`T-037`): es lo que se mira al cerrar la caja, y sin rango la página traía la
+  // historia entera —medido: 60 MB con 20.000 ventas—.
+  const sinFechas = !fecha(params.desde) && !fecha(params.hasta);
+  const rango = sinFechas
+    ? { desde: hoy, hasta: hoy }
+    : { desde: fecha(params.desde), hasta: fecha(params.hasta) };
+  // Cuántos días se enseñan: de 7 en 7 con «Ver más días», como «Ver más» en Productos.
+  const pedidos = Number(typeof params.dias === "string" ? params.dias : NaN);
+  const verDias = Number.isInteger(pedidos) && pedidos > 0 ? Math.min(pedidos, 366) : DIAS_POR_PAGINA;
+  const { dias, resumen, hayMas } = await ventasDelRango(rango, verDias);
 
   // Los atajos (`.diseno/cobalto/F-M-Ventas`): enlaces con su rango en la dirección, así que
   // funcionan sin JavaScript y se comparten (`AC-018`). La semana empieza el lunes.
-  const hoy = diaDelNegocio(new Date());
   const diaDeLaSemana = (mediodia(hoy).getUTCDay() + 6) % 7;
   const atajos = [
     { nombre: "Hoy", desde: hoy, hasta: hoy },
@@ -65,6 +74,15 @@ export default async function Ventas({
   const atajo = atajos.find((a) => a.desde === rango.desde && a.hasta === rango.hasta);
   const otras = params.otras === "1" || Boolean((rango.desde || rango.hasta) && !atajo);
   const conRango = Boolean(rango.desde || rango.hasta);
+  // Esta lista, con sus fechas: la venta que se abra vuelve a ella y no a la de hoy (`T-036`).
+  const consulta = new URLSearchParams();
+  if (!sinFechas && rango.desde) consulta.set("desde", rango.desde);
+  if (!sinFechas && rango.hasta) consulta.set("hasta", rango.hasta);
+  if (params.otras === "1") consulta.set("otras", "1");
+  if (verDias !== DIAS_POR_PAGINA) consulta.set("dias", String(verDias));
+  const aqui = consulta.size ? `/ventas?${consulta}` : null;
+  const masDias = new URLSearchParams(consulta);
+  masDias.set("dias", String(verDias + DIAS_POR_PAGINA));
 
   return (
     <main className="mx-auto max-w-6xl px-4 pt-4 pb-6 lg:px-12 lg:pt-10">
@@ -165,12 +183,24 @@ export default async function Ventas({
                 <ul className="divide-y divide-border">
                   {d.ventas.map((v) => (
                     <li key={v.id}>
-                      <FilaDeVenta venta={v} />
+                      <FilaDeVenta venta={v} aqui={aqui} />
                     </li>
                   ))}
                 </ul>
               </section>
             ))}
+            {hayMas ? (
+              // Un enlace y no un botón: el número de días vive en la dirección, como los filtros
+              // de Productos, y funciona sin JavaScript (`AC-018`).
+              <Link
+                href={`/ventas?${masDias}`}
+                scroll={false}
+                className="flex min-h-14 items-center justify-center gap-2 rounded-button border border-border-strong bg-surface font-semibold"
+                data-testid="ver-mas-dias"
+              >
+                Ver más días
+              </Link>
+            ) : null}
           </div>
         )}
       </div>
@@ -203,10 +233,10 @@ function Atajo({
   );
 }
 
-function FilaDeVenta({ venta: v }: { venta: VentaDelDia }) {
+function FilaDeVenta({ venta: v, aqui }: { venta: VentaDelDia; aqui: string | null }) {
   return (
     <Link
-      href={`/ventas/${v.id}`}
+      href={conDesde(`/ventas/${v.id}`, aqui)}
       data-testid={`venta-${v.id}`}
       className="flex min-h-16 items-center gap-3 py-2.5 pr-3 pl-4 lg:px-5"
     >

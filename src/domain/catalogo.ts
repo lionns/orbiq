@@ -392,11 +392,13 @@ export async function anadirCodigo(
 ): Promise<ResultadoCodigo> {
   try {
     return await db.transaction(async (tx) => {
+      // El mismo bloqueo que la venta: lo que llegó se suma al saldo en fila (`T-037`).
       const [producto] = await tx
         .select({ id: schema.product.id })
         .from(schema.product)
         .where(eq(schema.product.id, productoId))
-        .limit(1);
+        .limit(1)
+        .for("update");
       if (!producto) return { ok: false as const, campo: "producto" as const, mensaje: "Ese producto ya no existe." };
 
       const chocando = await quienLoTiene(tx, nuevo.codigo);

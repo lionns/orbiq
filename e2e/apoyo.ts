@@ -12,7 +12,9 @@ import { auth } from "../src/lib/auth";
 export type DuenoDePrueba = { id: string; correo: string; nombre: string; clave: string };
 
 export async function crearDueno(etiqueta: string): Promise<DuenoDePrueba> {
-  const correo = `prueba-${etiqueta}-${Date.now()}@orbiq.test`;
+  // La hora sola no basta: con la suite en paralelo dos trabajadores caían en el mismo milisegundo
+  // y chocaban contra el correo único (`andamiaje`, `navegacion` repetidas).
+  const correo = `prueba-${etiqueta}-${Date.now()}-${Math.floor(Math.random() * 1e9)}@orbiq.test`;
   const nombre = "Dueña de prueba";
   const clave = "clave-de-prueba-2026";
 

@@ -520,7 +520,7 @@ test("deshacer un cobro anula esa venta, devuelve las existencias y la trae de v
   await expect(page.getByTestId(`venta-${deshecha}`)).toContainText("Anulada");
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");
-  await expect(page.locator(`a[href="/ventas/${deshecha}"]`)).toContainText("Anulada");
+  await expect(page.locator(`a[href^="/ventas/${deshecha}"]`)).toContainText("Anulada");
   await page.goto("/vender");
   await expect(page.getByTestId(`cantidad-${p!.id}`)).toHaveText("3");
 

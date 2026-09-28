@@ -42,6 +42,8 @@ Harness `0.9.0` · profile `team`
 | [T-033](docs/tasks/T-033-vender-muestra-solo-la-venta.md) | `done` | Que la pantalla de venta deje de proponer productos. Se abre vacía y en ella se ve solo la venta que se arma escaneando o buscando, con su cantidad a mano y Cobrar abajo. |
 | [T-034](docs/tasks/T-034-la-camara-se-abre-al-centro.md) | `done` | Que tocar «Escanear» abra la cámara en un visor al centro de la pantalla, que se note que se está dentro de la cámara, en celular y computador; que el botón diga «Escanear» también en computador; y que «Añadir otro código» en la ficha se pueda escanear. |
 | [T-035](docs/tasks/T-035-anular-en-palabras-de-tienda-y-lumy-bella.md) | `done` | Que los tres mensajes de anular una venta se entiendan sin saber qué son «existencias», y que la tienda de Tienda Miriam se vea con su nombre, Lumy Bella. |
+| [T-036](docs/tasks/T-036-volver-a-donde-se-estaba-y-menos-consultas.md) | `done` | Que «volver» lleve a la pantalla de donde se vino —la ficha, Inicio, Ventas con sus fechas— y que ninguna pantalla consulte la base dos veces por lo mismo. |
+| [T-037](docs/tasks/T-037-integridad-ventas-en-dias-y-seguridad.md) | `done` | Que el saldo y las anulaciones resistan operaciones simultáneas, que Ventas no traiga la historia entera, y que la app mande cabeceras de seguridad y cuente los intentos de entrar donde todas las instancias los vean. |
 | [T-024](docs/tasks/T-024-la-direccion-alcanza-al-resto-de-pantallas.md) | `superseded` | Que la ficha del producto y el historial de ventas se vean diseñados y no heredados. Heredaron la paleta y los componentes de T-023 sin romperse, pero se nota que nadie las miró: el precio no manda donde se va a comprobar un precio, y quedan subrayados del look que el estudio ya rechazó. |
 
 ## Next
@@ -54,10 +56,10 @@ None. All decisions are accepted or superseded.
 
 ## Journal — last 5
 
+- 2026-09-27 | T-037 | done | ventas y anulaciones simultáneas sin pisarse; Ventas abre en hoy y va de 7 en 7 días; cabeceras de seguridad; límite de intentos en la base | 16 files | test 103/103, e2e 130/130 Node y 130/130 Workers | D-002,D-008,D-011
+- 2026-09-27 | T-036 | done | «volver» vuelve a donde se estaba; la sesión se lee una vez por petición; sin refrescos de más en Vender | 17 files | test 103/103, e2e 123/123 (Postgres local) | D-011
 - 2026-09-27 | T-035 | done | anular en palabras de tienda; el negocio se ve como Lumy Bella | 9 files | test 96/96, e2e ventas y venta 26/26 | D-005
 - 2026-09-27 | T-034 | done | la cámara en un visor al centro; Escanear en computador y en la ficha; enfoque continuo, 2× y tocar para enfocar según la cámara | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009,D-010
 - 2026-09-27 | T-033 | done | Vender abre vacía y enseña solo la venta; Vaciar en rojo con Deshacer | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009
-- 2026-09-27 | T-032 | done | varios códigos por producto con su cantidad; código desconocido: añadirlo a uno existente o darlo de alta; migración 0004 probada sobre datos del esquema anterior | 76 files, junto a T-033 y T-034 | test 96/96, e2e 115/115 (Postgres local) | D-002,D-010
-- 2026-09-25 | T-031 | done | un Worker por negocio en Cloudflare, con pg por petición sobre Hyperdrive; Tienda Miriam desplegada | 18 files | test 71/71, e2e 106/106 Node, 105/106 Workers | D-001,D-005,D-009
 
 Full history: [`JOURNAL.md`](JOURNAL.md) · decisions: [`docs/decisions/`](docs/decisions/README.md)

@@ -146,7 +146,7 @@ test("las ventas se agrupan por día con su total, y se entra al detalle", async
 
   // AC-020: el detalle dice lo que se cobró.
   await page.getByTestId(`venta-${v1}`).click();
-  await expect(page).toHaveURL(new RegExp(`/ventas/${v1}$`));
+  await expect(page).toHaveURL(new RegExp(`/ventas/${v1}(\\?|$)`));
   await expect(page.getByTestId("lineas")).toContainText("2 × $ 3.500");
   await expect(page.getByTestId("total-venta")).toContainText("7.000");
 });
@@ -243,7 +243,7 @@ test("desde el historial de un producto se llega a la venta", async ({ page }) =
   await entrarComo(page, dueno);
   await page.goto(`/catalogo/${p.id}`);
   await page.getByTestId("de-una-venta").click();
-  await expect(page).toHaveURL(new RegExp(`/ventas/${v}$`));
+  await expect(page).toHaveURL(new RegExp(`/ventas/${v}(\\?|$)`));
 });
 
 test("el rango de fechas vive en la dirección y sobrevive a una recarga", async ({ page }) => {

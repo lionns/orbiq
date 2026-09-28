@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { categoriasExistentes } from "@/domain/catalogo";
 import { cola } from "@/domain/codigos";
+import { conDesde } from "@/domain/volver";
 import {
   ETIQUETA_MOVIMIENTO,
   libroDelProducto,
@@ -38,12 +39,14 @@ const cuando = new Intl.DateTimeFormat("es-CO", {
 export async function FichaDelProducto({
   id,
   volver,
+  textoVolver = "Productos",
   aqui,
   enPanel = false,
 }: {
   id: string;
-  /** La lista de la que se vino, con sus filtros. */
+  /** De donde se vino: la lista con sus filtros, Inicio o una venta (`T-036`). */
   volver: string;
+  textoVolver?: string;
   /** Esta misma dirección: adónde vuelve «Cerrar» de una hoja. */
   aqui: string;
   enPanel?: boolean;
@@ -83,7 +86,7 @@ export async function FichaDelProducto({
             className="-ml-1 flex min-h-12 items-center gap-1.5 pr-3 font-semibold text-text-muted"
           >
             <Icono nombre="volver" />
-            Productos
+            {textoVolver}
           </Link>
         )}
       </div>
@@ -184,7 +187,7 @@ export async function FichaDelProducto({
             data-testid="historial"
           >
             {libro.linea.map((e) => (
-              <FilaDelHistorial key={e.id} evento={e} conCodigo={codigos.length > 0} />
+              <FilaDelHistorial key={e.id} evento={e} conCodigo={codigos.length > 0} aqui={aqui} />
             ))}
           </ol>
         ) : null}
@@ -293,7 +296,16 @@ function FilaDeCodigo({
 }
 
 /** Una sola línea de tiempo: el dueño pregunta qué le pasó al producto, no de qué bitácora salió. */
-function FilaDelHistorial({ evento: e, conCodigo }: { evento: EventoDelProducto; conCodigo: boolean }) {
+function FilaDelHistorial({
+  evento: e,
+  conCodigo,
+  aqui,
+}: {
+  evento: EventoDelProducto;
+  conCodigo: boolean;
+  /** Esta ficha: la venta que se abra desde el historial vuelve aquí (`T-036`). */
+  aqui: string;
+}) {
   // El código solo se dice cuando el producto tiene alguno: en uno que nunca tuvo, «Sin código» en
   // cada fila sería ruido.
   const codigo = e.clase === "movimiento" && conCodigo ? `${e.codigo ? cola(e.codigo) : "Sin código"} · ` : "";
@@ -343,7 +355,7 @@ function FilaDelHistorial({ evento: e, conCodigo }: { evento: EventoDelProducto;
       titulo={ETIQUETA_MOVIMIENTO[e.tipo]}
       testid={`movimiento-${e.tipo}`}
       cifra={cifra}
-      href={e.ventaId ? `/ventas/${e.ventaId}` : undefined}
+      href={e.ventaId ? conDesde(`/ventas/${e.ventaId}`, aqui) : undefined}
     >
       <span className="block text-text-muted">{pie}</span>
       {e.motivo ? <span className="block">{e.motivo}</span> : null}

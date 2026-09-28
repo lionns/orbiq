@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { NEGOCIO } from "@/domain/negocio";
-import { sesionActual } from "@/domain/session";
 import { resumenDelDia, type VentaDelDia } from "@/domain/venta";
+import { conDesde } from "@/domain/volver";
 import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Existencias, Precio } from "@/ui/cifras";
 import { Icono, type NombreDeIcono } from "@/ui/iconos";
 import { Marca } from "@/ui/marca";
+import { sesionDeLaPeticion } from "./sesion";
 
 /**
  * Inicio: lo del día sin tener que buscarlo (`.diseno/cobalto/U-M-Inicio`, `U-D-Inicio`). Es la
@@ -35,7 +35,7 @@ function saludo(ahora: Date): string {
 
 export default async function Inicio() {
   const ahora = new Date();
-  const [sesion, resumen] = await Promise.all([sesionActual(await headers()), resumenDelDia(ahora)]);
+  const [sesion, resumen] = await Promise.all([sesionDeLaPeticion(), resumenDelDia(ahora)]);
   const nombre = sesion?.nombre.split(" ")[0] ?? "";
   const hoy = `/ventas?desde=${resumen.dia}&hasta=${resumen.dia}`;
   const reponer = "/catalogo?existencias=por-reponer";
@@ -104,7 +104,8 @@ export default async function Inicio() {
             {resumen.porReponer.productos.map((p) => (
               <li key={p.id}>
                 <Link
-                  href={`/catalogo/${p.id}`}
+                  // Desde Inicio: la ficha vuelve aquí, no a Productos (`T-036`).
+                  href={conDesde(`/catalogo/${p.id}`, "/")}
                   className="flex min-h-14 items-center justify-between gap-3 px-5 py-2"
                 >
                   <span className="truncate font-medium">{p.nombre}</span>
@@ -193,7 +194,7 @@ function Atajo({
 
 function FilaDeVenta({ venta: v }: { venta: VentaDelDia }) {
   return (
-    <Link href={`/ventas/${v.id}`} className="flex min-h-16 items-center gap-4 px-5 py-3">
+    <Link href={conDesde(`/ventas/${v.id}`, "/")} className="flex min-h-16 items-center gap-4 px-5 py-3">
       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-bg text-text-muted">
         <Icono nombre="ventas" />
       </span>

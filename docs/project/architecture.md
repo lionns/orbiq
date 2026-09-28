@@ -15,7 +15,7 @@ eso vive aquí y no en una decisión.
 | Runtime | Node.js en local, pruebas y scripts; en producción, el runtime de Cloudflare Workers con `nodejs_compat` | Local hoy `v26.8.1` (`node -v`). Next.js entra en Workers por `@opennextjs/cloudflare` (`T-031`) |
 | Framework | Next.js, App Router | Un solo desplegable con interfaz y acceso a datos juntos (`D-001`) |
 | Interfaz | React + Tailwind CSS | Responsive pulgar primero sin construir una capa de diseño propia todavía (`D-007`) |
-| Base de datos | PostgreSQL gestionado en Neon | Relacional gestionado con respaldo automático del proveedor (`D-002`) |
+| Base de datos | PostgreSQL gestionado en Neon | Relacional gestionado con respaldo automático del proveedor (`D-002`); por qué Neon, en `D-011` |
 | Acceso a datos | Drizzle ORM | Consultas con forma de SQL, sin repositorios ni adaptadores (`D-003`) |
 | Migraciones | drizzle-kit, versionadas en el repo | Migrar es rutina desde la tarea uno (`D-002`) |
 | Identidad y sesión | Better Auth, con adaptador de Drizzle | Sesión en base de datos y cookie opaca de fábrica (`D-008`) |
@@ -147,8 +147,9 @@ Pasos de la cuenta del estudio, en orden. `N` es el número del negocio.
 1. Una vez por cuenta: `! npx wrangler login` y el plan Workers Paid. El gratuito da 10 ms de CPU
    por petición, y entrar (scrypt) no cabe.
 2. Un proyecto de Neon para el negocio. De él salen dos strings: el agrupado y el directo.
-3. `npx wrangler hyperdrive create orbiq-negocio-N --connection-string="<string directo>"` y el id
-   que devuelve, en `env.negocio-N.hyperdrive` de `wrangler.jsonc`.
+3. `npx wrangler hyperdrive create orbiq-negocio-N --connection-string="<string directo>" --caching-disabled`
+   y el id que devuelve, en `env.negocio-N.hyperdrive` de `wrangler.jsonc`. Sin caché: con ella,
+   la app mostraba lecturas de hasta 75 s atrás (`D-011`).
 4. `DATABASE_URL_UNPOOLED="<string directo>" npm run db:migrate`.
 5. `DATABASE_URL="<string agrupado>" npm run alta-dueno` — el dueño del negocio.
 6. `npx wrangler secret put BETTER_AUTH_SECRET --env negocio-N`, con `openssl rand -base64 32`. Un

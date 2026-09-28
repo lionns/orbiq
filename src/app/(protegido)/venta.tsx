@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   agregar,
@@ -59,7 +58,6 @@ const VIDA_DEL_AVISO = 10_000;
  * vendidos»—, así que lo que no trae código se busca por nombre en el mismo campo.
  */
 export function PantallaDeVenta() {
-  const router = useRouter();
   const [carrito, setCarrito] = useState<Carrito>(() => carritoVacio(nuevoId()));
   const [cargada, setCargada] = useState(false);
   const [estado, setEstado] = useState<Estado>("armando");
@@ -153,8 +151,9 @@ export function PantallaDeVenta() {
       setReciente({ tipo: "cobrada", ventaId: carrito.id, total: resultado.total, carrito });
       setCarrito(carritoVacio(nuevoId()));
       setHallazgo({ tipo: "nada" });
+      // Sin `router.refresh()`: Vender ya no pinta nada del servidor —ni cuadrícula ni existencias
+      // (`T-033`)—, y refrescar era releer la sesión en la base para nada (`T-036`, medido).
       setEstado("armando");
-      router.refresh();
     } catch {
       // AC-015: no aparentar éxito. El carrito y su identificador se conservan, así que reintentar
       // es el mismo envío y no cobra dos veces (`AC-010`).
@@ -172,7 +171,6 @@ export function PantallaDeVenta() {
     if (!resultado.ok) return setReciente({ tipo: "noSeDeshizo", mensaje: resultado.mensaje });
     setCarrito({ ...r.carrito, id: nuevoId() });
     setReciente({ tipo: "deshecha" });
-    router.refresh();
   }
 
   /** Sin preguntar: queda «Deshacer» diez segundos, que cuesta menos que un diálogo (punto 14). */

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   index,
@@ -70,6 +71,18 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Los intentos de entrar, contados por IP y ruta (`T-037`). Los define Better Auth, como las otras
+ * tablas de identidad. En la base y no en memoria: en Cloudflare cada instancia del Worker tiene su
+ * propia memoria, así que un conteo en memoria se reparte entre instancias y protege menos.
+ */
+export const rateLimit = pgTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
 });
 
 /** Negocio — identificadores UUIDv7 generados en la aplicación (D-002). */

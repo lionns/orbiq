@@ -36,3 +36,5 @@
 2026-09-27 | T-033 | done | Vender abre vacía y enseña solo la venta; Vaciar en rojo con Deshacer | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009
 2026-09-27 | T-034 | done | la cámara en un visor al centro; Escanear en computador y en la ficha; enfoque continuo, 2× y tocar para enfocar según la cámara | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009,D-010
 2026-09-27 | T-035 | done | anular en palabras de tienda; el negocio se ve como Lumy Bella | 9 files | test 96/96, e2e ventas y venta 26/26 | D-005
+2026-09-27 | T-036 | done | «volver» vuelve a donde se estaba; la sesión se lee una vez por petición; sin refrescos de más en Vender | 17 files | test 103/103, e2e 123/123 (Postgres local) | D-011
+2026-09-27 | T-037 | done | ventas y anulaciones simultáneas sin pisarse; Ventas abre en hoy y va de 7 en 7 días; cabeceras de seguridad; límite de intentos en la base | 16 files | test 103/103, e2e 130/130 Node y 130/130 Workers | D-002,D-008,D-011

@@ -17,3 +17,4 @@ rather than editing. Template in `../sdd/TEMPLATES.md`.
 | [D-008](D-008-identity-credenciales-como-relacion.md) | 2026-09-06 | Credenciales como relación propia, con proveedor externo desde el esquema | `accepted` | D-004 |
 | [D-009](D-009-interface-instalable-en-pantalla-de-inicio.md) | 2026-09-08 | Instalable en la pantalla de inicio, en Android y en iPhone | `accepted` | D-007 |
 | [D-010](D-010-data-existencias-por-codigo.md) | 2026-09-27 | Un producto con varios códigos, y las existencias separadas por código | `accepted` | none |
+| [D-011](D-011-data-postgres-en-neon.md) | 2026-09-27 | PostgreSQL en Neon, una base por negocio | `accepted` | none |

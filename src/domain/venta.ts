@@ -1,4 +1,17 @@
-import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNull,
+  lt,
+  or,
+  sql,
+  TransactionRollbackError,
+} from "drizzle-orm";
 import { db, schema } from "@/db";
 import {
   conCodigoParecido,
@@ -115,10 +128,18 @@ export async function registrarVenta(
     // driver de Neon es el de WebSocket y no el HTTP (`architecture.md` § Data).
     return await db.transaction(async (tx) => {
       const ids = lineas.map((l) => l.productoId);
+      /**
+       * `FOR UPDATE`: dos ventas del mismo producto a la vez se ponen en fila (`T-037`). Sin el
+       * bloqueo, cada una recalculaba el saldo sin ver el movimiento de la otra y la última pisaba
+       * a la primera: medido, 20 ventas simultáneas dejaban el saldo en 3 con el libro en −5. En
+       * orden de id, para que dos ventas con los mismos productos no se bloqueen en cruz.
+       */
       const productos = await tx
         .select({ id: schema.product.id, precio: schema.product.price })
         .from(schema.product)
-        .where(inArray(schema.product.id, ids));
+        .where(inArray(schema.product.id, ids))
+        .orderBy(asc(schema.product.id))
+        .for("update");
 
       const precioDe = new Map(productos.map((p) => [p.id, p.precio]));
       const faltante = ids.find((id) => !precioDe.has(id));
@@ -339,13 +360,47 @@ export async function ventasPorDia(rango: RangoDeFechas): Promise<DiaDeVentas[]>
   return [...porDia.values()];
 }
 
-/** Una consulta para que la página de Ventas reciba sus días y la suma del mismo rango. */
-export async function ventasDelRango(rango: RangoDeFechas): Promise<{
-  dias: DiaDeVentas[];
-  resumen: ResumenDelRango;
-}> {
-  const dias = await ventasPorDia(rango);
-  return { dias, resumen: resumirDias(dias) };
+/** Días de ventas que se enseñan de una vez; «Ver más días» suma otros tantos (`T-037`). */
+export const DIAS_POR_PAGINA = 7;
+
+/**
+ * Los días de Ventas y la suma del rango, sin traer más ventas de las que se enseñan (`T-037`).
+ *
+ * Antes se traían todas las ventas del rango, y sin rango, todas las de la historia: medido con
+ * 20.000 ventas, la página pesaba 60 MB y tardaba 2 s. Ahora la suma sale de la base agrupada por
+ * día —una fila por día, no por venta— y las ventas se piden solo para los días que caben.
+ */
+export async function ventasDelRango(
+  rango: RangoDeFechas,
+  maxDias: number = DIAS_POR_PAGINA,
+): Promise<{ dias: DiaDeVentas[]; resumen: ResumenDelRango; hayMas: boolean }> {
+  const condiciones = [];
+  if (rango.desde) condiciones.push(gte(schema.sale.createdAt, medianoche(rango.desde)));
+  if (rango.hasta) condiciones.push(lt(schema.sale.createdAt, medianoche(rango.hasta, 1)));
+  const dia = sql<string>`to_char(timezone(${ZONA_DEL_NEGOCIO}::text, ${schema.sale.createdAt}), 'YYYY-MM-DD')`;
+
+  const porDia = await db
+    .select({
+      dia,
+      total: sql<number>`coalesce(sum(${schema.sale.total}) filter (where ${schema.sale.voidedAt} is null), 0)::int`,
+      ventas: sql<number>`(count(*) filter (where ${schema.sale.voidedAt} is null))::int`,
+      anuladas: sql<number>`(count(*) filter (where ${schema.sale.voidedAt} is not null))::int`,
+    })
+    .from(schema.sale)
+    .where(condiciones.length > 0 ? and(...condiciones) : undefined)
+    // Por posición y no repitiendo la expresión: cada vez que aparece, Drizzle manda la zona como un
+    // parámetro nuevo, y Postgres no reconoce que el `group by` es la columna del `select`.
+    .groupBy(sql`1`)
+    .orderBy(sql`1 desc`);
+
+  const resumen = porDia.reduce(
+    (r, d) => ({ total: r.total + d.total, numeroVentas: r.numeroVentas + d.ventas, anuladas: r.anuladas + d.anuladas }),
+    { total: 0, numeroVentas: 0, anuladas: 0 } as ResumenDelRango,
+  );
+  const visibles = porDia.slice(0, maxDias);
+  const masAntiguo = visibles.at(-1)?.dia;
+  const dias = masAntiguo ? await ventasPorDia({ desde: masAntiguo, hasta: rango.hasta }) : [];
+  return { dias, resumen, hayMas: porDia.length > visibles.length };
 }
 
 export type ResumenDelDia = {
@@ -439,15 +494,6 @@ export type ResultadoAnulacion = { ok: true } | { ok: false; mensaje: string };
  */
 export async function anularVenta(ventaId: string, usuarioId: string): Promise<ResultadoAnulacion> {
   return db.transaction(async (tx) => {
-    const [venta] = await tx
-      .select({ anuladaEn: schema.sale.voidedAt })
-      .from(schema.sale)
-      .where(eq(schema.sale.id, ventaId))
-      .limit(1);
-    if (!venta) return { ok: false as const, mensaje: "Esa venta no existe." };
-    // AC-012: anular dos veces devolvería las existencias dos veces.
-    if (venta.anuladaEn !== null) return { ok: false as const, mensaje: "Esa venta ya está anulada." };
-
     // Se compensa lo que el libro dice que salió, código por código: cada unidad vuelve al código
     // del que se fue (`D-010`). Las líneas de venta no lo saben; los movimientos sí.
     const salidas = await tx
@@ -458,12 +504,40 @@ export async function anularVenta(ventaId: string, usuarioId: string): Promise<R
       })
       .from(schema.stockMovement)
       .where(and(eq(schema.stockMovement.saleId, ventaId), eq(schema.stockMovement.type, "sale")));
-    if (salidas.length === 0) return { ok: false as const, mensaje: "Esa venta no tiene líneas." };
 
-    await tx
+    /**
+     * AC-012: anular dos veces devolvería las existencias dos veces. Comprobar y marcar van en una
+     * sola sentencia (`T-037`): leer «no está anulada» y luego marcarla dejaba que cinco toques a la
+     * vez leyeran lo mismo, y medido, las cinco anulaciones pasaban y devolvían cinco veces. Ahora
+     * solo una encuentra la fila sin marcar; las demás no escriben nada.
+     */
+    const marcada = await tx
       .update(schema.sale)
       .set({ voidedAt: new Date(), voidedBy: usuarioId })
-      .where(eq(schema.sale.id, ventaId));
+      .where(and(eq(schema.sale.id, ventaId), isNull(schema.sale.voidedAt)))
+      .returning({ id: schema.sale.id });
+    if (marcada.length === 0) {
+      const [existe] = await tx
+        .select({ id: schema.sale.id })
+        .from(schema.sale)
+        .where(eq(schema.sale.id, ventaId))
+        .limit(1);
+      return {
+        ok: false as const,
+        mensaje: existe ? "Esa venta ya está anulada." : "Esa venta no existe.",
+      };
+    }
+    // Una venta sin movimientos no se puede compensar: se deshace la marca en vez de dejarla puesta.
+    if (salidas.length === 0) tx.rollback();
+
+    const ids = [...new Set(salidas.map((l) => l.productoId))];
+    // Los mismos bloqueos que la venta, en el mismo orden: el saldo se recalcula en fila (`T-037`).
+    await tx
+      .select({ id: schema.product.id })
+      .from(schema.product)
+      .where(inArray(schema.product.id, ids))
+      .orderBy(asc(schema.product.id))
+      .for("update");
 
     await tx.insert(schema.stockMovement).values(
       salidas.map((l) => ({
@@ -476,8 +550,13 @@ export async function anularVenta(ventaId: string, usuarioId: string): Promise<R
         userId: usuarioId,
       })),
     );
-    await recalcularSaldos(tx, salidas.map((l) => l.productoId));
+    await recalcularSaldos(tx, ids);
 
     return { ok: true as const };
+  }).catch((error: unknown) => {
+    if (error instanceof TransactionRollbackError) {
+      return { ok: false as const, mensaje: "Esa venta no tiene líneas." };
+    }
+    throw error;
   });
 }

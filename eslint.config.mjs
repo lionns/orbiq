@@ -2,7 +2,18 @@
 import next from "eslint-config-next";
 
 const config = [
-  { ignores: [".next/**", "node_modules/**", "drizzle/**", "playwright-report/**", "test-results/**"] },
+  // `.open-next/` y `.wrangler/` los generan `npm run preview` y `deploy` (`T-031`): son compilados.
+  {
+    ignores: [
+      ".next/**",
+      ".open-next/**",
+      ".wrangler/**",
+      "node_modules/**",
+      "drizzle/**",
+      "playwright-report/**",
+      "test-results/**",
+    ],
+  },
   ...next,
   {
     // AC-X03 deja de ser una promesa escrita y pasa a ser un comando que falla. El dominio se

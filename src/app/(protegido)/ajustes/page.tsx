@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { elegirTema } from "@/app/acciones-tema";
 import { NEGOCIO } from "@/domain/negocio";
-import { sesionActual } from "@/domain/session";
 import { COOKIE_TEMA, ETIQUETA_TEMA, leerTema, TEMAS } from "@/domain/tema";
 import { Boton } from "@/ui/boton";
 import { Icono } from "@/ui/iconos";
 import { salir } from "../../acceso/acciones";
+import { sesionDeLaPeticion } from "../sesion";
 
 /**
  * Tema y Salir, fuera de la cabecera (`.diseno/cobalto/U-M-Ajustes`, punto 7). Se usan poco —la
@@ -15,7 +15,7 @@ import { salir } from "../../acceso/acciones";
 export const dynamic = "force-dynamic";
 
 export default async function Ajustes() {
-  const [sesion, almacen] = await Promise.all([sesionActual(await headers()), cookies()]);
+  const [sesion, almacen] = await Promise.all([sesionDeLaPeticion(), cookies()]);
   const tema = leerTema(almacen.get(COOKIE_TEMA)?.value);
 
   return (

@@ -1,6 +1,32 @@
 import type { NextConfig } from "next";
 
+/**
+ * Cabeceras de seguridad en toda respuesta (`T-037`). Medido antes: ninguna, y `X-Powered-By`
+ * anunciando Next.js.
+ *
+ * - `frame-ancestors 'none'` y `X-Frame-Options`: nadie puede meter la app dentro de su página
+ *   para que el dueño toque «Cobrar» o «Anular» creyendo que toca otra cosa.
+ * - `nosniff`: el navegador no adivina el tipo de un archivo.
+ * - `Referrer-Policy`: al salir a otro sitio no viaja la dirección entera, que lleva ids de ventas.
+ * - `Permissions-Policy`: la cámara, solo para esta app; micrófono y ubicación, para nadie.
+ *
+ * Sin `Content-Security-Policy` completa a propósito: Next pone scripts en línea al hidratar, y
+ * una política estricta necesita nonces por petición. Se decide aparte, no se improvisa.
+ */
+const CABECERAS = [
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+];
+
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:ruta*", headers: CABECERAS }];
+  },
+
   /**
    * `pg` solo carga `pg-cloudflare` cuando corre en Cloudflare Workers, así que el rastreo de
    * archivos de Next no lo ve y el build de OpenNext falla con «Could not resolve "pg-cloudflare"»

@@ -36,6 +36,16 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
   },
+  /**
+   * Límite de intentos (`T-037`): en la base, compartido entre las instancias del Worker, y por la
+   * IP que pone Cloudflare (`cf-connecting-ip`), que el cliente no puede falsear. `x-forwarded-for`
+   * queda detrás para Node en local. Las reglas son las de fábrica: tres intentos de entrar cada
+   * diez segundos por IP, medido en `T-037`.
+   */
+  rateLimit: { storage: "database" },
+  advanced: {
+    ipAddress: { ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"] },
+  },
   user: {
     additionalFields: {
       role: { type: "string", defaultValue: "owner", input: false },

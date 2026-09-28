@@ -1,8 +1,7 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { sesionActual } from "@/domain/session";
 import { NEGOCIO } from "@/domain/negocio";
 import { BarraDePestanas, MenuLateral } from "./navegacion";
+import { sesionDeLaPeticion } from "./sesion";
 
 /**
  * AC-001. La guardia vive donde se leen los datos, no en un middleware que solo mira si existe una
@@ -10,7 +9,7 @@ import { BarraDePestanas, MenuLateral } from "./navegacion";
  * negocio cuelga de aquí, así que olvidarse de proteger una requiere sacarla del grupo a propósito.
  */
 export default async function LayoutProtegido({ children }: { children: React.ReactNode }) {
-  const sesion = await sesionActual(await headers());
+  const sesion = await sesionDeLaPeticion();
   if (!sesion) redirect("/acceso");
   return (
     // Sin banda de arriba: en el celular la navegación vive abajo, donde llega el pulgar, y en

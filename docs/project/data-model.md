@@ -76,6 +76,18 @@ dominio. Se registra en vez de dejarla como sorpresa (`D-008`, `architecture.md`
 | expires_at | timestamptz | yes | |
 | created_at, updated_at | timestamptz | yes | |
 
+### rate_limit
+
+Los intentos de entrar, contados por IP y ruta (`T-037`). La define Better Auth, como las demás
+de identidad. En la base y no en memoria: en Cloudflare cada instancia del Worker tiene la suya.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| id | text | yes | |
+| key | text | yes | Único. IP y ruta: `203.0.113.7/sign-in/email` |
+| count | integer | yes | Intentos en la ventana |
+| last_request | bigint | yes | Milisegundos desde 1970 |
+
 ### category
 
 Plana. La jerarquía está fuera de alcance y entra como columna padre el día que un negocio la pida.

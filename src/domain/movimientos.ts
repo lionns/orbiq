@@ -184,11 +184,14 @@ export async function ajustarExistencias(
   }
 
   return db.transaction(async (tx) => {
+    // `FOR UPDATE`: una venta del mismo producto a la vez espera, y el saldo se recalcula en fila
+    // (`T-037`).
     const [producto] = await tx
       .select({ id: schema.product.id })
       .from(schema.product)
       .where(eq(schema.product.id, productoId))
-      .limit(1);
+      .limit(1)
+      .for("update");
     if (!producto) return { ok: false as const, mensaje: "Ese producto ya no existe." };
 
     if (codigoId !== null) {
