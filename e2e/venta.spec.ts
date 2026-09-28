@@ -592,3 +592,78 @@ test("en computador el lector escribe en la búsqueda sin tocar nada, y F2 cobra
   await expect(page.getByTestId("venta-anterior")).toContainText("6.200");
   expect(await existenciasDe(p!.id)).toBe(18);
 });
+
+/**
+ * T-038 · AC-001. `confirmarVenta` es una entrada propia: cualquiera puede mandarle un POST con su
+ * identificador de acción, que viaja en el JavaScript público. Sin sesión no puede escribir nada.
+ * Se captura el envío real del dueño y se repite sin su cookie, con otra venta.
+ */
+test("cobrar repetido sin sesión, fuera de la pantalla, no registra la venta ni descuenta", async ({
+  page,
+  playwright,
+}) => {
+  const [cafe] = await sembrar([{ nombre: "Café", precio: 8000, existencias: 9 }]);
+  await entrarComo(page, dueno);
+  await tocar(page, cafe!.id);
+
+  const [envio] = await Promise.all([
+    page.waitForRequest((r) => r.method() === "POST" && r.url().endsWith("/vender") && !!r.headers()["next-action"]),
+    page.getByTestId("confirmar").click(),
+  ]);
+  await expect(page.getByTestId("venta-anterior")).toContainText("8.000");
+  expect(await existenciasDe(cafe!.id)).toBe(8);
+
+  const cuerpo = envio.postData()!;
+  const ventaOriginal = (JSON.parse(cuerpo) as [string])[0];
+  const ventaAjena = nuevoId();
+  const anonimo = await playwright.request.newContext({ baseURL: "http://localhost:3000" });
+  const respuesta = await anonimo.post("/vender", {
+    headers: {
+      "next-action": envio.headers()["next-action"]!,
+      "content-type": envio.headers()["content-type"] ?? "text/plain;charset=UTF-8",
+      origin: "http://localhost:3000",
+      accept: "text/x-component",
+    },
+    data: cuerpo.replace(ventaOriginal, ventaAjena),
+    maxRedirects: 0,
+  });
+  const estado = respuesta.status();
+  await anonimo.dispose();
+
+  // Lo que responda da igual —redirige a Acceso—; lo que importa es la base.
+  expect(estado).not.toBe(500);
+  expect(await db.select().from(schema.sale).where(eq(schema.sale.id, ventaAjena))).toHaveLength(0);
+  expect(await existenciasDe(cafe!.id)).toBe(8);
+});
+
+/**
+ * T-038. La pantalla solo manda cantidades enteras y positivas, pero la acción recibe lo que le
+ * manden. Una línea de cero, negativa —que *sumaría* existencias y restaría del total— o con
+ * decimales no puede entrar, y no puede dejar nada a medias.
+ */
+test("una venta con cantidad cero, negativa o con decimales se rechaza entera y no mueve existencias", async () => {
+  const [sal, aceite] = await sembrar([
+    { nombre: "Sal", precio: 1500, existencias: 10 },
+    { nombre: "Aceite", precio: 9000, existencias: 4 },
+  ]);
+
+  for (const cantidad of [0, -5, 1.5]) {
+    const ventaId = nuevoId();
+    await expect(
+      registrarVenta(
+        ventaId,
+        [
+          { productoId: aceite!.id, cantidad: 1 },
+          { productoId: sal!.id, cantidad },
+        ],
+        dueno.id,
+      ),
+      `cantidad ${cantidad}`,
+    ).rejects.toThrow();
+    expect(await db.select().from(schema.sale).where(eq(schema.sale.id, ventaId))).toHaveLength(0);
+  }
+
+  expect(await existenciasDe(sal!.id)).toBe(10);
+  expect(await existenciasDe(aceite!.id)).toBe(4);
+  expect((await movimientosDe([sal!.id, aceite!.id])).filter((m) => m.type === "sale")).toHaveLength(0);
+});

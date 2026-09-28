@@ -151,3 +151,27 @@ test("NFR-002 · una venta de tres artículos, uno buscado por nombre, cabe en v
   console.log(`venta de tres artículos, uno por nombre: ${segundos.toFixed(1)} s`);
   expect(segundos, "la venta pasó de los veinte segundos de NFR-002").toBeLessThan(20);
 });
+
+/**
+ * T-038. Un lector de códigos escribe el siguiente código antes de que el servidor conteste el
+ * anterior. La respuesta del primero no puede vaciar lo que ya va escrito del segundo: antes lo
+ * cortaba a medias, y el resto de los dígitos se buscaba como otro código.
+ */
+test("lo escrito mientras se resuelve el código anterior no se borra al llegar la respuesta", async ({
+  page,
+}) => {
+  await entrarComo(page, dueno);
+  // La acción de servidor tarda: es la ventana en que el lector ya empezó con el siguiente.
+  await page.route("**/vender", async (ruta) => {
+    if (ruta.request().method() === "POST") await new Promise((r) => setTimeout(r, 1_000));
+    await ruta.continue();
+  });
+
+  const campo = page.getByTestId("codigo-tecleado");
+  await campo.fill(CODIGO);
+  await campo.press("Enter");
+  await campo.fill("77020");
+
+  await expect(page.getByTestId(`cantidad-${panelaId}`)).toHaveText("1");
+  await expect(campo).toHaveValue("77020");
+});

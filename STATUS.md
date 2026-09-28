@@ -9,6 +9,7 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
+| [T-038](docs/tasks/T-038-limite-de-intentos-en-el-formulario-y-escaneo-seguido.md) | `review` | Que la cuarta contraseña mala seguida desde una IP se frene también en la pantalla de Acceso, no solo en /api/auth, y que la respuesta de un código no borre lo que el lector o el dueño ya escribió después. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -48,7 +49,7 @@ Harness `0.9.0` · profile `team`
 
 ## Next
 
-**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
+**T-038** (`review`) — Que la cuarta contraseña mala seguida desde una IP se frene también en la pantalla de Acceso, no solo en /api/auth, y que la respuesta de un código no borre lo que el lector o el dueño ya escribió después.
 
 ## Open decisions
 
