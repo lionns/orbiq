@@ -1,7 +1,7 @@
 ---
 id: T-034
 title: La cámara se abre al centro, y se escanea también en la ficha
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -86,3 +86,7 @@ implements: [FR-002, FR-016, AC-006]
   con cuatro navegadores abriendo cámaras tardaba más (1 de 24). Lo que la prueba fija —que no se
   apague sola una vez viva— sigue siendo la espera de 3 s de después.
 
+## Validation
+
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-27

@@ -32,3 +32,7 @@
 2026-09-25 | T-029 | done | Cobalto, Inicio como portada, venta recogida con Deshacer y Vaciar, formularios sin select | 73 files | test 71/71, e2e 106/106 | D-001,D-003,D-009
 2026-09-25 | T-030 | done | la prueba del decodificador no depende de la red | 5 files | test 69/69, e2e 94/94 | D-005,D-006
 2026-09-25 | T-031 | done | un Worker por negocio en Cloudflare, con pg por petición sobre Hyperdrive; Tienda Miriam desplegada | 18 files | test 71/71, e2e 106/106 Node, 105/106 Workers | D-001,D-005,D-009
+2026-09-27 | T-032 | done | varios códigos por producto con su cantidad; código desconocido: añadirlo a uno existente o darlo de alta; migración 0004 probada sobre datos del esquema anterior | 76 files, junto a T-033 y T-034 | test 96/96, e2e 115/115 (Postgres local) | D-002,D-010
+2026-09-27 | T-033 | done | Vender abre vacía y enseña solo la venta; Vaciar en rojo con Deshacer | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009
+2026-09-27 | T-034 | done | la cámara en un visor al centro; Escanear en computador y en la ficha; enfoque continuo, 2× y tocar para enfocar según la cámara | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009,D-010
+2026-09-27 | T-035 | done | anular en palabras de tienda; el negocio se ve como Lumy Bella | 9 files | test 96/96, e2e ventas y venta 26/26 | D-005

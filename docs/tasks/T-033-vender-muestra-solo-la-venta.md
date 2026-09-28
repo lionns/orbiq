@@ -1,7 +1,7 @@
 ---
 id: T-033
 title: Vender muestra solo la venta
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -81,3 +81,8 @@ implements: [FR-017, FR-015, AC-023, AC-028]
   dentro del tercio superior (`NFR-003`). `mt-6` lo baja; en pantallas más cortas sube otra vez.
 - Baja · el campo se vacía al elegir un resultado montándolo de nuevo (`key`): el objetivo de
   escaneo no expone otra forma de vaciarlo desde fuera.
+
+## Validation
+
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-27

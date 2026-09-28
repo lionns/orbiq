@@ -1,7 +1,7 @@
 ---
 id: T-032
 title: Varios códigos por producto, con la cantidad separada por código
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -114,3 +114,8 @@ implements: [FR-016, FR-003, FR-007, FR-008, AC-004, AC-007, AC-013, AC-014, AC-
   primero no cuadra. Arreglado sembrando su producto.
 - Baja · la ficha no ofrece la cámara para «Añadir otro código»: el objetivo escucha al lector en
   todo el documento y le robaría lecturas al buscador de Productos. El lector y el tecleado sí.
+
+## Validation
+
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-27

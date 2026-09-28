@@ -1,7 +1,7 @@
 ---
 id: T-035
 title: Anular en palabras de tienda, y el negocio se llama Lumy Bella
-status: review
+status: done
 profile: team
 harness: 0.9.0
 role: Implementer
@@ -38,6 +38,8 @@ implements: [FR-006, AC-011]
 
 - Final: `npm test`, `typecheck`, `lint`, `harness-lint` y los e2e de ventas y venta, en el puerto
   3100 contra Postgres local.
+- Task-specific: los textos de anular y deshacer, fijados en `e2e/ventas.spec.ts` y
+  `e2e/venta.spec.ts`; «Lumy Bella» se comprueba en el celular tras desplegar `tienda-miriam`.
 
 ## Assumptions
 
@@ -62,3 +64,8 @@ implements: [FR-006, AC-011]
 ## Review
 
 - Baja · el texto viejo ya dejaba «p. m..» al terminar la fecha en punto; lo fija la prueba.
+
+## Validation
+
+- Validated by: Juan Sebastián León Velásquez
+- Date: 2026-09-27

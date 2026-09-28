@@ -9,10 +9,6 @@ Harness `0.9.0` · profile `team`
 | Task | State | Goal |
 |---|---|---|
 | [T-009](docs/tasks/T-009-storybook-para-los-componentes.md) | `ready` | Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base. |
-| [T-032](docs/tasks/T-032-varios-codigos-por-producto.md) | `review` | Que cuando el proveedor cambie el código de un producto que ya se vende, el dueño lo añada a ese producto desde el mismo escaneo, en vez de darlo de alta dos veces. Cada código lleva su cantidad, y la suma es la del producto. |
-| [T-033](docs/tasks/T-033-vender-muestra-solo-la-venta.md) | `review` | Que la pantalla de venta deje de proponer productos. Se abre vacía y en ella se ve solo la venta que se arma escaneando o buscando, con su cantidad a mano y Cobrar abajo. |
-| [T-034](docs/tasks/T-034-la-camara-se-abre-al-centro.md) | `review` | Que tocar «Escanear» abra la cámara en un visor al centro de la pantalla, que se note que se está dentro de la cámara, en celular y computador; que el botón diga «Escanear» también en computador; y que «Añadir otro código» en la ficha se pueda escanear. |
-| [T-035](docs/tasks/T-035-anular-en-palabras-de-tienda-y-lumy-bella.md) | `review` | Que los tres mensajes de anular una venta se entiendan sin saber qué son «existencias», y que la tienda de Tienda Miriam se vea con su nombre, Lumy Bella. |
 | [T-001](docs/tasks/T-001-andamiaje-y-esquema-inicial.md) | `done` | Levantar la aplicación Next.js con el stack de architecture.md, crear el esquema de las nueve entidades como primera migración versionada, y dejar corriendo en verde los cinco comandos que quality-gates.md invoca verbatim. |
 | [T-002](docs/tasks/T-002-sesion-de-dueno.md) | `done` | El dueño entra con correo y contraseña, la sesión vive en el servidor y sigue abierta al día siguiente. Sin sesión válida, ninguna pantalla revela datos del negocio. |
 | [T-003](docs/tasks/T-003-catalogo-alta-y-listado.md) | `done` | El dueño da de alta un producto con nombre, precio, categoría opcional, existencias iniciales y código de barras opcional, y ve su catálogo. El alta con existencias escribe un movimiento en el libro. |
@@ -42,11 +38,15 @@ Harness `0.9.0` · profile `team`
 | [T-029](docs/tasks/T-029-frontend-cobalto-y-la-navegacion-nueva.md) | `done` | Que la aplicación se vea y se navegue como el lienzo Cobalto validado el 2026-09-24, en celular y en computador. Se entra por una portada con lo del día, todo está a un toque desde abajo, y vender cuesta menos toques que hoy. |
 | [T-030](docs/tasks/T-030-la-prueba-del-decodificador-no-depende-de-la-red.md) | `done` | Que `npm test` dé el mismo resultado con y sin internet. Hoy las dos pruebas de `e2e/apoyo/ean13.test.ts` descargan el WASM del decodificador de un CDN al correr, así que en un entorno sin red la línea base sale en rojo (67/69) y bloquea cualquier tarea, como le pasó a `T-028`. |
 | [T-031](docs/tasks/T-031-desplegar-en-cloudflare-un-worker-por-negocio.md) | `done` | Que orbiq se despliegue en Cloudflare Workers con un solo comando por negocio —hoy son dos, en Colombia, en `*.workers.dev`— y que cada uno tenga su Worker, su base en Neon y su Hyperdrive, como pide `D-005`. Cada Worker dice el nombre de su tienda. |
+| [T-032](docs/tasks/T-032-varios-codigos-por-producto.md) | `done` | Que cuando el proveedor cambie el código de un producto que ya se vende, el dueño lo añada a ese producto desde el mismo escaneo, en vez de darlo de alta dos veces. Cada código lleva su cantidad, y la suma es la del producto. |
+| [T-033](docs/tasks/T-033-vender-muestra-solo-la-venta.md) | `done` | Que la pantalla de venta deje de proponer productos. Se abre vacía y en ella se ve solo la venta que se arma escaneando o buscando, con su cantidad a mano y Cobrar abajo. |
+| [T-034](docs/tasks/T-034-la-camara-se-abre-al-centro.md) | `done` | Que tocar «Escanear» abra la cámara en un visor al centro de la pantalla, que se note que se está dentro de la cámara, en celular y computador; que el botón diga «Escanear» también en computador; y que «Añadir otro código» en la ficha se pueda escanear. |
+| [T-035](docs/tasks/T-035-anular-en-palabras-de-tienda-y-lumy-bella.md) | `done` | Que los tres mensajes de anular una venta se entiendan sin saber qué son «existencias», y que la tienda de Tienda Miriam se vea con su nombre, Lumy Bella. |
 | [T-024](docs/tasks/T-024-la-direccion-alcanza-al-resto-de-pantallas.md) | `superseded` | Que la ficha del producto y el historial de ventas se vean diseñados y no heredados. Heredaron la paleta y los componentes de T-023 sin romperse, pero se nota que nadie las miró: el precio no manda donde se va a comprobar un precio, y quedan subrayados del look que el estudio ya rechazó. |
 
 ## Next
 
-**T-032** (`review`) — Que cuando el proveedor cambie el código de un producto que ya se vende, el dueño lo añada a ese producto desde el mismo escaneo, en vez de darlo de alta dos veces. Cada código lleva su cantidad, y la suma es la del producto.
+**T-009** (`ready`) — Poder abrir cada componente de src/ui/ por separado, en sus dos temas y a 360 px, sin levantar la aplicación ni tener datos en la base.
 
 ## Open decisions
 
@@ -54,10 +54,10 @@ None. All decisions are accepted or superseded.
 
 ## Journal — last 5
 
+- 2026-09-27 | T-035 | done | anular en palabras de tienda; el negocio se ve como Lumy Bella | 9 files | test 96/96, e2e ventas y venta 26/26 | D-005
+- 2026-09-27 | T-034 | done | la cámara en un visor al centro; Escanear en computador y en la ficha; enfoque continuo, 2× y tocar para enfocar según la cámara | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009,D-010
+- 2026-09-27 | T-033 | done | Vender abre vacía y enseña solo la venta; Vaciar en rojo con Deshacer | en el commit de T-032 | test 96/96, e2e 115/115 (Postgres local) | D-009
+- 2026-09-27 | T-032 | done | varios códigos por producto con su cantidad; código desconocido: añadirlo a uno existente o darlo de alta; migración 0004 probada sobre datos del esquema anterior | 76 files, junto a T-033 y T-034 | test 96/96, e2e 115/115 (Postgres local) | D-002,D-010
 - 2026-09-25 | T-031 | done | un Worker por negocio en Cloudflare, con pg por petición sobre Hyperdrive; Tienda Miriam desplegada | 18 files | test 71/71, e2e 106/106 Node, 105/106 Workers | D-001,D-005,D-009
-- 2026-09-25 | T-030 | done | la prueba del decodificador no depende de la red | 5 files | test 69/69, e2e 94/94 | D-005,D-006
-- 2026-09-25 | T-029 | done | Cobalto, Inicio como portada, venta recogida con Deshacer y Vaciar, formularios sin select | 73 files | test 71/71, e2e 106/106 | D-001,D-003,D-009
-- 2026-09-25 | T-028 | done | resumen del día y del rango desde ventasPorDia, por reponer y deshacerVenta compartida con la anulación | 13 files | test 71/71, e2e 95/95 | D-001,D-002,D-006
-- 2026-09-24 | T-027 | done | la columna de computador tiene tope y el total queda a la vista | 2 files | test 69/69, e2e 94/94 | D-007
 
 Full history: [`JOURNAL.md`](JOURNAL.md) · decisions: [`docs/decisions/`](docs/decisions/README.md)
