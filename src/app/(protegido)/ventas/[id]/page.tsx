@@ -56,8 +56,12 @@ export default async function Venta({ params }: { params: Promise<{ id: string }
       {venta.anulada ? (
         <div className="mt-4">
           <Aviso conBorde data-testid="anulada">
-            Anulada el {cuando.format(venta.anuladaEn!)}. Las existencias se devolvieron; la venta no
-            se borró.
+            {/* En palabras de tienda (`T-035`): «existencias» y «no se borró» confundían al cliente.
+                La fecha va aparte y sin punto: termina en «p. m.», y detrás de ella salía «m..». */}
+            <span className="block font-semibold">
+              Venta anulada. Los productos volvieron a lo que hay y ya no suma en el total del día.
+            </span>
+            <span className="block">Se anuló el {cuando.format(venta.anuladaEn!)}</span>
           </Aviso>
         </div>
       ) : null}
@@ -85,7 +89,7 @@ export default async function Venta({ params }: { params: Promise<{ id: string }
         <section className="mt-8">
           <SeccionPlegable
             titulo="Anular esta venta"
-            descripcion="Devuelve las existencias. La venta no se borra."
+            descripcion="Los productos vuelven a lo que hay y la venta deja de contar en el total del día."
             icono="deshacer"
             peligro
             data-testid="abrir-anular"

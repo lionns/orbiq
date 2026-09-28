@@ -174,6 +174,9 @@ test("anular devuelve las existencias sin borrar los movimientos originales", as
   await abrirAnular(page);
   await page.getByTestId("anular").click();
   await expect(page.getByTestId("anulada")).toBeVisible();
+  // En palabras de tienda, y sin el «p. m..» que dejaba la fecha con el punto de la frase (`T-035`).
+  await expect(page.getByTestId("anulada")).toContainText("Los productos volvieron a lo que hay");
+  await expect(page.getByTestId("anulada")).not.toContainText("..");
 
   // AC-011: movimiento compensatorio por exactamente lo vendido, y el original intacto.
   const movs = await movimientosDe(p.id);

@@ -32,7 +32,9 @@
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d1360c0bee8d421fa07f72b52bb0c5f3" }],
       "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "orbiq-tienda-miriam" }],
       "vars": {
-        "NEGOCIO_NOMBRE": "Tienda Miriam",
+        // El entorno y la dirección conservan el nombre de antes: cambiarlos es otro Worker, y el
+        // cliente tendría que reinstalar el ícono y volver a entrar (`T-035`).
+        "NEGOCIO_NOMBRE": "Lumy Bella",
         "BETTER_AUTH_URL": "https://orbiq-tienda-miriam.juan-account.workers.dev"
       }
     },

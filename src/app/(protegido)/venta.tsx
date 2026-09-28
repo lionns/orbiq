@@ -544,7 +544,9 @@ function AvisoReciente({ reciente, onDeshacer }: { reciente: Reciente; onDeshace
         <Icono nombre="deshacer" className="text-accent" />
         <span>
           <span className="block font-bold">Cobro deshecho</span>
-          <span className="block text-text-muted">La venta se anuló y volvió aquí para corregirla.</span>
+          <span className="block text-text-muted">
+            Esos productos volvieron a la venta para que la corrijas o la vacíes.
+          </span>
         </span>
       </p>
     );

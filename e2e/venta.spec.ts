@@ -503,7 +503,9 @@ test("deshacer un cobro anula esa venta, devuelve las existencias y la trae de v
   expect(await existenciasDe(p!.id)).toBe(7);
 
   await page.getByTestId("deshacer").click();
-  await expect(page.getByTestId("cobro-deshecho")).toBeVisible();
+  await expect(page.getByTestId("cobro-deshecho")).toContainText(
+    "Esos productos volvieron a la venta para que la corrijas o la vacíes.",
+  );
   // Vuelve para corregirla: las tres unidades, listas para cobrar otra vez.
   await expect(page.getByTestId(`cantidad-${p!.id}`)).toHaveText("3");
   expect(await existenciasDe(p!.id)).toBe(10);

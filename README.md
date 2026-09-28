@@ -67,7 +67,8 @@ Dar de alta un negocio nuevo —la base, su Hyperdrive, su dueño, su secreto y 
 pasos, en [`architecture.md` § Dar de alta un negocio](docs/project/architecture.md#dar-de-alta-un-negocio).
 `npm run preview` corre la aplicación en el runtime de Workers en local, antes de desplegar.
 
-Hoy en producción: **Tienda Miriam**, en https://orbiq-tienda-miriam.juan-account.workers.dev.
+Hoy en producción: **Lumy Bella** (antes Tienda Miriam; el entorno sigue siendo `tienda-miriam`), en
+https://orbiq-tienda-miriam.juan-account.workers.dev.
 
 ## Cómo se trabaja aquí
 
