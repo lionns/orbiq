@@ -386,8 +386,11 @@ export function ObjetivoDeEscaneo({
               // lector no pasan por este campo, así que no les afecta.
               const texto = tecleado.trim();
               if (!texto) return;
+              // Se vacía solo si sigue diciendo lo que se envió (`T-038`). La respuesta llega después,
+              // y entretanto el lector pudo empezar a escribir el siguiente código —o el dueño, un
+              // nombre—: vaciarlo a ciegas lo cortaba a medias.
               void Promise.resolve(onCodigo(texto)).then((limpiar) => {
-                if (limpiar) setTecleado("");
+                if (limpiar) setTecleado((ahora) => (ahora.trim() === texto ? "" : ahora));
               });
             }}
             // El teclado que sale en el celular. Numérico mientras solo entren códigos; con

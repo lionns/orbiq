@@ -33,6 +33,12 @@ export async function crearDueno(etiqueta: string): Promise<DuenoDePrueba> {
   return { id: usuario.id, correo, nombre, clave };
 }
 
+/** Una IP de la red de documentación (RFC 5737). Cuatro entradas en la misma, en diez segundos, es
+ * lo que haría falta para que dos pruebas se estorben: no pasa. */
+function ipDePrueba(): string {
+  return `203.0.113.${1 + Math.floor(Math.random() * 254)}`;
+}
+
 export async function borrarDueno(dueno: DuenoDePrueba | undefined): Promise<void> {
   if (!dueno) return;
   await db.delete(schema.session).where(eq(schema.session.userId, dueno.id));
@@ -41,6 +47,10 @@ export async function borrarDueno(dueno: DuenoDePrueba | undefined): Promise<voi
 }
 
 export async function entrar(page: Page, correo: string, clave: string): Promise<void> {
+  // Cada inicio de sesión por pantalla llega desde su propia IP, como cada dueño real: el límite de
+  // intentos es por IP (`T-038`), y la suite en paralelo saldría toda de 127.0.0.1 y se gastaría el
+  // cupo entre sus propias pruebas.
+  await page.context().setExtraHTTPHeaders({ "x-forwarded-for": ipDePrueba() });
   await page.goto("/acceso");
   await page.getByLabel("Correo").fill(correo);
   await page.getByLabel("Contraseña").fill(clave);
