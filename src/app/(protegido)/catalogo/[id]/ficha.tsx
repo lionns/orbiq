@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { categoriasExistentes } from "@/domain/catalogo";
 import { cola } from "@/domain/codigos";
+import { esDeLaTienda } from "@/domain/ean13";
 import { conDesde } from "@/domain/volver";
 import {
   ETIQUETA_MOVIMIENTO,
@@ -15,7 +16,7 @@ import { Boton } from "@/ui/boton";
 import { SeccionPlegable } from "@/ui/seccion-plegable";
 import { Cantidad, Existencias, Precio } from "@/ui/cifras";
 import { Icono, type NombreDeIcono } from "@/ui/iconos";
-import { cambiarEstado } from "./acciones";
+import { cambiarEstado, generarCodigo } from "./acciones";
 import { FormularioAjuste } from "./ajuste";
 import { FormularioCodigo } from "./codigo";
 import { FormularioEdicion } from "./edicion";
@@ -65,6 +66,10 @@ export async function FichaDelProducto({
   ];
   // Lo que se vende sin escanear sale del grupo más antiguo con unidades (`AC-027`): se dice cuál.
   const primero = codigos.length > 1 ? grupos.find((g) => g.cantidad > 0)?.id : undefined;
+  // El código de la tienda del producto, si tiene: de él salen sus etiquetas (`D-012`).
+  const deLaTienda = codigos.find((c) => esDeLaTienda(c.numero));
+  // Se cuentan como se ven: el par «Etiquetado» es una línea, no dos (`D-012`).
+  const movimientos = libro.movimientos.filter((m) => !(m.tipo === "relabel" && m.cantidad < 0)).length;
 
   return (
     <div className="flex flex-col">
@@ -110,6 +115,23 @@ export async function FichaDelProducto({
             </span>
           )}
         </span>
+        {/* `.diseno/etiquetas/Ficha-sin-codigo`: arriba, donde se ve que no tiene código, y no
+            escondido en una sección. Solo para lo que no tiene ninguno (`D-012`). */}
+        {codigos.length === 0 && p.activo ? (
+          <form
+            action={generarCodigo.bind(null, p.id)}
+            className="mt-4.5 flex flex-col gap-2.5 border-t border-dashed border-border pt-4"
+          >
+            <span className="flex items-center gap-2.5 text-text-muted">
+              <Icono nombre="escanear" />
+              Sin código de barras
+            </span>
+            <Boton type="submit" variante="principal" data-testid="generar-codigo">
+              <Icono nombre="escanear" />
+              Generar código
+            </Boton>
+          </form>
+        ) : null}
       </section>
 
       {enPanel ? null : (
@@ -129,15 +151,15 @@ export async function FichaDelProducto({
         </div>
       ) : null}
 
-      {/* `.diseno/codigos/Ficha`. Cada código lleva su cuenta y la suma es el total (`D-010`). */}
+      {/* `.diseno/codigos/Ficha`. Cada código lleva su cuenta y la suma es el total (`D-010`). Sin
+          ningún código no hay nada que contar por separado: «Añadir un código» pasa a Acciones. */}
+      {codigos.length > 0 ? (
       <section className="mt-7" aria-labelledby="por-codigo">
         <h2 id="por-codigo" className="text-xl font-bold tracking-tight">
           Por código
         </h2>
         <p className="mb-3 text-text-muted">
-          {codigos.length === 0
-            ? "Todavía no tiene código. Se vende buscándolo por nombre."
-            : `Cada código lleva su propia cuenta. Suman ${libro.saldoMaterializado}.`}
+          Cada código lleva su propia cuenta. Suman {libro.saldoMaterializado}.
         </p>
         <div className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
           {codigos.length > 0 ? (
@@ -146,7 +168,7 @@ export async function FichaDelProducto({
                 <FilaDeCodigo
                   key={c.id}
                   numero={c.numero}
-                  detalle={`Desde el ${fecha.format(c.desde)}${c.id === primero ? " · se vende primero" : ""}`}
+                  detalle={`${esDeLaTienda(c.numero) ? "Código de la tienda · desde" : "Desde"} el ${fecha.format(c.desde)}${c.id === primero ? " · se vende primero" : ""}`}
                   cantidad={c.cantidad}
                   reciente={i === codigos.length - 1 && codigos.length > 1}
                 />
@@ -160,8 +182,18 @@ export async function FichaDelProducto({
               ) : null}
             </ul>
           ) : null}
+          {deLaTienda ? (
+            <Link
+              href={`/catalogo/etiquetas/cuantas?m=${p.id}`}
+              className="flex min-h-14 items-center gap-3 px-4 font-semibold text-accent"
+              data-testid="imprimir-etiquetas"
+            >
+              <Icono nombre="imprimir" />
+              Imprimir etiquetas
+            </Link>
+          ) : null}
           <SeccionPlegable
-            titulo={codigos.length === 0 ? "Añadir un código" : "Añadir otro código"}
+            titulo="Añadir otro código"
             descripcion="Cuando el proveedor lo cambia. Di cuántas llegaron."
             icono="nuevo"
             enGrupo
@@ -171,6 +203,7 @@ export async function FichaDelProducto({
           </SeccionPlegable>
         </div>
       </section>
+      ) : null}
 
       <section className="mt-7" aria-labelledby="historial">
         <h2 id="historial" className="text-xl font-bold tracking-tight">
@@ -179,7 +212,7 @@ export async function FichaDelProducto({
         <p className="mb-3 text-text-muted">
           {libro.linea.length === 0
             ? "Todavía no ha pasado nada."
-            : `${libro.movimientos.length} ${libro.movimientos.length === 1 ? "movimiento" : "movimientos"}, suman ${libro.saldoDelLibro}`}
+            : `${movimientos} ${movimientos === 1 ? "movimiento" : "movimientos"}, suman ${libro.saldoDelLibro}`}
         </p>
         {libro.linea.length > 0 ? (
           <ol
@@ -213,6 +246,18 @@ export async function FichaDelProducto({
           >
             <FormularioAjuste productoId={p.id} grupos={grupos} />
           </SeccionPlegable>
+
+          {codigos.length === 0 ? (
+            <SeccionPlegable
+              titulo="Añadir un código"
+              descripcion="El de fábrica, si lo trae. Di cuántas llegaron."
+              icono="nuevo"
+              enGrupo
+              data-testid="abrir-codigo"
+            >
+              <FormularioCodigo productoId={p.id} />
+            </SeccionPlegable>
+          ) : null}
 
           <SeccionPlegable
             titulo="Editar los datos"
@@ -318,6 +363,25 @@ function FilaDelHistorial({
           De {formatearPrecio(e.anterior)} a {formatearPrecio(e.nuevo)}
         </span>
         <span className="block text-text-muted">{pie}</span>
+      </Fila>
+    );
+  }
+
+  if (e.clase === "etiquetado") {
+    // Suma cero: se dice así, sin signo de venta ni de entrada (`D-012`).
+    return (
+      <Fila
+        icono="etiquetado"
+        titulo="Etiquetado"
+        testid="evento-etiquetado"
+        cifra={<span className="text-lg font-bold text-text-muted tabular-nums">±0</span>}
+      >
+        <span className="block">
+          {e.cantidad} de «sin código» a {cola(e.codigo)}
+        </span>
+        <span className="block text-text-muted">
+          {cuando.format(e.cuando)} · {e.quien}
+        </span>
       </Fila>
     );
   }

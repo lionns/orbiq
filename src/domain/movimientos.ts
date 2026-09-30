@@ -9,7 +9,7 @@ import { saldoCoincide, saldoDesdeLibro } from "./stock";
  */
 export type Movimiento = {
   id: string;
-  tipo: "initial" | "sale" | "sale_void" | "adjustment" | "purchase";
+  tipo: "initial" | "sale" | "sale_void" | "adjustment" | "purchase" | "relabel";
   cantidad: number;
   /** El número del código del que fue, o `null` si fue sin código (`D-010`). */
   codigo: string | null;
@@ -29,7 +29,12 @@ export type EventoDelProducto =
       quien: string;
       cuando: Date;
     }
-  | { clase: "activacion"; id: string; activo: boolean; quien: string; cuando: Date };
+  | { clase: "activacion"; id: string; activo: boolean; quien: string; cuando: Date }
+  /**
+   * El par `relabel` de `D-012` como un solo hecho: lo que había sin código pasó a `codigo`. El
+   * libro guarda dos filas que suman cero; el dueño ve una línea que dice qué pasó.
+   */
+  | { clase: "etiquetado"; id: string; cantidad: number; codigo: string; quien: string; cuando: Date };
 
 export type LibroDelProducto = {
   producto: {
@@ -118,7 +123,20 @@ export async function libroDelProducto(productoId: string): Promise<LibroDelProd
     .where(eq(schema.productEvent.productId, productoId));
 
   const linea: EventoDelProducto[] = [
-    ...filas.map(({ codigoId: _, ...m }) => ({ clase: "movimiento" as const, ...m })),
+    ...filas
+      .filter((f) => f.tipo !== "relabel")
+      .map(({ codigoId: _, ...m }) => ({ clase: "movimiento" as const, ...m })),
+    // De cada par se toma la mitad que entra al código: dice a cuál fue y cuántas pasaron.
+    ...filas
+      .filter((f) => f.tipo === "relabel" && f.cantidad > 0 && f.codigo)
+      .map((f) => ({
+        clase: "etiquetado" as const,
+        id: f.id,
+        cantidad: f.cantidad,
+        codigo: f.codigo!,
+        quien: f.quien,
+        cuando: f.cuando,
+      })),
     ...eventos.map((e) =>
       e.tipo === "price_change"
         ? {
@@ -265,4 +283,5 @@ export const ETIQUETA_MOVIMIENTO: Record<Movimiento["tipo"], string> = {
   // («Corregir el conteo», `T-029`).
   adjustment: "Conteo corregido",
   purchase: "Llegaron",
+  relabel: "Etiquetado",
 };

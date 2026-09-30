@@ -117,7 +117,8 @@ varios códigos sigue siendo uno solo, con un precio (`D-010`).
 
 Los códigos de un producto (`D-010`). El proveedor cambia el código de lo que ya se vende, así que un
 producto puede tener varios, y cada uno lleva su cantidad. Sin código es normal —granel, pan,
-huevos—: esos productos no tienen fila aquí.
+huevos—: esos productos no tienen fila aquí, hasta que la tienda les genera uno: un EAN-13 que
+empieza por `2`, el rango de uso interno, que no choca con ninguno de fábrica (`D-012`).
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
@@ -159,7 +160,7 @@ El libro. Inmutable (`D-002`).
 | id | uuid v7 | yes | |
 | product_id | uuid v7 | yes | → `product.id` |
 | quantity | integer | yes | Con signo. Negativo descuenta |
-| type | enum `movement_type` | yes | `initial` · `sale` · `sale_void` · `adjustment` · `purchase` («Llegaron», `D-010`). Devoluciones y traslados entran como tipos nuevos, sin tocar filas viejas — añadir un valor al enum es una migración de una línea |
+| type | enum `movement_type` | yes | `initial` · `sale` · `sale_void` · `adjustment` · `purchase` («Llegaron», `D-010`) · `relabel` («Etiquetado», `D-012`). Devoluciones y traslados entran como tipos nuevos, sin tocar filas viejas — añadir un valor al enum es una migración de una línea |
 | barcode_id | uuid v7 | no | → `product_barcode.id`. De qué código fue. Nulo: sin código (`D-010`) |
 | sale_id | uuid v7 | no | → `sale.id`. Obligatorio cuando `type` es `sale` o `sale_void` |
 | reason | text | no | **Obligatorio cuando `type` es `adjustment`** (`brief.md` § In Scope) |
@@ -221,6 +222,8 @@ productos sin código no chocan, porque no tienen fila (`AC-005`).
 - `product_barcode.code` único. Varios productos sin código es lo normal.
 - Lo vendido escaneando sale de ese código; sin escanear, del más antiguo con unidades, y lo que no
   cabe, del más reciente (`AC-027`). Anular devuelve a cada código lo que salió de él.
+- Generar un código de la tienda pasa lo que había sin código a ese código con un par `relabel`
+  (−N sin código, +N en el código) que suma cero (`D-012`).
 - Registrar una venta ya registrada (mismo `sale.id`) devuelve la venta existente sin descontar de
   nuevo — no es un error, es un reintento (`D-005`).
 - Anular una venta ya anulada se rechaza.

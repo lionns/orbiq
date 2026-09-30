@@ -14,9 +14,10 @@ export default async function LayoutProtegido({ children }: { children: React.Re
   return (
     // Sin banda de arriba: en el celular la navegación vive abajo, donde llega el pulgar, y en
     // computador a un lado (`.diseno/cobalto`, punto 2). El hueco de abajo es el de la barra fija.
+    // Al imprimir no hay navegación: lo único que se imprime es la hoja de etiquetas (`T-038`).
     <div className="min-h-dvh lg:flex">
       <MenuLateral negocio={NEGOCIO.nombre} dueno={sesion.nombre} />
-      <div className="min-w-0 flex-1 pb-24 lg:pb-0">{children}</div>
+      <div className="min-w-0 flex-1 pb-24 lg:pb-0 print:pb-0">{children}</div>
       <BarraDePestanas />
       <span className="sr-only" data-testid="sesion-nombre">
         {sesion.nombre}

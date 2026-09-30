@@ -1,0 +1,99 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Ficha-sin-codigo.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "1 · «Generar código», arriba en la ficha",
+      "w": 360,
+      "x": 0,
+      "y": 0
+    },
+    "Generado.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "2 · El código listo, y sus unidades pasan a él",
+      "w": 360,
+      "x": 440,
+      "y": 0
+    },
+    "Historial-etiquetado.dc.html": {
+      "h": 980,
+      "is_interactive": true,
+      "title": "3 · Después: la ficha y el historial",
+      "w": 360,
+      "x": 880,
+      "y": 0
+    },
+    "Etiquetas-1-Entrada.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "4 · Desde Productos: «Etiquetas»",
+      "w": 360,
+      "x": 0,
+      "y": 1440
+    },
+    "Etiquetas-2-Buscar.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "5 · Buscar y marcar, con el buscador de Productos",
+      "w": 360,
+      "x": 440,
+      "y": 1440
+    },
+    "Etiquetas-3-Cuantas.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "6 · Cuántas de cada uno",
+      "w": 360,
+      "x": 880,
+      "y": 1440
+    },
+    "Hoja.dc.html": {
+      "h": 1056,
+      "is_interactive": true,
+      "title": "7 · La hoja carta, 30 etiquetas (escaneable desde la pantalla)",
+      "w": 816,
+      "x": 1320,
+      "y": 1440
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-29T15:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "maxW": 2400,
+      "text": "Un producto sin código recibe uno de la tienda",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 2400,
+      "text": "Imprimir etiquetas",
+      "w": 240,
+      "x": 0,
+      "y": 1140
+    }
+  },
+  "order": [
+    "Ficha-sin-codigo.dc.html",
+    "Generado.dc.html",
+    "Historial-etiquetado.dc.html",
+    "Etiquetas-1-Entrada.dc.html",
+    "Etiquetas-2-Buscar.dc.html",
+    "Etiquetas-3-Cuantas.dc.html",
+    "Hoja.dc.html"
+  ],
+  "pages": [],
+  "title": "Códigos de la tienda y etiquetas"
+}

@@ -183,6 +183,9 @@ export const movementType = pgEnum("movement_type", [
   "adjustment",
   // Llegó mercancía. Nace con «añadir un código» (`D-010`); una compra sin código nuevo entra igual.
   "purchase",
+  // «Etiquetado»: lo que había sin código pasa al código que la tienda le acaba de generar. Va en
+  // pares que suman cero —menos sin código, más en el código— (`D-012`).
+  "relabel",
 ]);
 
 export const productEventType = pgEnum("product_event_type", [

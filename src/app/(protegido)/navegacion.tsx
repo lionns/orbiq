@@ -36,6 +36,11 @@ function Insignia({ cantidad, className = "" }: { cantidad: number; className?: 
   );
 }
 
+/** Las etiquetas y «Código listo» llevan su propia acción abajo, como el alta (`.diseno/etiquetas`). */
+function conBarraPropia(ruta: string): boolean {
+  return ruta.startsWith("/catalogo/etiquetas") || ruta.endsWith("/codigo-listo");
+}
+
 /**
  * Celular: la barra fija abajo, donde llega el pulgar (`design-handoff.md` § Responsive Behavior).
  *
@@ -45,12 +50,12 @@ function Insignia({ cantidad, className = "" }: { cantidad: number; className?: 
 export function BarraDePestanas() {
   const actual = usePathname();
   const enVenta = useArticulosEnVenta();
-  if (actual === "/catalogo/nuevo") return null;
+  if (actual === "/catalogo/nuevo" || conBarraPropia(actual)) return null;
 
   return (
     <nav
       aria-label="Secciones"
-      className="fixed inset-x-0 bottom-0 z-20 flex border-t border-border bg-surface px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-20 flex border-t border-border bg-surface px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden print:hidden"
       data-testid="barra-de-pestanas"
     >
       {SECCIONES.map((s) => {
@@ -91,7 +96,7 @@ export function MenuLateral({ negocio, dueno }: { negocio: string; dueno: string
   return (
     <nav
       aria-label="Secciones"
-      className="sticky top-0 hidden h-dvh w-62 shrink-0 flex-col gap-1 border-r border-border bg-surface px-4 py-6 lg:flex"
+      className="sticky top-0 hidden h-dvh w-62 shrink-0 flex-col gap-1 border-r border-border bg-surface px-4 py-6 lg:flex print:hidden"
     >
       <Link href="/" className="mb-6 flex items-center gap-2.5 px-1.5">
         <Marca />

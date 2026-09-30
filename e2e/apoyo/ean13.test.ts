@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FORMATOS } from "../../src/domain/escaneo";
+import { codigoDeLaTienda } from "../../src/domain/ean13";
 import { digitoDeControl, imagen } from "./ean13";
 
 /**
@@ -44,6 +45,11 @@ async function leer(codigo: string) {
 describe("el decodificador lee lo que trae un producto de tienda", () => {
   it("un EAN-13", async () => {
     const codigo = `770200400350${digitoDeControl("770200400350")}`;
+    expect(await leer(codigo)).toEqual([codigo]);
+  });
+
+  it("un código de la tienda, que es lo que se imprime en sus etiquetas (`D-012`)", async () => {
+    const codigo = codigoDeLaTienda();
     expect(await leer(codigo)).toEqual([codigo]);
   });
 

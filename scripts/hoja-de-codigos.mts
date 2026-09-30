@@ -2,7 +2,7 @@ import "dotenv/config";
 import { writeFileSync } from "node:fs";
 import { eq } from "drizzle-orm";
 import { db, pool, schema } from "../src/db";
-import { digitoDeControl, modulos } from "../e2e/apoyo/ean13";
+import { digitoDeControl, modulos } from "../src/domain/ean13";
 import { formatearPrecio } from "../src/domain/moneda";
 
 /**
@@ -12,8 +12,8 @@ import { formatearPrecio } from "../src/domain/moneda";
  *   npm run codigos              genera la hoja
  *   npm run codigos -- --corregir  además arregla en la base los códigos que no se pueden imprimir
  *
- * Se abre en el navegador del computador y se escanea desde el teléfono, o se imprime. No es parte
- * del producto: `brief.md` § Out of Scope deja fuera imprimir etiquetas.
+ * Se abre en el navegador del computador y se escanea desde el teléfono, o se imprime. Es para
+ * probar, no para la tienda: las etiquetas que pega el dueño salen de Productos (`T-038`).
  */
 
 /** Un código impreso tiene que llevar dígito de control correcto o ningún lector lo acepta. */

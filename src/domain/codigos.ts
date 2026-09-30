@@ -67,8 +67,9 @@ export type CodigoConCantidad = {
 export type ExistenciasPorCodigo = {
   codigos: CodigoConCantidad[];
   /**
-   * Lo que no tiene código. `null` cuando no hay nada que mostrar: ningún movimiento sin código, o
-   * un producto que nunca tuvo código (ahí el total ya lo dice todo).
+   * Lo que no tiene código. `null` cuando no hay nada que mostrar: ningún movimiento sin código, un
+   * producto que nunca tuvo código (ahí el total ya lo dice todo), o un grupo que quedó en cero —el
+   * caso de siempre desde que generar un código pasa lo que había a él (`D-012`)—.
    */
   sinCodigo: number | null;
 };
@@ -87,7 +88,7 @@ export function existenciasPorCodigo(
     codigos: [...codigos]
       .sort((a, b) => a.desde.getTime() - b.desde.getTime())
       .map((c) => ({ ...c, cantidad: saldoDesdeLibro(de(c.id)) })),
-    sinCodigo: codigos.length > 0 && sinCodigo.length > 0 ? saldoDesdeLibro(sinCodigo) : null,
+    sinCodigo: codigos.length > 0 && sinCodigo.length > 0 ? saldoDesdeLibro(sinCodigo) || null : null,
   };
 }
 

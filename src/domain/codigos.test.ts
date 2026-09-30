@@ -81,6 +81,22 @@ describe("existencias por código", () => {
     expect(r.codigos.reduce((s, c) => s + c.cantidad, 0) + r.sinCodigo!).toBe(36);
   });
 
+  it("lo que quedó en cero sin código no se muestra: tras etiquetar, todo está en el código", () => {
+    // El par `relabel` de `D-012`: −12 sin código y +12 en el código nuevo.
+    const r = existenciasPorCodigo(codigos, [
+      { codigoId: null, quantity: 12 },
+      { codigoId: null, quantity: -12 },
+      { codigoId: "a", quantity: 12 },
+    ]);
+    expect(r.sinCodigo).toBeNull();
+    expect(r.codigos.find((c) => c.id === "a")?.cantidad).toBe(12);
+  });
+
+  it("lo vendido de más sin código sí se muestra, en negativo", () => {
+    const r = existenciasPorCodigo(codigos, [{ codigoId: null, quantity: -2 }]);
+    expect(r.sinCodigo).toBe(-2);
+  });
+
   it("un producto sin códigos no tiene grupo aparte: su total ya lo dice", () => {
     expect(existenciasPorCodigo([], [{ codigoId: null, quantity: 9 }]).sinCodigo).toBeNull();
   });

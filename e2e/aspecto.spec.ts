@@ -2,8 +2,9 @@
 // DATABASE_URL al cargarse.
 import "dotenv/config";
 import { expect, test, type Page } from "@playwright/test";
-import { like } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 import { db, schema } from "../src/db";
+import { codigoDeLaTienda } from "../src/domain/ean13";
 import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueba } from "./apoyo";
 
 /**
@@ -15,6 +16,7 @@ import { borrarDueno, borrarProductos, crearDueno, entrarComo, type DuenoDePrueb
  * de lo que tiene detrás».
  */
 let dueno: DuenoDePrueba;
+let etiquetable: string;
 
 // Productos propios: los resultados de la venta tienen que tener filas que medir aunque la base esté
 // vacía, como la que se entrega al negocio. Antes contaba con los de demostración.
@@ -29,6 +31,10 @@ test.beforeAll(async () => {
       stock: i === 5 ? 0 : 10,
     })),
   );
+  // Uno con código de la tienda, para que las pantallas de etiquetas tengan qué enseñar (`T-038`).
+  const [arroz] = await db.select().from(schema.product).where(eq(schema.product.name, `Arroz ${MARCA}`));
+  etiquetable = arroz!.id;
+  await db.insert(schema.productBarcode).values({ productId: etiquetable, code: codigoDeLaTienda() });
 });
 test.afterAll(async () => {
   await borrarProductos(like(schema.product.name, `%${MARCA}%`));
@@ -127,11 +133,19 @@ for (const tema of ["claro", "oscuro"] as const) {
     await page.goto("/catalogo/nuevo");
     const enAlta = await revisar(page);
 
+    await page.goto(`/catalogo/etiquetas?q=${MARCA}&m=${etiquetable}`);
+    const enEtiquetas = await revisar(page);
+
+    await page.goto(`/catalogo/etiquetas/cuantas?m=${etiquetable}`);
+    const enCuantas = await revisar(page);
+
     const todo = [
       ...enAcceso.map((h) => ({ ...h, donde: "acceso" })),
       ...enVenta.map((h) => ({ ...h, donde: "venta" })),
       ...enCatalogo.map((h) => ({ ...h, donde: "catálogo" })),
       ...enAlta.map((h) => ({ ...h, donde: "alta" })),
+      ...enEtiquetas.map((h) => ({ ...h, donde: "etiquetas" })),
+      ...enCuantas.map((h) => ({ ...h, donde: "cuántas etiquetas" })),
     ];
     expect(todo, JSON.stringify(todo, null, 1)).toEqual([]);
   });

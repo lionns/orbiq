@@ -3,7 +3,13 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { anadirCodigo, cambiarActivacion, corregirCodigo, editarProducto } from "@/domain/catalogo";
+import {
+  anadirCodigo,
+  cambiarActivacion,
+  corregirCodigo,
+  editarProducto,
+  generarCodigoDeLaTienda,
+} from "@/domain/catalogo";
 import { ajustarExistencias } from "@/domain/movimientos";
 import { validarCodigoNuevo, validarEdicion } from "@/domain/producto";
 import { sesionActual } from "@/domain/session";
@@ -116,6 +122,19 @@ export async function anadirOtroCodigo(
         ? `Código ${codigo} añadido, con ${llegaron} ${llegaron === 1 ? "unidad" : "unidades"}.`
         : `Código ${codigo} añadido.`,
   };
+}
+
+/**
+ * «Generar código» (`D-012`). Lleva a «Código listo», que dice cuántas unidades pasaron al código y
+ * ofrece imprimir sus etiquetas.
+ */
+export async function generarCodigo(productoId: string): Promise<void> {
+  const sesion = await sesionActual(await headers());
+  if (!sesion) redirect("/acceso");
+  const r = await generarCodigoDeLaTienda(productoId, sesion.usuarioId);
+  revalidar(productoId);
+  // Si falló —ya tenía código, casi siempre porque se tocó dos veces— la ficha ya lo enseña.
+  redirect(r.ok ? `/catalogo/${productoId}/codigo-listo?pasaron=${r.pasaron}` : `/catalogo/${productoId}`);
 }
 
 export async function cambiarEstado(productoId: string, activo: boolean): Promise<void> {

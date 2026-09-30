@@ -25,7 +25,10 @@ test.beforeAll(async () => {
   dueno = await crearDueno("navegacion");
   const [p] = await db
     .insert(schema.product)
-    .values({ name: `Jabón ${MARCA}`, price: 3400, stock: 0 })
+    // Empieza por un dígito a propósito: Inicio enseña solo los tres primeros por reponer, por
+    // nombre, y cualquier otra prueba que deje un producto en cero —«Galletas» en `aspecto.spec`—
+    // lo sacaba de la lista si se llamaba con letra (`T-038`).
+    .values({ name: `0 Jabón ${MARCA}`, price: 3400, stock: 0 })
     .returning({ id: schema.product.id });
   productoId = p!.id;
   ventaId = nuevoId();

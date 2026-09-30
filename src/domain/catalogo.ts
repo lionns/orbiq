@@ -1,5 +1,7 @@
-import { and, asc, count, eq, gte, ilike, inArray, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, gte, ilike, inArray, isNull, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { codigoDeLaTienda, esDeLaTienda } from "./ean13";
+import { RESULTADOS as RESULTADOS_DE_ETIQUETAS } from "./etiquetas";
 import { equivalentes, normalizarCodigo } from "./escaneo";
 import type { FiltrosCatalogo } from "./filtros";
 import type { AltaDeProducto, CodigoNuevo, EdicionDeProducto } from "./producto";
@@ -30,8 +32,11 @@ export type PaginaDelCatalogo = {
   hayMas: boolean;
 };
 
-/** Un solo sitio donde se traducen los filtros a SQL: la lista y el conteo no pueden discrepar. */
-function condiciones(f: FiltrosCatalogo): SQL {
+/**
+ * Un solo sitio donde se traducen los filtros a SQL: la lista y el conteo no pueden discrepar, y
+ * elegir etiquetas busca exactamente como Productos (`T-038`).
+ */
+export function condiciones(f: FiltrosCatalogo): SQL {
   const partes: (SQL | undefined)[] = [];
   // Un producto desactivado sigue existiendo y se puede pedir a propósito; por defecto no aparece
   // (`AC-022`).
@@ -440,6 +445,83 @@ export async function anadirCodigo(
   }
 }
 
+export type ResultadoCodigoDeLaTienda =
+  | { ok: true; codigo: string; codigoId: string; pasaron: number }
+  | { ok: false; mensaje: string };
+
+/** Cuántas veces se pide otro número si el generado ya existía. Con once dígitos al azar, sobra. */
+const INTENTOS_DE_CODIGO = 5;
+
+/**
+ * Darle un código de la tienda a un producto que no trae (`D-012`, `AC-029`, `AC-030`).
+ *
+ * Lo que había sin código pasa al código nuevo con un par `relabel` —menos sin código, más en el
+ * código— que suma cero: el total no cambia y el libro no se reescribe (`D-002`). Sin ese par, la
+ * primera venta escaneada saldría de un código en cero mientras «sin código» sigue lleno.
+ */
+export async function generarCodigoDeLaTienda(
+  productoId: string,
+  usuarioId: string,
+  azar: () => number = Math.random,
+): Promise<ResultadoCodigoDeLaTienda> {
+  return db.transaction(async (tx) => {
+    // El mismo bloqueo que la venta: nadie vende sin código mientras se trasladan sus unidades.
+    const [producto] = await tx
+      .select({ id: schema.product.id })
+      .from(schema.product)
+      .where(eq(schema.product.id, productoId))
+      .limit(1)
+      .for("update");
+    if (!producto) return { ok: false as const, mensaje: "Ese producto ya no existe." };
+
+    const [yaTiene] = await tx
+      .select({ id: schema.productBarcode.id })
+      .from(schema.productBarcode)
+      .where(eq(schema.productBarcode.productId, productoId))
+      .limit(1);
+    if (yaTiene) return { ok: false as const, mensaje: "Este producto ya tiene código." };
+
+    let nuevo: { id: string; codigo: string } | null = null;
+    for (let i = 0; i < INTENTOS_DE_CODIGO && !nuevo; i++) {
+      const codigo = codigoDeLaTienda(azar);
+      if (await quienLoTiene(tx, codigo)) continue;
+      try {
+        // En un punto de guardado: si otra alta se llevó el número entre leer y escribir, se
+        // deshace solo este intento y la transacción sigue viva para el siguiente.
+        const [fila] = await tx.transaction((sp) =>
+          sp
+            .insert(schema.productBarcode)
+            .values({ productId: productoId, code: codigo })
+            .returning({ id: schema.productBarcode.id }),
+        );
+        nuevo = { id: fila!.id, codigo };
+      } catch (error) {
+        if (!esCodigoDeBarrasRepetido(error)) throw error;
+      }
+    }
+    if (!nuevo) return { ok: false as const, mensaje: "No se pudo generar un código. Inténtalo otra vez." };
+
+    const [sinCodigo] = await tx
+      .select({ saldo: sql<number>`coalesce(sum(${schema.stockMovement.quantity}), 0)::int` })
+      .from(schema.stockMovement)
+      .where(
+        and(eq(schema.stockMovement.productId, productoId), isNull(schema.stockMovement.barcodeId)),
+      );
+    // Solo se traslada lo que hay. Un saldo negativo es lo vendido de más sin código: pasarlo al
+    // código nuevo lo estrenaría en negativo, y ese hueco es de antes de tenerlo.
+    const pasaron = Math.max(sinCodigo?.saldo ?? 0, 0);
+    if (pasaron > 0) {
+      const ahora = new Date();
+      await tx.insert(schema.stockMovement).values([
+        { productId: productoId, barcodeId: null, quantity: -pasaron, type: "relabel", userId: usuarioId, occurredAt: ahora },
+        { productId: productoId, barcodeId: nuevo.id, quantity: pasaron, type: "relabel", userId: usuarioId, occurredAt: ahora },
+      ]);
+    }
+
+    return { ok: true as const, codigo: nuevo.codigo, codigoId: nuevo.id, pasaron };
+  });
+}
+
 export type ResultadoCorreccion = { ok: true } | { ok: false; mensaje: string };
 
 /**
@@ -506,4 +588,81 @@ export async function buscarParaAnadirCodigo(texto: string): Promise<CandidatoPa
     ...p,
     codigos: codigos.filter((c) => c.productoId === p.id).map((c) => c.numero),
   }));
+}
+
+// ── Etiquetas de los códigos de la tienda (`T-038`, `D-012`) ─────────────────────────────────
+
+export type ProductoConCodigo = {
+  id: string;
+  nombre: string;
+  precio: number;
+  existencias: number;
+  categoria: string | null;
+  codigo: string;
+};
+
+/** Los productos que tienen código de la tienda, con el más antiguo de ellos. */
+const conCodigoDeLaTienda = sql`${schema.product.id} in (
+  select ${schema.productBarcode.productId} from ${schema.productBarcode}
+  where ${schema.productBarcode.code} ~ '^2[0-9]{12}$')`;
+
+async function codigosDe(ids: readonly string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const filas = await db
+    .select({ producto: schema.productBarcode.productId, codigo: schema.productBarcode.code })
+    .from(schema.productBarcode)
+    .where(inArray(schema.productBarcode.productId, [...ids]))
+    .orderBy(asc(schema.productBarcode.createdAt));
+  const de = new Map<string, string>();
+  for (const f of filas) if (!de.has(f.producto) && esDeLaTienda(f.codigo)) de.set(f.producto, f.codigo);
+  return de;
+}
+
+const columnas = {
+  id: schema.product.id,
+  nombre: schema.product.name,
+  precio: schema.product.price,
+  existencias: schema.product.stock,
+  categoria: schema.category.name,
+};
+
+/**
+ * Lo que se puede etiquetar y cumple la búsqueda: los mismos filtros que Productos, acotados a
+ * los productos con código de la tienda. Un código de fábrica ya viene impreso en el empaque.
+ */
+export async function buscarParaEtiquetas(
+  f: FiltrosCatalogo,
+): Promise<{ productos: ProductoConCodigo[]; hayMas: boolean }> {
+  const filas = await db
+    .select(columnas)
+    .from(schema.product)
+    .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
+    .where(and(condiciones(f), conCodigoDeLaTienda))
+    .orderBy(asc(schema.product.name))
+    .limit(RESULTADOS_DE_ETIQUETAS + 1);
+  const vistos = filas.slice(0, RESULTADOS_DE_ETIQUETAS);
+  const codigos = await codigosDe(vistos.map((p) => p.id));
+  return {
+    productos: vistos.flatMap((p) => {
+      const codigo = codigos.get(p.id);
+      return codigo ? [{ ...p, codigo }] : [];
+    }),
+    hayMas: filas.length > RESULTADOS_DE_ETIQUETAS,
+  };
+}
+
+/** Los marcados, en el orden en que se marcaron. Los que ya no tienen código se caen solos. */
+export async function productosMarcados(ids: readonly string[]): Promise<ProductoConCodigo[]> {
+  if (ids.length === 0) return [];
+  const filas = await db
+    .select(columnas)
+    .from(schema.product)
+    .leftJoin(schema.category, eq(schema.product.categoryId, schema.category.id))
+    .where(inArray(schema.product.id, [...ids]));
+  const codigos = await codigosDe(ids);
+  return ids.flatMap((id) => {
+    const p = filas.find((f) => f.id === id);
+    const codigo = codigos.get(id);
+    return p && codigo ? [{ ...p, codigo }] : [];
+  });
 }

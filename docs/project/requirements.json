@@ -101,6 +101,12 @@
       "title": "Vender muestra solo la venta",
       "description": "La pantalla de venta no muestra productos por defecto. Se ve la venta que se arma escaneando o buscando, y nada más.",
       "source": "pedido por el cliente el 2026-09-27; .diseno/codigos/Vender"
+    },
+    {
+      "id": "FR-018",
+      "title": "Códigos de la tienda y sus etiquetas",
+      "description": "El dueño le da un código de barras a un producto que no trae, imprime sus etiquetas en una hoja carta y desde entonces lo vende escaneando. Las unidades que el producto ya tenía pasan a ese código sin cambiar su total.",
+      "source": "pedido por el cliente el 2026-09-29; D-012; .diseno/etiquetas/"
     }
   ],
   "nonFunctional": [

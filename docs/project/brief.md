@@ -59,6 +59,8 @@ Los del MVP. Cada capacidad nueva puede traer los suyos.
 - Lectura de código de barras como entrada de primera clase, venga de cámara, de un lector o
   tecleada: consultar un producto, darlo de alta cuando el código es desconocido, y añadirlo a una
   venta (`D-007`).
+- Códigos de la tienda para lo que no trae código, con su hoja de etiquetas carta para imprimir
+  (`D-012`).
 - Registro de venta: escanear o tocar desde una cuadrícula de frecuentes en la misma pantalla,
   total siempre visible, confirmar. Descuenta existencias en una sola operación.
 - Anulación de una venta registrada por error.
@@ -84,8 +86,6 @@ cada línea nombra lo que la traería de vuelta.
 - **Funcionamiento sin conexión y sincronización diferida** — la venta ya se registra de forma
   idempotente, que es la mitad cara del problema (`D-005`).
 - **Factura fiscal, impuestos y medios de pago** — dependen del país y del régimen del negocio.
-- **Impresión de etiquetas de código de barras** — los productos con código traen el de fábrica, y
-  los que no lo tienen se encuentran por búsqueda o por la cuadrícula de frecuentes.
 - **Pistola lectora** — el objetivo de escaneo la admite sin código adicional el día que aparezca,
   pero no se diseña para ella (`D-007`).
 

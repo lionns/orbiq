@@ -1,28 +1,11 @@
 /**
- * Genera códigos EAN-13 de verdad para las pruebas: sus módulos, su dígito de control y una imagen
- * decodificable. Escrito a mano y sin dependencias porque lo que se necesita es exacto y pequeño.
+ * Códigos EAN-13 de verdad para las pruebas, y una imagen decodificable de cada uno. El codificador
+ * —dígito de control y módulos— vive en el dominio desde `T-038`: la hoja de etiquetas imprime con
+ * él, y las pruebas leen lo mismo que se imprime.
  */
-const L = ["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"];
-const G = ["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"];
-const R = ["1110010","1100110","1101100","1000010","1011100","1001110","1010000","1000100","1001000","1110100"];
-const PARIDAD = ["LLLLLL","LLGLGG","LLGGLG","LLGGGL","LGLLGG","LGGLLG","LGGGLL","LGLGLG","LGLGGL","LGGLGL"];
+import { digitoDeControl, modulos } from "../../src/domain/ean13";
 
-/** El dígito de control: sin él, el decodificador rechaza el código y la prueba mentiría. */
-export function digitoDeControl(doce: string): string {
-  const suma = [...doce].reduce((t, d, i) => t + Number(d) * (i % 2 === 0 ? 1 : 3), 0);
-  return String((10 - (suma % 10)) % 10);
-}
-
-/** Los 95 módulos de un EAN-13, como cadena de "0" y "1". */
-export function modulos(codigo: string): string {
-  if (codigo.length !== 13) throw new Error(`EAN-13 son 13 dígitos, llegaron ${codigo.length}`);
-  const paridad = PARIDAD[Number(codigo[0])]!;
-  const izquierda = [...codigo.slice(1, 7)]
-    .map((d, i) => (paridad[i] === "L" ? L : G)[Number(d)]!)
-    .join("");
-  const derecha = [...codigo.slice(7)].map((d) => R[Number(d)]!).join("");
-  return `101${izquierda}01010${derecha}101`;
-}
+export { digitoDeControl, modulos };
 
 /** Pinta el código centrado sobre blanco y lo devuelve como RGBA, listo para decodificar. */
 export function imagen(

@@ -206,6 +206,29 @@
       "verifies": [
         "FR-017"
       ]
+    },
+    {
+      "id": "AC-029",
+      "criterion": "CUANDO se genera el código de un producto sin código EL SISTEMA DEBE crear un EAN-13 que empiece por 2, con dígito de control válido y único entre todos los productos.",
+      "verifies": [
+        "FR-018"
+      ]
+    },
+    {
+      "id": "AC-030",
+      "criterion": "CUANDO el producto al que se le genera el código tiene unidades sin código EL SISTEMA DEBE pasarlas a ese código con un par de movimientos `relabel` que suman cero, y el total del producto DEBE quedar igual.",
+      "verifies": [
+        "FR-018",
+        "NFR-005"
+      ]
+    },
+    {
+      "id": "AC-031",
+      "criterion": "CUANDO se escanea en la venta la etiqueta impresa de un código de la tienda EL SISTEMA DEBE añadir su producto y descontarlo de ese código.",
+      "verifies": [
+        "FR-018",
+        "FR-016"
+      ]
     }
   ],
   "crossCutting": [

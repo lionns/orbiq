@@ -2,6 +2,7 @@ import {
   Archive,
   ArrowLeft,
   ArrowRight,
+  ArrowRightLeft,
   Calendar,
   Camera,
   Check,
@@ -19,11 +20,13 @@ import {
   LogIn,
   LogOut,
   Mail,
+  Minus,
   Lock,
   Package,
   PackageX,
   Pencil,
   Plus,
+  Printer,
   ReceiptText,
   RotateCcw,
   ScanBarcode,
@@ -76,6 +79,7 @@ export const ICONOS = {
   salir: LogOut,
   entrar: LogIn,
   nuevo: Plus,
+  menos: Minus,
   alta: CirclePlus,
   agotados: PackageX,
   filtros: SlidersHorizontal,
@@ -91,6 +95,8 @@ export const ICONOS = {
   alerta: CircleAlert,
   teclado: Keyboard,
   enlazar: Link2,
+  imprimir: Printer,
+  etiquetado: ArrowRightLeft,
 } as const;
 
 export type NombreDeIcono = keyof typeof ICONOS;

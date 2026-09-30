@@ -62,10 +62,22 @@ export async function PantallaDeProductos({
 
       <Filtros filtros={filtros} categorias={categorias} volverA={volverA} total={total} />
 
-      <p className="mt-5 mb-2 font-medium text-text-muted" data-testid="conteo">
-        {total === 0 ? "Ningún producto" : total === 1 ? "1 producto" : `${total} productos`}
-        {productos.length < total ? `, se ven ${productos.length}` : ""}
-      </p>
+      <div className="mt-3 mb-1 flex min-h-12 items-center justify-between gap-3">
+        <p className="font-medium text-text-muted" data-testid="conteo">
+          {total === 0 ? "Ningún producto" : total === 1 ? "1 producto" : `${total} productos`}
+          {productos.length < total ? `, se ven ${productos.length}` : ""}
+        </p>
+        {/* `.diseno/etiquetas/Etiquetas-1-Entrada`: al lado del conteo, porque se eligen desde aquí
+            con la misma búsqueda (`D-012`). */}
+        <Link
+          href="/catalogo/etiquetas"
+          className="flex min-h-12 shrink-0 items-center gap-1.5 font-semibold text-accent"
+          data-testid="ir-a-etiquetas"
+        >
+          <Icono nombre="imprimir" />
+          Imprimir etiquetas
+        </Link>
+      </div>
 
       {productos.length === 0 ? (
         <EstadoVacio acotado={acotado} />

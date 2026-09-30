@@ -43,6 +43,13 @@
       "when": 1790563212684,
       "tag": "0005_limite_de_intentos",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790736079066,
+      "tag": "0006_etiquetado",
+      "breakpoints": true
     }
   ]
 }
