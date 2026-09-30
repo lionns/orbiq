@@ -86,7 +86,9 @@ implements: [FR-019, AC-032, AC-033, AC-034, AC-035]
   `db:verify` ok · `test:e2e` **138/138** en 3 de 3 corridas completas · `alta-dueno` probado a
   mano contra la base local: alta con rol `owner` y cambio de contraseña.
 - Decisions recorded: `D-013`.
-- Follow-up: aplicar `0007` y desplegar Tienda Miriam cuando el estudio lo pida.
+- Deploy: con `T-038`, versión `9919b318` (ver su Outcome). Tienda Miriam tiene dos dueños —el
+  estudio y el cliente—, así que el empleado verá «avísale al dueño».
+- Follow-up: entrar como empleado en un celular y darlo de baja (§ Verification, a mano).
 
 ## Review
 

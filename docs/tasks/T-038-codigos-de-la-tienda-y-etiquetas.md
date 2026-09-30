@@ -82,8 +82,11 @@ implements: [FR-018, AC-029, AC-030, AC-031]
   `db:verify` ok · `test:e2e` **133/133** en 5 de 7 corridas completas; en las otras dos cayeron
   intermitentes (ver Review). Hoja impresa a PDF: tamaño carta, 30 → 1 página, 32 → 2.
 - Decisions recorded: `D-012`.
-- Follow-up: aplicar `0006` y desplegar Tienda Miriam cuando el estudio lo pida; pegar una etiqueta
-  impresa y escanearla con el celular (§ Verification, a mano).
+- Deploy: 2026-09-29, pedido por el estudio. `0006` y `0007` aplicadas a Tienda Miriam tras un
+  respaldo de todas sus tablas (5 productos, 2 ventas, 10 movimientos: iguales antes y después);
+  Worker en la versión `9919b318`. Humo: acceso 200 con «Lumy Bella», pantallas protegidas → acceso,
+  ingreso falso 401.
+- Follow-up: pegar una etiqueta impresa y escanearla con el celular (§ Verification, a mano).
 
 ## Review
 
