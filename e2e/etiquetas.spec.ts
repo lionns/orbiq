@@ -1,7 +1,7 @@
 // Primero que nada: los módulos se evalúan en el orden en que se importan, y `../src/db` exige
 // DATABASE_URL al cargarse.
 import "dotenv/config";
-import { expect, test } from "@playwright/test";
+import { devices, expect, test } from "@playwright/test";
 import { eq, like, sql } from "drizzle-orm";
 import { db, schema } from "../src/db";
 import { codigoDeLaTienda, digitoDeControl, esDeLaTienda } from "../src/domain/ean13";
@@ -188,4 +188,54 @@ test("las etiquetas se eligen buscando: lo marcado sobrevive a otra búsqueda y 
   await expect(primera).toContainText("Queso campesino");
   await expect(primera.locator("svg")).toHaveAttribute("data-codigo", codigoQueso!.code);
   await expect(page.getByTestId("etiqueta").last()).toContainText("Pan francés");
+});
+
+test("en el celular «Imprimir» entrega el PDF de la hoja; en computador abre el diálogo de imprimir", async ({
+  page,
+  browser,
+}) => {
+  const queso = await sembrar("Queso costeño", 4, codigoDeLaTienda());
+  await entrarComo(page, dueno);
+  const hoja = `/catalogo/etiquetas/hoja?e=${queso.id}:32`;
+
+  // Celular (el proyecto emula un Pixel 7): el PDF se prepara y «Imprimir» lo entrega. Sin menú
+  // de compartir en el navegador de prueba, cae a la descarga, que es el mismo archivo.
+  await page.goto(hoja);
+  await expect(page.getByTestId("imprimir")).toHaveText(/Imprimir/);
+  const [descarga] = await Promise.all([page.waitForEvent("download"), page.getByTestId("imprimir").click()]);
+  expect(descarga.suggestedFilename()).toBe("etiquetas.pdf");
+  const bytes = await (await descarga.createReadStream()).toArray();
+  const pdf = Buffer.concat(bytes).toString("latin1");
+  expect(pdf.startsWith("%PDF")).toBe(true);
+  expect(pdf).toContain("/Count 2");
+  expect(pdf).toContain(`Queso coste\xf1o ${MARCA}`.slice(0, 12));
+
+  // «Descargar PDF» está siempre, también sin JavaScript.
+  await expect(page.getByTestId("descargar-pdf")).toHaveAttribute("download", "etiquetas.pdf");
+
+  // Computador: el diálogo del navegador, que ya deja guardar como PDF.
+  // Con el perfil de escritorio explícito: un contexto nuevo hereda el Pixel 7 del proyecto.
+  const pc = await browser.newContext({ ...devices["Desktop Chrome"], baseURL: "http://localhost:3000" });
+  const enPc = await pc.newPage();
+  await entrarComo(enPc, dueno);
+  await enPc.goto(hoja);
+  await enPc.evaluate(() => {
+    (window as unknown as { impreso: boolean }).impreso = false;
+    window.print = () => {
+      (window as unknown as { impreso: boolean }).impreso = true;
+    };
+  });
+  // Hasta que React engancha el botón, tocarlo no hace nada: se reintenta el toque, no la espera.
+  await expect(async () => {
+    await enPc.getByTestId("imprimir").click();
+    expect(await enPc.evaluate(() => (window as unknown as { impreso: boolean }).impreso)).toBe(true);
+  }).toPass({ timeout: 10_000 });
+  await pc.close();
+
+  // Sin sesión, el PDF no sale: la ruta no la cubre el marco protegido y la pide ella misma.
+  const anonimo = await browser.newContext({ baseURL: "http://localhost:3000" });
+  const r = await anonimo.request.get(`/catalogo/etiquetas/hoja/pdf?e=${queso.id}:1`, { maxRedirects: 0 });
+  expect(r.status()).toBe(303);
+  expect(r.headers()["location"]).toContain("/acceso");
+  await anonimo.close();
 });

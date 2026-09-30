@@ -28,6 +28,8 @@ export default async function Hoja({
   const hojas = enHojas(productos, pedido);
   if (hojas.length === 0) redirect("/catalogo/etiquetas");
   const total = hojas.reduce((s, h) => s + h.length, 0);
+  // El mismo pedido, en PDF: lo que se imprime o se guarda desde el celular.
+  const pdf = `/catalogo/etiquetas/hoja/pdf?e=${pedido.map((x) => `${x.id}:${x.copias}`).join(",")}`;
 
   return (
     <main className="px-4 pt-1 pb-8 print:p-0">
@@ -47,9 +49,19 @@ export default async function Hoja({
         <p className="mt-1 text-text-muted tabular-nums" data-testid="resumen-hoja">
           {total === 1 ? "1 etiqueta" : `${total} etiquetas`} en{" "}
           {hojas.length === 1 ? "1 hoja carta" : `${hojas.length} hojas carta`}. Pon la hoja de
-          etiquetas en la impresora y elige tamaño carta, sin márgenes y al 100 %.
+          etiquetas en la impresora y elige tamaño carta, sin márgenes y al 100 %. En el celular,
+          «Imprimir» abre el menú para imprimir o guardar el PDF.
         </p>
-        <BotonImprimir className="mt-4 mb-6 w-full text-lg" />
+        <BotonImprimir pdf={pdf} className="mt-4 w-full text-lg" />
+        <a
+          href={pdf}
+          download="etiquetas.pdf"
+          className="mt-2 mb-6 flex min-h-12 items-center justify-center gap-2 font-semibold text-accent"
+          data-testid="descargar-pdf"
+        >
+          <Icono nombre="bajar" />
+          Descargar PDF
+        </a>
       </div>
 
       {/* En pantalla la hoja se ve reducida para caber en un celular; al imprimir sale a su tamaño. */}

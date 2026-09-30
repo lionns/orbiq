@@ -78,7 +78,8 @@ implements: [FR-018, AC-029, AC-030, AC-031]
   `e2e/apoyo/ean13*.ts`, `scripts/hoja-de-codigos.mts`, `docs/project/*`, `D-012`, `.diseno/etiquetas/`
 - Baseline result: `npm test` 103/103 · `harness-lint`, `typecheck`, `lint` limpios · `test:e2e`
   130/130 (2 locales saltadas), contra Postgres 17 en Docker.
-- Final result: `npm test` **122/122** · `harness-lint`, `typecheck`, `lint` limpios · `build` ok ·
+- Final result (tras el arreglo del PDF): `npm test` 137/137, `test:e2e` 139/139 ×2. Antes:
+  `npm test` **122/122** · `harness-lint`, `typecheck`, `lint` limpios · `build` ok ·
   `db:verify` ok · `test:e2e` **133/133** en 5 de 7 corridas completas; en las otras dos cayeron
   intermitentes (ver Review). Hoja impresa a PDF: tamaño carta, 30 → 1 página, 32 → 2.
 - Decisions recorded: `D-012`.
@@ -89,6 +90,15 @@ implements: [FR-018, AC-029, AC-030, AC-031]
 - Follow-up: pegar una etiqueta impresa y escanearla con el celular (§ Verification, a mano).
 
 ## Review
+
+- Alta · `etiquetas/hoja/imprimir.tsx` · reportado por el estudio en producción el 2026-09-29:
+  «Imprimir» no hacía nada en el celular. La app abierta desde su ícono no tiene menú del
+  navegador, y en iPhone `window.print()` no hace nada; ninguna prueba lo veía, porque en el
+  navegador de prueba imprimir no abre nada. Arreglado: la hoja sale también en PDF
+  (`domain/hoja-pdf.ts`, escrito a mano, sin dependencias); en el celular «Imprimir» abre el menú
+  de compartir con el PDF —imprimir o guardar— y en computador el diálogo del navegador; «Descargar
+  PDF» siempre. Renderizado con Quick Look y leído con el decodificador real: los códigos del PDF se
+  leen. `etiquetas.spec` toca «Imprimir» como celular y como computador.
 
 - Media · `e2e/navegacion.spec.ts:28` · Inicio enseña los tres primeros por reponer por nombre, y
   «Jabón» caía de la lista cuando otra prueba dejaba en cero un producto que ordena antes; la nueva
