@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NEGOCIO } from "@/domain/negocio";
+import { puede } from "@/domain/permisos";
 import { resumenDelDia, type VentaDelDia } from "@/domain/venta";
 import { conDesde } from "@/domain/volver";
 import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
@@ -143,7 +144,9 @@ export default async function Inicio() {
               peligro
               soloCelular
             />
-            <Atajo href="/catalogo/nuevo" icono="alta" titulo="Nuevo producto" sub="Dar de alta lo que llegó" />
+            {puede(sesion?.rol, "editarProducto") ? (
+              <Atajo href="/catalogo/nuevo" icono="alta" titulo="Nuevo producto" sub="Dar de alta lo que llegó" />
+            ) : null}
           </ul>
         </nav>
       </div>

@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { puede } from "@/domain/permisos";
+import { sesionDeLaPeticion } from "../../sesion";
 import { AnadirCodigoDesdeProductos } from "./anadir";
 
 /**
@@ -10,6 +12,8 @@ export default async function PaginaAnadirCodigo({
 }: {
   searchParams: Promise<{ codigo?: string }>;
 }) {
+  // Añadir un código es editar el producto: es del dueño (`D-013`). La acción lo rechaza igual.
+  if (!puede((await sesionDeLaPeticion())?.rol, "editarProducto")) redirect("/catalogo");
   const { codigo } = await searchParams;
   if (!codigo?.trim()) redirect("/catalogo");
   return (

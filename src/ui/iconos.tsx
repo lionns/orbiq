@@ -38,6 +38,9 @@ import {
   Tag,
   Trash2,
   Undo2,
+  UserCheck,
+  Users,
+  UserX,
   X,
 } from "lucide-react";
 
@@ -97,6 +100,9 @@ export const ICONOS = {
   enlazar: Link2,
   imprimir: Printer,
   etiquetado: ArrowRightLeft,
+  personas: Users,
+  darDeBaja: UserX,
+  reactivar: UserCheck,
 } as const;
 
 export type NombreDeIcono = keyof typeof ICONOS;

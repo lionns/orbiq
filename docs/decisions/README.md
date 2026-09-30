@@ -19,3 +19,4 @@ rather than editing. Template in `../sdd/TEMPLATES.md`.
 | [D-010](D-010-data-existencias-por-codigo.md) | 2026-09-27 | Un producto con varios códigos, y las existencias separadas por código | `accepted` | none |
 | [D-011](D-011-data-postgres-en-neon.md) | 2026-09-27 | PostgreSQL en Neon, una base por negocio | `accepted` | none |
 | [D-012](D-012-data-codigos-propios-de-la-tienda.md) | 2026-09-29 | Códigos propios de la tienda, en el rango interno de EAN-13 | `accepted` | none |
+| [D-013](D-013-identity-personas-del-negocio.md) | 2026-09-29 | Personas del negocio: dos roles y los permisos como datos | `accepted` | none |

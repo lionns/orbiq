@@ -1,5 +1,7 @@
 import { categoriasExistentes } from "@/domain/catalogo";
 import { comoDireccion, leerFiltros, type ParametrosCrudos } from "@/domain/filtros";
+import { puede } from "@/domain/permisos";
+import { sesionDeLaPeticion } from "../sesion";
 import { FichaDelProducto } from "./[id]/ficha";
 import { PantallaDeProductos, enPanel } from "./lista";
 import { FormularioProducto } from "./nuevo/formulario";
@@ -23,7 +25,7 @@ export default async function Catalogo({
   const filtros = leerFiltros(crudos);
   const lista = comoDireccion(filtros);
   const ficha = typeof crudos.ficha === "string" && UUID.test(crudos.ficha) ? crudos.ficha : null;
-  const alta = !ficha && crudos.nuevo === "1";
+  const alta = !ficha && crudos.nuevo === "1" && puede((await sesionDeLaPeticion())?.rol, "editarProducto");
   const aqui = ficha ? enPanel(filtros, "ficha", ficha) : alta ? enPanel(filtros, "nuevo", "1") : lista;
 
   return (

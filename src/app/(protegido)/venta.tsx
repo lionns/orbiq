@@ -57,7 +57,15 @@ const VIDA_DEL_AVISO = 10_000;
  * se llena escaneando o buscando. No sugiere productos —el cliente no quería la cuadrícula de «Más
  * vendidos»—, así que lo que no trae código se busca por nombre en el mismo campo.
  */
-export function PantallaDeVenta() {
+/**
+ * Lo que la persona que vende puede hacer además de vender (`D-013`). Lo decide el servidor con
+ * `puede`; aquí solo se deja de ofrecer. La acción lo rechaza igual si se la llama.
+ */
+export type PermisosDeVenta = { anular: boolean; darDeAlta: boolean; dueno: string };
+
+const DEL_DUENO: PermisosDeVenta = { anular: true, darDeAlta: true, dueno: "" };
+
+export function PantallaDeVenta({ permisos = DEL_DUENO }: { permisos?: PermisosDeVenta }) {
   const [carrito, setCarrito] = useState<Carrito>(() => carritoVacio(nuevoId()));
   const [cargada, setCargada] = useState(false);
   const [estado, setEstado] = useState<Estado>("armando");
@@ -287,6 +295,7 @@ export function PantallaDeVenta() {
         camara={camara}
         onConfirmar={confirmar}
         onEscanear={() => setCamara((estaba) => !estaba)}
+        puedeDeshacerCobro={permisos.anular}
         onDeshacer={() => {
           if (reciente.tipo === "cobrada") void deshacerCobro(reciente);
           if (reciente.tipo === "vaciada") {
@@ -299,6 +308,7 @@ export function PantallaDeVenta() {
       {hallazgo.tipo === "desconocido" ? (
         <CodigoDesconocido
           codigo={hallazgo.codigo}
+          permisos={permisos}
           onListo={({ producto, codigo }, aviso) => alCarrito(producto, codigo, aviso)}
           onDescartar={() => setHallazgo({ tipo: "nada" })}
         />
@@ -441,6 +451,7 @@ function BarraDeCobro({
   onConfirmar,
   onEscanear,
   onDeshacer,
+  puedeDeshacerCobro,
 }: {
   carrito: Carrito;
   estado: Estado;
@@ -449,6 +460,7 @@ function BarraDeCobro({
   onConfirmar: () => void;
   onEscanear: () => void;
   onDeshacer: () => void;
+  puedeDeshacerCobro: boolean;
 }) {
   const vacio = estaVacio(carrito);
   const enviando = estado === "enviando";
@@ -457,7 +469,7 @@ function BarraDeCobro({
       aria-label="Cobrar"
       className="fixed inset-x-0 bottom-19 z-30 flex max-h-[var(--alto-barra-venta)] flex-col gap-2 overflow-y-auto border-t border-border bg-surface px-4 pt-3 pb-3 shadow-[0_-12px_32px_rgba(15,20,25,0.10)] lg:sticky lg:bottom-0 lg:mt-6 lg:max-h-none lg:rounded-card lg:border lg:p-5"
     >
-      <AvisoReciente reciente={reciente} onDeshacer={onDeshacer} />
+      <AvisoReciente reciente={reciente} onDeshacer={onDeshacer} puedeDeshacerCobro={puedeDeshacerCobro} />
 
       {estado === "falloDeRed" ? (
         // AC-015: decirlo sin rodeos. «Algo salió mal» deja al dueño sin saber si cobrar otra vez.
@@ -529,7 +541,16 @@ function BarraDeCobro({
 }
 
 /** El aviso con «Deshacer» de lo que acaba de pasar. `role="status"`: se oye sin interrumpir. */
-function AvisoReciente({ reciente, onDeshacer }: { reciente: Reciente; onDeshacer: () => void }) {
+function AvisoReciente({
+  reciente,
+  onDeshacer,
+  puedeDeshacerCobro,
+}: {
+  reciente: Reciente;
+  onDeshacer: () => void;
+  /** Deshacer un cobro es anularlo: un empleado no lo tiene (`D-013`). Vaciar sí se deshace. */
+  puedeDeshacerCobro: boolean;
+}) {
   if (reciente.tipo === "nada") return null;
 
   if (reciente.tipo === "deshecha") {
@@ -571,15 +592,17 @@ function AvisoReciente({ reciente, onDeshacer }: { reciente: Reciente; onDeshace
           ? `Cobrado ${formatearPrecio(reciente.total)}`
           : `Venta vaciada, ${unidades(reciente.carrito)} artículos`}
       </span>
-      <button
-        type="button"
-        onClick={onDeshacer}
-        className="flex min-h-12 shrink-0 items-center gap-1.5 rounded-xl bg-surface/15 px-3.5 font-bold"
-        data-testid="deshacer"
-      >
-        <Icono nombre="deshacer" className="size-4" />
-        Deshacer
-      </button>
+      {cobrada && !puedeDeshacerCobro ? null : (
+        <button
+          type="button"
+          onClick={onDeshacer}
+          className="flex min-h-12 shrink-0 items-center gap-1.5 rounded-xl bg-surface/15 px-3.5 font-bold"
+          data-testid="deshacer"
+        >
+          <Icono nombre="deshacer" className="size-4" />
+          Deshacer
+        </button>
+      )}
     </div>
   );
 }
@@ -671,10 +694,12 @@ type Paso = "camino" | "existente" | "nuevo";
  */
 function CodigoDesconocido({
   codigo,
+  permisos,
   onListo,
   onDescartar,
 }: {
   codigo: string;
+  permisos: PermisosDeVenta;
   onListo: (r: CodigoAnadido, aviso: Hallazgo) => void;
   onDescartar: () => void;
 }) {
@@ -683,6 +708,10 @@ function CodigoDesconocido({
   // Escape cierra, como cualquier hoja (`e2e/cobalto.spec.ts`).
   function alTeclear(e: React.KeyboardEvent) {
     if (e.key === "Escape") onDescartar();
+  }
+
+  if (!permisos.darDeAlta) {
+    return <CodigoDesconocidoDeEmpleado codigo={codigo} dueno={permisos.dueno} onDescartar={onDescartar} />;
   }
 
   if (paso === "camino") {
@@ -763,6 +792,62 @@ function CodigoDesconocido({
           />
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * El mismo código desconocido, visto por un empleado (`.diseno/personas/Empleado-Desconocido`): no
+ * puede añadirlo ni darlo de alta, así que se cobra buscándolo por nombre y se avisa al dueño.
+ */
+function CodigoDesconocidoDeEmpleado({
+  codigo,
+  dueno,
+  onDescartar,
+}: {
+  codigo: string;
+  dueno: string;
+  onDescartar: () => void;
+}) {
+  function buscar() {
+    onDescartar();
+    // El campo de arriba es el del objetivo de escaneo: se busca ahí por nombre, como siempre.
+    requestAnimationFrame(() =>
+      document.querySelector<HTMLInputElement>('[data-testid="codigo-tecleado"]')?.focus(),
+    );
+  }
+  return (
+    <div className="fixed inset-0 z-40" onKeyDown={(e) => e.key === "Escape" && onDescartar()}>
+      <button type="button" aria-label="Cerrar" onClick={onDescartar} className="absolute inset-0 bg-text/45" />
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-desconocido"
+        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-lg flex-col gap-3 rounded-t-bloque bg-surface px-4 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-12px_32px_rgba(15,20,25,0.14)] lg:bottom-8 lg:rounded-bloque"
+        data-testid="codigo-desconocido"
+      >
+        <span className="h-1 w-10 self-center rounded-full bg-border" />
+        <div className="flex flex-col items-start gap-2 px-1 pt-1">
+          <span className="flex min-h-9 items-center gap-1.5 rounded-full bg-bg px-3 font-semibold tabular-nums">
+            <Icono nombre="escanear" className="size-4 text-text-muted" />
+            {codigo}
+          </span>
+          <h2 id="titulo-desconocido" className="text-2xl font-bold tracking-tight">
+            Este código no está en la tienda
+          </h2>
+          <p className="text-text-muted" data-testid="avisar-al-dueno">
+            Búscalo por nombre para cobrarlo ahora. Después avísale {dueno} para que le añada el
+            código.
+          </p>
+        </div>
+        <Boton type="button" variante="principal" tamano="alto" onClick={buscar}>
+          <Icono nombre="buscar" />
+          Buscarlo por nombre
+        </Boton>
+        <Boton type="button" tamano="alto" onClick={onDescartar} data-testid="alta-rapida-descartar">
+          Seguir sin él
+        </Boton>
+      </section>
     </div>
   );
 }

@@ -7,6 +7,8 @@ const sesion = (expiraEn: Date): Sesion => ({
   nombre: "Dueño",
   correo: "dueno@negocio.test",
   expiraEn,
+  rol: "owner",
+  deBajaDesde: null,
 });
 
 describe("sesionVigente", () => {
@@ -22,6 +24,11 @@ describe("sesionVigente", () => {
   it("no acepta una sesión que vence justo ahora", () => {
     const ahora = new Date("2026-09-06T12:00:00Z");
     expect(sesionVigente(sesion(ahora), ahora)).toBeNull();
+  });
+
+  it("una persona dada de baja no tiene sesión, aunque la suya no haya vencido", () => {
+    const s = { ...sesion(enHoras(24)), rol: "staff" as const, deBajaDesde: new Date() };
+    expect(sesionVigente(s)).toBeNull();
   });
 
   it("sin sesión no inventa una", () => {

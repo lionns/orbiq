@@ -107,6 +107,12 @@
       "title": "Códigos de la tienda y sus etiquetas",
       "description": "El dueño le da un código de barras a un producto que no trae, imprime sus etiquetas en una hoja carta y desde entonces lo vende escaneando. Las unidades que el producto ya tenía pasan a ese código sin cambiar su total.",
       "source": "pedido por el cliente el 2026-09-29; D-012; .diseno/etiquetas/"
+    },
+    {
+      "id": "FR-019",
+      "title": "Personas del negocio",
+      "description": "El dueño da de alta con correo y contraseña a quien atiende la tienda por él, le cambia la contraseña y lo da de baja. Un empleado vende, busca, escanea y ve Inicio y las ventas; no anula ventas, no cambia precios ni edita o da de alta productos, y no corrige el conteo. Cada venta dice quién la cobró.",
+      "source": "pedido por el cliente el 2026-09-29; D-013; .diseno/personas/"
     }
   ],
   "nonFunctional": [

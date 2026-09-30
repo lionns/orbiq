@@ -25,6 +25,7 @@ import {
   type ResultadoVenta,
   type ResultadoAnulacion,
 } from "@/domain/venta";
+import { puede, SIN_PERMISO } from "@/domain/permisos";
 import { sesionActual } from "@/domain/session";
 
 export async function confirmarVenta(
@@ -44,6 +45,9 @@ export async function confirmarVenta(
 export async function deshacerVenta(ventaId: string): Promise<ResultadoAnulacion> {
   const sesion = await sesionActual(await headers());
   if (!sesion) redirect("/acceso");
+
+  // Deshacer un cobro es anularlo: lo mismo que el dueño se reserva en Ventas (`D-013`).
+  if (!puede(sesion.rol, "anular")) return { ok: false, mensaje: SIN_PERMISO };
 
   const resultado = await anularVenta(ventaId, sesion.usuarioId);
   if (!resultado.ok) return resultado;
@@ -83,6 +87,8 @@ export async function altaRapida(
   const sesion = await sesionActual(await headers());
   if (!sesion) redirect("/acceso");
 
+  if (!puede(sesion.rol, "editarProducto")) return { ok: false, campo: "nombre", mensaje: SIN_PERMISO };
+
   const validado = validarAlta({
     nombre,
     precio,
@@ -117,6 +123,8 @@ export async function anadirCodigoAProducto(
 ): Promise<ResultadoCodigo> {
   const sesion = await sesionActual(await headers());
   if (!sesion) redirect("/acceso");
+
+  if (!puede(sesion.rol, "editarProducto")) return { ok: false, campo: "codigo", mensaje: SIN_PERMISO };
 
   const validado = validarCodigoNuevo({ codigo, llegaron });
   if (!validado.ok) {

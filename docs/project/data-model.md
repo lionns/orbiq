@@ -28,7 +28,8 @@ esas viven en `account`, que es lo que hace que sumar Google sea configuración 
 | name | text | yes | |
 | email_verified | boolean | yes | Hoy siempre cierto: el alta la hace el estudio |
 | image | text | no | Lo llena el proveedor externo el día que se active |
-| role | text | yes | Campo propio vía `additionalFields`. Hoy solo `owner`. Un empleado es una fila más |
+| role | text | yes | Campo propio vía `additionalFields`. `owner` o `staff` («Empleado»). Lo que puede cada uno vive en `src/domain/permisos.ts`, no en el esquema (`D-013`) |
+| disabled_at | timestamptz | no | Dado de baja. Nulo: puede entrar. No se borra a nadie: ventas y movimientos lo nombran (`D-013`) |
 | created_at | timestamptz | yes | |
 | updated_at | timestamptz | yes | |
 

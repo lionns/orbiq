@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { categoriasExistentes, listarCatalogo, type ProductoDelCatalogo } from "@/domain/catalogo";
 import { comoDireccion, hayFiltros, siguienteTanda, type FiltrosCatalogo } from "@/domain/filtros";
+import { puede } from "@/domain/permisos";
+import { aQuienAvisar } from "@/domain/personas";
 import { BotonEnlace } from "@/ui/boton";
 import { Existencias, Precio } from "@/ui/cifras";
 import { Icono } from "@/ui/iconos";
+import { sesionDeLaPeticion } from "../sesion";
 import { Filtros } from "./filtros";
 
 /** La lista con un panel abierto al lado (computador): la ficha de un producto o el alta. */
@@ -35,10 +38,14 @@ export async function PantallaDeProductos({
   seleccionado?: string;
   volverA?: string;
 }) {
-  const [{ productos, total, hayMas }, categorias] = await Promise.all([
+  const [{ productos, total, hayMas }, categorias, sesion] = await Promise.all([
     listarCatalogo(filtros),
     categoriasExistentes(),
+    sesionDeLaPeticion(),
   ]);
+  // Dar de alta es del dueño (`D-013`); a un empleado, un código desconocido le dice a quién avisar.
+  const darDeAlta = puede(sesion?.rol, "editarProducto");
+  const dueno = darDeAlta ? "" : await aQuienAvisar();
   const acotado = hayFiltros(filtros);
   const q = consulta(filtros);
 
@@ -50,17 +57,32 @@ export async function PantallaDeProductos({
             (`.diseno/cobalto`, punto 10). */}
         {/* Dos enlaces y no uno: en el celular el alta es su propia pantalla; en computador se abre
             al lado de la lista, sin cargar otra. Solo se ve uno a la vez. */}
-        <BotonEnlace href={`/catalogo/nuevo${q}`} variante="principal" className="px-4 lg:hidden">
-          <Icono nombre="nuevo" />
-          Nuevo
-        </BotonEnlace>
-        <BotonEnlace href={enPanel(filtros, "nuevo", "1")} variante="principal" className="px-4 max-lg:hidden">
-          <Icono nombre="nuevo" />
-          Nuevo producto
-        </BotonEnlace>
+        {darDeAlta ? (
+          <>
+            <BotonEnlace href={`/catalogo/nuevo${q}`} variante="principal" className="px-4 lg:hidden">
+              <Icono nombre="nuevo" />
+              Nuevo
+            </BotonEnlace>
+            <BotonEnlace
+              href={enPanel(filtros, "nuevo", "1")}
+              variante="principal"
+              className="px-4 max-lg:hidden"
+            >
+              <Icono nombre="nuevo" />
+              Nuevo producto
+            </BotonEnlace>
+          </>
+        ) : null}
       </div>
 
-      <Filtros filtros={filtros} categorias={categorias} volverA={volverA} total={total} />
+      <Filtros
+        filtros={filtros}
+        categorias={categorias}
+        volverA={volverA}
+        total={total}
+        darDeAlta={darDeAlta}
+        dueno={dueno}
+      />
 
       <div className="mt-3 mb-1 flex min-h-12 items-center justify-between gap-3">
         <p className="font-medium text-text-muted" data-testid="conteo">

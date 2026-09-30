@@ -11,16 +11,20 @@ import { auth } from "../src/lib/auth";
  */
 export type DuenoDePrueba = { id: string; correo: string; nombre: string; clave: string };
 
-export async function crearDueno(etiqueta: string): Promise<DuenoDePrueba> {
+export async function crearDueno(
+  etiqueta: string,
+  // Un empleado nace igual, con otro rol (`D-013`). Mismo tipo: entra y se borra igual.
+  rol: "owner" | "staff" = "owner",
+): Promise<DuenoDePrueba> {
   // La hora sola no basta: con la suite en paralelo dos trabajadores caían en el mismo milisegundo
   // y chocaban contra el correo único (`andamiaje`, `navegacion` repetidas).
   const correo = `prueba-${etiqueta}-${Date.now()}-${Math.floor(Math.random() * 1e9)}@orbiq.test`;
-  const nombre = "Dueña de prueba";
+  const nombre = rol === "owner" ? "Dueña de prueba" : `Empleado ${Math.floor(Math.random() * 1e6)}`;
   const clave = "clave-de-prueba-2026";
 
   const ctx = await auth.$context;
   const usuario = await ctx.internalAdapter.createUser(
-    { email: correo, name: nombre, emailVerified: true },
+    { email: correo, name: nombre, emailVerified: true, role: rol },
     { method: "email-password" },
   );
   await ctx.internalAdapter.linkAccount({

@@ -47,6 +47,8 @@ Los del MVP. Cada capacidad nueva puede traer los suyos.
   alta productos, desde el dispositivo que tenga a mano. Con frecuencia será de pie y con una mano
   mientras atiende, que es la situación más exigente y por eso la que manda en el diseño. La
   aplicación compite contra no usarla.
+- **Secondary — El empleado:** atiende por el dueño. Vende, busca y ve las ventas; no anula, no
+  edita productos ni corrige el conteo. Lo da de alta y de baja el dueño (`D-013`).
 - **Secondary — El operador del estudio (cosmiq):** da de alta el negocio y entra a la misma
   aplicación para revisar y acompañar. No tiene una interfaz propia.
 
@@ -66,7 +68,8 @@ Los del MVP. Cada capacidad nueva puede traer los suyos.
 - Anulación de una venta registrada por error.
 - Ajuste manual de existencias con motivo obligatorio.
 - Historial de movimientos por producto.
-- Una sesión de dueño protegida por contraseña.
+- Una sesión de dueño protegida por contraseña, y empleados que el dueño da de alta y de baja: venden
+  y consultan, pero no anulan, no editan productos ni corrigen el conteo (`D-013`).
 - Interfaz web responsive: una sola aplicación operable en computador, tablet y celular.
 
 ### Out of Scope
@@ -77,8 +80,6 @@ cada línea nombra lo que la traería de vuelta.
 - **Multi-tenancy** — un despliegue por negocio hasta el quinto cliente (`D-005`).
 - **Variantes, ubicaciones, bodegas y jerarquía de categorías** — entran cuando un negocio real
   venda algo que las necesite. Cada cosa escaneable es hoy un producto.
-- **Usuarios múltiples, roles y permisos** — la tabla de usuarios existe desde el día uno, así que
-  entra como filas y un rol nuevo (`D-008`).
 - **API pública y SDK** — entran como envoltorio de las funciones de dominio cuando exista un
   segundo consumidor (`D-001`).
 - **CMS, sitio público y canales de venta** — es la dirección declarada del producto, y no compite
@@ -117,7 +118,7 @@ Las del MVP y su primer cliente.
   inicial es una tarde o una semana, y si hace falta una carga masiva que hoy está fuera de alcance.
 - ¿Android o iPhone? Con Android hay escaneo nativo del navegador y la aplicación puede instalarse
   de verdad. Hasta saberlo se construye para ambos (`D-007`).
-- ¿Alguien más atiende el negocio? Un familiar o un empleado rompe el supuesto de sesión única
-  (`D-008`).
+- ~~¿Alguien más atiende el negocio?~~ **Sí, cerrada el 2026-09-29:** empleados con rol propio
+  (`D-013`).
 - ¿El dueño quiere saber cuánto vendió, o solo qué le queda? Decide si existe una pantalla de
   reportes, que hoy no está en alcance.

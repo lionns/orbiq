@@ -2,7 +2,8 @@ import "dotenv/config";
 import { stdin, stdout } from "node:process";
 import { eq } from "drizzle-orm";
 import { db, pool, schema } from "../src/db";
-import { auth } from "../src/lib/auth";
+import { validarContrasena, validarPersona } from "../src/domain/persona";
+import { cambiarContrasena, darDeAltaPersona } from "../src/domain/personas";
 
 /**
  * US-011. El alta de un dueño la hace el estudio, no un registro público (`D-008`), así que la hace
@@ -83,43 +84,26 @@ async function principal() {
   const contrasena = await pedirContrasenaOculta("Contraseña: ");
   const repetida = await pedirContrasenaOculta("Repítela: ");
   if (contrasena !== repetida) throw new Error("Las dos contraseñas no coinciden.");
-  if (contrasena.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
+  const mala = validarContrasena(contrasena);
+  if (mala) throw new Error(`La contraseña: ${mala}`);
 
-  const ctx = await auth.$context;
-  const hash = await ctx.password.hash(contrasena);
   const existente = await db.select().from(schema.user).where(eq(schema.user.email, correo));
   const yaEstaba = existente[0];
 
   if (yaEstaba) {
-    await ctx.internalAdapter.updatePassword(yaEstaba.id, hash);
     // Cambiar la clave cierra lo que estuviera abierto: si se restablece es porque algo pasó.
-    const cerradas = await db
-      .delete(schema.session)
-      .where(eq(schema.session.userId, yaEstaba.id))
-      .returning({ id: schema.session.id });
-    console.log(`Contraseña cambiada para ${correo}. Sesiones cerradas: ${cerradas.length}.`);
+    const cerradas = await cambiarContrasena(yaEstaba.id, contrasena);
+    console.log(`Contraseña cambiada para ${correo}. Sesiones cerradas: ${cerradas}.`);
     return;
   }
 
   if (!nombre) throw new Error('Falta --nombre="Nombre del dueño" para dar de alta a alguien nuevo');
 
-  const usuario = await ctx.internalAdapter.createUser(
-    {
-      email: correo,
-      name: nombre,
-      // El alta la hace el estudio, así que el correo se da por verificado (`data-model.md` § user).
-      emailVerified: true,
-    },
-    // De dónde sale el alta. Hoy siempre del estudio, con correo y contraseña.
-    { method: "email-password" },
-  );
-  // El hash va en `account`, nunca en `user`: es lo que hace que sumar Google sea una fila (D-008).
-  await ctx.internalAdapter.linkAccount({
-    userId: usuario.id,
-    providerId: "credential",
-    accountId: usuario.id,
-    password: hash,
-  });
+  // El mismo alta que hace el dueño con sus empleados desde Personas (`D-013`), con rol de dueño.
+  const alta = validarPersona({ nombre, correo, contrasena });
+  if (!alta.ok) throw new Error(Object.values(alta.errores).join(" "));
+  const r = await darDeAltaPersona(alta.valor, "owner");
+  if (!r.ok) throw new Error(r.mensaje);
   console.log(`Dueño dado de alta: ${correo}`);
 }
 

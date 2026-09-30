@@ -50,6 +50,13 @@
       "when": 1790736079066,
       "tag": "0006_etiquetado",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790737799347,
+      "tag": "0007_personas",
+      "breakpoints": true
     }
   ]
 }

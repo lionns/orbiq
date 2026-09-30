@@ -36,9 +36,16 @@ function Insignia({ cantidad, className = "" }: { cantidad: number; className?: 
   );
 }
 
-/** Las etiquetas y «Código listo» llevan su propia acción abajo, como el alta (`.diseno/etiquetas`). */
+/**
+ * Las pantallas que llevan su propia acción abajo, como el alta: etiquetas y «Código listo»
+ * (`.diseno/etiquetas`), y Personas (`.diseno/personas`).
+ */
 function conBarraPropia(ruta: string): boolean {
-  return ruta.startsWith("/catalogo/etiquetas") || ruta.endsWith("/codigo-listo");
+  return (
+    ruta.startsWith("/catalogo/etiquetas") ||
+    ruta.endsWith("/codigo-listo") ||
+    ruta.startsWith("/ajustes/personas")
+  );
 }
 
 /**

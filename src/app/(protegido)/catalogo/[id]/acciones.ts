@@ -12,7 +12,18 @@ import {
 } from "@/domain/catalogo";
 import { ajustarExistencias } from "@/domain/movimientos";
 import { validarCodigoNuevo, validarEdicion } from "@/domain/producto";
-import { sesionActual } from "@/domain/session";
+import { puede, SIN_PERMISO, type Accion } from "@/domain/permisos";
+import { sesionActual, type Sesion } from "@/domain/session";
+
+/**
+ * La sesión, si puede hacer esto; si no, `null` y la acción no toca nada. Cada acción es una entrada
+ * propia: se alcanza sin pasar por la pantalla, que además no la ofrece (`AC-001`, `D-013`).
+ */
+async function quienPuede(accion: Accion): Promise<Sesion | null> {
+  const sesion = await sesionActual(await headers());
+  if (!sesion) redirect("/acceso");
+  return puede(sesion.rol, accion) ? sesion : null;
+}
 
 export type EstadoAjuste = { error: string | null; hecho: string | null };
 
@@ -21,8 +32,8 @@ export async function ajustar(
   _estado: EstadoAjuste,
   datos: FormData,
 ): Promise<EstadoAjuste> {
-  const sesion = await sesionActual(await headers());
-  if (!sesion) redirect("/acceso");
+  const sesion = await quienPuede("ajustarConteo");
+  if (!sesion) return { error: SIN_PERMISO, hecho: null };
 
   const crudo = String(datos.get("conteo") ?? "").trim();
   const conteo = Number(crudo.replace(/\s/g, ""));
@@ -58,8 +69,8 @@ export async function editar(
   _estado: EstadoEdicion,
   datos: FormData,
 ): Promise<EstadoEdicion> {
-  const sesion = await sesionActual(await headers());
-  if (!sesion) redirect("/acceso");
+  const sesion = await quienPuede("editarProducto");
+  if (!sesion) return { errores: { nombre: SIN_PERMISO }, hecho: false };
 
   const validado = validarEdicion({
     nombre: String(datos.get("nombre") ?? ""),
@@ -101,8 +112,8 @@ export async function anadirOtroCodigo(
   _estado: EstadoCodigo,
   datos: FormData,
 ): Promise<EstadoCodigo> {
-  const sesion = await sesionActual(await headers());
-  if (!sesion) redirect("/acceso");
+  const sesion = await quienPuede("editarProducto");
+  if (!sesion) return { errores: { codigo: SIN_PERMISO }, hecho: null };
 
   const validado = validarCodigoNuevo({
     codigo: String(datos.get("codigo") ?? ""),
@@ -129,8 +140,8 @@ export async function anadirOtroCodigo(
  * ofrece imprimir sus etiquetas.
  */
 export async function generarCodigo(productoId: string): Promise<void> {
-  const sesion = await sesionActual(await headers());
-  if (!sesion) redirect("/acceso");
+  const sesion = await quienPuede("editarProducto");
+  if (!sesion) redirect(`/catalogo/${productoId}`);
   const r = await generarCodigoDeLaTienda(productoId, sesion.usuarioId);
   revalidar(productoId);
   // Si falló —ya tenía código, casi siempre porque se tocó dos veces— la ficha ya lo enseña.
@@ -138,8 +149,8 @@ export async function generarCodigo(productoId: string): Promise<void> {
 }
 
 export async function cambiarEstado(productoId: string, activo: boolean): Promise<void> {
-  const sesion = await sesionActual(await headers());
-  if (!sesion) redirect("/acceso");
+  const sesion = await quienPuede("editarProducto");
+  if (!sesion) redirect(`/catalogo/${productoId}`);
   await cambiarActivacion(productoId, activo, sesion.usuarioId);
   revalidar(productoId);
 }

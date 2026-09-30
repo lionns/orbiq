@@ -139,6 +139,12 @@ for (const tema of ["claro", "oscuro"] as const) {
     await page.goto(`/catalogo/etiquetas/cuantas?m=${etiquetable}`);
     const enCuantas = await revisar(page);
 
+    await page.goto("/ajustes/personas");
+    const enPersonas = await revisar(page);
+
+    await page.goto("/ajustes/personas/nueva");
+    const enAltaDePersona = await revisar(page);
+
     const todo = [
       ...enAcceso.map((h) => ({ ...h, donde: "acceso" })),
       ...enVenta.map((h) => ({ ...h, donde: "venta" })),
@@ -146,6 +152,8 @@ for (const tema of ["claro", "oscuro"] as const) {
       ...enAlta.map((h) => ({ ...h, donde: "alta" })),
       ...enEtiquetas.map((h) => ({ ...h, donde: "etiquetas" })),
       ...enCuantas.map((h) => ({ ...h, donde: "cuántas etiquetas" })),
+      ...enPersonas.map((h) => ({ ...h, donde: "personas" })),
+      ...enAltaDePersona.map((h) => ({ ...h, donde: "añadir persona" })),
     ];
     expect(todo, JSON.stringify(todo, null, 1)).toEqual([]);
   });

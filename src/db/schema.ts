@@ -23,7 +23,10 @@ export const user = pgTable("user", {
   name: text("name").notNull(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  /** `owner` o `staff` («Empleado»). Lo que puede cada uno vive en `domain/permisos.ts` (`D-013`). */
   role: text("role").notNull().default("owner"),
+  /** Dado de baja: ya no entra. Nadie se borra, porque sus ventas y movimientos lo nombran (`D-013`). */
+  disabledAt: timestamp("disabled_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

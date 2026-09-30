@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { puede } from "@/domain/permisos";
+import { aQuienAvisar } from "@/domain/personas";
 import { detalleDeVenta } from "@/domain/venta";
 import { volverA } from "@/domain/volver";
 import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
@@ -7,6 +9,7 @@ import { Aviso } from "@/ui/aviso";
 import { Precio } from "@/ui/cifras";
 import { Icono } from "@/ui/iconos";
 import { SeccionPlegable } from "@/ui/seccion-plegable";
+import { sesionDeLaPeticion } from "../../sesion";
 import { BotonAnular } from "./anulacion";
 
 export const dynamic = "force-dynamic";
@@ -27,8 +30,11 @@ export default async function Venta({
   searchParams: Promise<{ desde?: string | string[] }>;
 }) {
   const [{ id }, { desde }] = await Promise.all([params, searchParams]);
-  const venta = await detalleDeVenta(id);
+  const [venta, sesion] = await Promise.all([detalleDeVenta(id), sesionDeLaPeticion()]);
   if (!venta) notFound();
+  // Anular es del dueño (`D-013`): a un empleado se le dice a quién avisar.
+  const anular = puede(sesion?.rol, "anular");
+  const dueno = anular || venta.anulada ? null : await aQuienAvisar();
   // A donde se estaba: la ficha del producto, Inicio o Ventas con sus fechas (`T-036`).
   const volver = volverA(desde, { href: "/ventas", texto: "Ventas" });
 
@@ -94,7 +100,12 @@ export default async function Venta({
       </ul>
 
       {/* Anular deshace plata: no puede estar a un toque de distancia ni arriba del todo. */}
-      {!venta.anulada ? (
+      {dueno ? (
+        <p className="mt-8 text-text-muted" data-testid="anular-lo-hace-el-dueno">
+          Si se cobró mal, avísale {dueno}: anular lo hace quien administra la tienda.
+        </p>
+      ) : null}
+      {!venta.anulada && anular ? (
         <section className="mt-8">
           <SeccionPlegable
             titulo="Anular esta venta"

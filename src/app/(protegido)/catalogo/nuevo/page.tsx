@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { categoriasExistentes } from "@/domain/catalogo";
 import { comoDireccion, leerFiltros, type ParametrosCrudos } from "@/domain/filtros";
+import { puede } from "@/domain/permisos";
 import { Icono } from "@/ui/iconos";
+import { sesionDeLaPeticion } from "../../sesion";
 import { FormularioProducto } from "./formulario";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +21,8 @@ export default async function NuevoProducto({
 }) {
   // Se llega aquí desde el catálogo tras escanear un código que nadie tiene: el alta empieza con
   // ese código puesto, no en blanco (`AC-007`).
+  // Dar de alta pone un precio: es del dueño (`D-013`). La acción lo rechaza igual.
+  if (!puede((await sesionDeLaPeticion())?.rol, "editarProducto")) redirect("/catalogo");
   const crudos = await searchParams;
   const lista = comoDireccion(leerFiltros(crudos));
   const codigo = typeof crudos.codigo === "string" ? crudos.codigo : "";

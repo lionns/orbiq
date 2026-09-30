@@ -10,12 +10,15 @@ import {
   type EventoDelProducto,
 } from "@/domain/movimientos";
 import { formatearPrecio } from "@/domain/moneda";
+import { puede } from "@/domain/permisos";
+import { aQuienAvisar } from "@/domain/personas";
 import { ZONA_DEL_NEGOCIO } from "@/domain/zona";
 import { Aviso } from "@/ui/aviso";
 import { Boton } from "@/ui/boton";
 import { SeccionPlegable } from "@/ui/seccion-plegable";
 import { Cantidad, Existencias, Precio } from "@/ui/cifras";
 import { Icono, type NombreDeIcono } from "@/ui/iconos";
+import { sesionDeLaPeticion } from "../../sesion";
 import { cambiarEstado, generarCodigo } from "./acciones";
 import { FormularioAjuste } from "./ajuste";
 import { FormularioCodigo } from "./codigo";
@@ -52,7 +55,15 @@ export async function FichaDelProducto({
   aqui: string;
   enPanel?: boolean;
 }) {
-  const [libro, categorias] = await Promise.all([libroDelProducto(id), categoriasExistentes()]);
+  const sesion = await sesionDeLaPeticion();
+  // Lo que se ofrece depende de quién mira (`D-013`). Las acciones lo comprueban otra vez.
+  const editar = puede(sesion?.rol, "editarProducto");
+  const contar = puede(sesion?.rol, "ajustarConteo");
+  const [libro, categorias, dueno] = await Promise.all([
+    libroDelProducto(id),
+    editar ? categoriasExistentes() : [],
+    editar && contar ? null : aQuienAvisar(),
+  ]);
   if (!libro) notFound();
   const p = libro.producto;
   const { codigos, sinCodigo } = libro.porCodigo;
@@ -117,7 +128,7 @@ export async function FichaDelProducto({
         </span>
         {/* `.diseno/etiquetas/Ficha-sin-codigo`: arriba, donde se ve que no tiene código, y no
             escondido en una sección. Solo para lo que no tiene ninguno (`D-012`). */}
-        {codigos.length === 0 && p.activo ? (
+        {codigos.length === 0 && p.activo && editar ? (
           <form
             action={generarCodigo.bind(null, p.id)}
             className="mt-4.5 flex flex-col gap-2.5 border-t border-dashed border-border pt-4"
@@ -154,15 +165,14 @@ export async function FichaDelProducto({
       {/* `.diseno/codigos/Ficha`. Cada código lleva su cuenta y la suma es el total (`D-010`). Sin
           ningún código no hay nada que contar por separado: «Añadir un código» pasa a Acciones. */}
       {codigos.length > 0 ? (
-      <section className="mt-7" aria-labelledby="por-codigo">
-        <h2 id="por-codigo" className="text-xl font-bold tracking-tight">
-          Por código
-        </h2>
-        <p className="mb-3 text-text-muted">
-          Cada código lleva su propia cuenta. Suman {libro.saldoMaterializado}.
-        </p>
-        <div className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
-          {codigos.length > 0 ? (
+        <section className="mt-7" aria-labelledby="por-codigo">
+          <h2 id="por-codigo" className="text-xl font-bold tracking-tight">
+            Por código
+          </h2>
+          <p className="mb-3 text-text-muted">
+            Cada código lleva su propia cuenta. Suman {libro.saldoMaterializado}.
+          </p>
+          <div className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
             <ul className="divide-y divide-border" data-testid="por-codigo">
               {codigos.map((c, i) => (
                 <FilaDeCodigo
@@ -181,28 +191,29 @@ export async function FichaDelProducto({
                 />
               ) : null}
             </ul>
-          ) : null}
-          {deLaTienda ? (
-            <Link
-              href={`/catalogo/etiquetas/cuantas?m=${p.id}`}
-              className="flex min-h-14 items-center gap-3 px-4 font-semibold text-accent"
-              data-testid="imprimir-etiquetas"
-            >
-              <Icono nombre="imprimir" />
-              Imprimir etiquetas
-            </Link>
-          ) : null}
-          <SeccionPlegable
-            titulo="Añadir otro código"
-            descripcion="Cuando el proveedor lo cambia. Di cuántas llegaron."
-            icono="nuevo"
-            enGrupo
-            data-testid="abrir-codigo"
-          >
-            <FormularioCodigo productoId={p.id} />
-          </SeccionPlegable>
-        </div>
-      </section>
+            {deLaTienda ? (
+              <Link
+                href={`/catalogo/etiquetas/cuantas?m=${p.id}`}
+                className="flex min-h-14 items-center gap-3 px-4 font-semibold text-accent"
+                data-testid="imprimir-etiquetas"
+              >
+                <Icono nombre="imprimir" />
+                Imprimir etiquetas
+              </Link>
+            ) : null}
+            {editar ? (
+              <SeccionPlegable
+                titulo="Añadir otro código"
+                descripcion="Cuando el proveedor lo cambia. Di cuántas llegaron."
+                icono="nuevo"
+                enGrupo
+                data-testid="abrir-codigo"
+              >
+                <FormularioCodigo productoId={p.id} />
+              </SeccionPlegable>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
       <section className="mt-7" aria-labelledby="historial">
@@ -226,75 +237,96 @@ export async function FichaDelProducto({
         ) : null}
       </section>
 
-      {/* Las acciones existen, pero detrás de una intención. Se entra a esta pantalla a mirar. */}
-      <section className="mt-7" aria-labelledby="acciones">
-        <h2 id="acciones" className="mb-3 text-xl font-bold tracking-tight">
-          Acciones
-        </h2>
-        <div className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
-          <SeccionPlegable
-            titulo="Corregir el conteo"
-            descripcion="Cuenta y di por qué no cuadra."
-            icono="contar"
-            enGrupo
-            hoja={{
-              cerrar: aqui,
-              subtitulo: `${p.nombre}. El sistema dice ${libro.saldoMaterializado}.`,
-            }}
-            data-testid="abrir-ajuste"
-            abierta={!libro.cuadra}
-          >
-            <FormularioAjuste productoId={p.id} grupos={grupos} />
-          </SeccionPlegable>
-
-          {codigos.length === 0 ? (
-            <SeccionPlegable
-              titulo="Añadir un código"
-              descripcion="El de fábrica, si lo trae. Di cuántas llegaron."
-              icono="nuevo"
-              enGrupo
-              data-testid="abrir-codigo"
-            >
-              <FormularioCodigo productoId={p.id} />
-            </SeccionPlegable>
-          ) : null}
-
-          <SeccionPlegable
-            titulo="Editar los datos"
-            descripcion={codigos.length > 0 ? "Nombre, precio, categoría y códigos." : "Nombre, precio y categoría."}
-            icono="editar"
-            enGrupo
-            data-testid="abrir-edicion"
-          >
-            <FormularioEdicion
-              productoId={p.id}
-              producto={p}
-              codigos={codigos.map((c) => ({ id: c.id, numero: c.numero }))}
-              categorias={categorias}
-            />
-          </SeccionPlegable>
-
-          {/* Separado de editar a propósito: dejar de vender no es corregir un dato, es sacar algo
-              de circulación. Es reversible y queda registrado, así que no pide confirmación. */}
-          <SeccionPlegable
-            titulo={p.activo ? "Dejar de vender" : "Devolver a la venta"}
-            descripcion={
-              p.activo
-                ? "Sale de la venta y del catálogo. El historial se queda."
-                : "Ya no se vende. Volverá a la venta y al catálogo."
-            }
-            icono="retirar"
-            enGrupo
-            data-testid="abrir-estado"
-          >
-            <form action={cambiarEstado.bind(null, p.id, !p.activo)}>
-              <Boton type="submit" data-testid="cambiar-estado" className="w-full">
-                {p.activo ? "Dejar de vender" : "Devolver a la venta"}
-              </Boton>
-            </form>
-          </SeccionPlegable>
+      {/* `.diseno/personas/Empleado-Ficha`: sin acciones, y dice a quién pedir un cambio. */}
+      {dueno ? (
+        <div
+          className="mt-5 flex items-start gap-3 rounded-button border border-border bg-surface px-4 py-3.5"
+          data-testid="pedir-al-dueno"
+        >
+          <Icono nombre="clave" className="mt-0.5 text-text-muted" />
+          <p>
+            Si el precio o el conteo no cuadran, <strong>avísale {dueno}</strong>.
+          </p>
         </div>
-      </section>
+      ) : null}
+
+      {/* Las acciones existen, pero detrás de una intención. Se entra a esta pantalla a mirar. */}
+      {editar || contar ? (
+        <section className="mt-7" aria-labelledby="acciones">
+          <h2 id="acciones" className="mb-3 text-xl font-bold tracking-tight">
+            Acciones
+          </h2>
+          <div className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
+            {contar ? (
+              <SeccionPlegable
+                titulo="Corregir el conteo"
+                descripcion="Cuenta y di por qué no cuadra."
+                icono="contar"
+                enGrupo
+                hoja={{
+                  cerrar: aqui,
+                  subtitulo: `${p.nombre}. El sistema dice ${libro.saldoMaterializado}.`,
+                }}
+                data-testid="abrir-ajuste"
+                abierta={!libro.cuadra}
+              >
+                <FormularioAjuste productoId={p.id} grupos={grupos} />
+              </SeccionPlegable>
+            ) : null}
+
+            {editar ? (
+              <>
+                {codigos.length === 0 ? (
+                  <SeccionPlegable
+                    titulo="Añadir un código"
+                    descripcion="El de fábrica, si lo trae. Di cuántas llegaron."
+                    icono="nuevo"
+                    enGrupo
+                    data-testid="abrir-codigo"
+                  >
+                    <FormularioCodigo productoId={p.id} />
+                  </SeccionPlegable>
+                ) : null}
+
+                <SeccionPlegable
+                  titulo="Editar los datos"
+                  descripcion={codigos.length > 0 ? "Nombre, precio, categoría y códigos." : "Nombre, precio y categoría."}
+                  icono="editar"
+                  enGrupo
+                  data-testid="abrir-edicion"
+                >
+                  <FormularioEdicion
+                    productoId={p.id}
+                    producto={p}
+                    codigos={codigos.map((c) => ({ id: c.id, numero: c.numero }))}
+                    categorias={categorias}
+                  />
+                </SeccionPlegable>
+
+                {/* Separado de editar a propósito: dejar de vender no es corregir un dato, es sacar algo
+                    de circulación. Es reversible y queda registrado, así que no pide confirmación. */}
+                <SeccionPlegable
+                  titulo={p.activo ? "Dejar de vender" : "Devolver a la venta"}
+                  descripcion={
+                    p.activo
+                      ? "Sale de la venta y del catálogo. El historial se queda."
+                      : "Ya no se vende. Volverá a la venta y al catálogo."
+                  }
+                  icono="retirar"
+                  enGrupo
+                  data-testid="abrir-estado"
+                >
+                  <form action={cambiarEstado.bind(null, p.id, !p.activo)}>
+                    <Boton type="submit" data-testid="cambiar-estado" className="w-full">
+                      {p.activo ? "Dejar de vender" : "Devolver a la venta"}
+                    </Boton>
+                  </form>
+                </SeccionPlegable>
+              </>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

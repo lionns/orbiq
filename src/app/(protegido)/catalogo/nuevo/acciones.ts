@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { crearProducto } from "@/domain/catalogo";
 import { validarAlta } from "@/domain/producto";
+import { puede, SIN_PERMISO } from "@/domain/permisos";
 import { sesionActual } from "@/domain/session";
 
 export type EstadoAlta = { errores: Record<string, string> };
@@ -14,6 +15,7 @@ export async function darDeAlta(_estado: EstadoAlta, datos: FormData): Promise<E
   // alcanza sin pasar por la pantalla (`AC-001`).
   const sesion = await sesionActual(await headers());
   if (!sesion) redirect("/acceso");
+  if (!puede(sesion.rol, "editarProducto")) return { errores: { nombre: SIN_PERMISO } };
 
   const validado = validarAlta({
     nombre: String(datos.get("nombre") ?? ""),

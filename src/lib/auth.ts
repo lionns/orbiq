@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db, schema } from "@/db";
@@ -21,6 +22,9 @@ if (!secret) throw new Error("Falta BETTER_AUTH_SECRET. Ver .env.example");
  * Cuando se encienda, va con `disableSignUp: true`: iniciar sesión con un proveedor no es
  * registrarse, y el callback debe rechazar una cuenta que el estudio no dio de alta.
  */
+/** El código con que se rechaza entrar a alguien dado de baja; la pantalla de acceso lo reconoce. */
+export const CUENTA_DE_BAJA = "CUENTA_DE_BAJA";
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
   secret,
@@ -49,6 +53,26 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       role: { type: "string", defaultValue: "owner", input: false },
+      disabledAt: { type: "date", required: false, input: false },
+    },
+  },
+  /**
+   * Una persona dada de baja no vuelve a entrar (`D-013`, `AC-034`). Se corta al **crear la sesión**,
+   * que es después de comprobar la contraseña: así solo se entera quien la sabe, y no sirve para
+   * averiguar qué correos existen. Es el mismo punto que usa el plugin `admin` de la librería para
+   * los usuarios bloqueados (`plugins/admin/admin.mjs`, verificado en 1.7.3).
+   */
+  databaseHooks: {
+    session: {
+      create: {
+        async before(sesion, ctx) {
+          if (!ctx) return;
+          const usuario = await ctx.context.internalAdapter.findUserById(sesion.userId);
+          if (usuario && (usuario as { disabledAt?: Date | null }).disabledAt) {
+            throw APIError.from("FORBIDDEN", { message: "Dado de baja", code: CUENTA_DE_BAJA });
+          }
+        },
+      },
     },
   },
   // Va de último a propósito: el propio paquete avisa si otro plugin de cookies queda después.

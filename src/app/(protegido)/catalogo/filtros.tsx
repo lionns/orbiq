@@ -39,6 +39,8 @@ export function Filtros({
   categorias,
   volverA,
   total,
+  darDeAlta,
+  dueno,
 }: {
   filtros: FiltrosCatalogo;
   categorias: string[];
@@ -46,6 +48,9 @@ export function Filtros({
   volverA?: string;
   /** Cuántos cumplen los filtros puestos: lo que dice «Ver N productos» al abrir. */
   total: number;
+  /** Si quien mira puede dar de alta lo que escanea y nadie tiene (`D-013`). */
+  darDeAlta: boolean;
+  dueno: string;
 }) {
   const n = activos(filtros);
   const aqui = volverA ?? comoDireccion(filtros);
@@ -69,7 +74,7 @@ export function Filtros({
 
       <div className="grid grid-cols-2 gap-2 lg:flex">
         <div className="flex flex-wrap gap-2 [&>div]:flex-1 [&_button]:w-full lg:[&_button]:w-auto">
-          <BuscadorPorCodigo />
+          <BuscadorPorCodigo darDeAlta={darDeAlta} dueno={dueno} />
         </div>
 
         <details className="group lg:relative">

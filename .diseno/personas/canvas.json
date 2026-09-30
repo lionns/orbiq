@@ -1,0 +1,117 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Ajustes.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "1 · Ajustes: una fila «Personas»",
+      "w": 360,
+      "x": 0,
+      "y": 0
+    },
+    "Personas.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "2 · Personas",
+      "w": 360,
+      "x": 440,
+      "y": 0
+    },
+    "Anadir.dc.html": {
+      "h": 960,
+      "is_interactive": true,
+      "title": "3 · Añadir persona",
+      "w": 360,
+      "x": 880,
+      "y": 0
+    },
+    "Persona.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "4 · Una persona",
+      "w": 360,
+      "x": 1320,
+      "y": 0
+    },
+    "Persona-baja.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "5 · Dar de baja",
+      "w": 360,
+      "x": 1760,
+      "y": 0
+    },
+    "Empleado-Ficha.dc.html": {
+      "h": 960,
+      "is_interactive": true,
+      "title": "6 · Ficha sin acciones, con una línea que explica",
+      "w": 360,
+      "x": 0,
+      "y": 1420
+    },
+    "Empleado-Ventas.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "7 · Una venta, sin Anular",
+      "w": 360,
+      "x": 440,
+      "y": 1420
+    },
+    "Venta-quien.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "8 · La misma venta vista por el dueño",
+      "w": 360,
+      "x": 880,
+      "y": 1420
+    },
+    "Empleado-Desconocido.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "9 · Código que no está",
+      "w": 360,
+      "x": 1320,
+      "y": 1420
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-29T15:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "maxW": 2400,
+      "text": "El dueño administra quién entra",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 2400,
+      "text": "La tienda vista por un empleado",
+      "w": 240,
+      "x": 0,
+      "y": 1120
+    }
+  },
+  "order": [
+    "Ajustes.dc.html",
+    "Personas.dc.html",
+    "Anadir.dc.html",
+    "Persona.dc.html",
+    "Persona-baja.dc.html",
+    "Empleado-Ficha.dc.html",
+    "Empleado-Ventas.dc.html",
+    "Venta-quien.dc.html",
+    "Empleado-Desconocido.dc.html"
+  ],
+  "pages": [],
+  "title": "Personas del negocio"
+}

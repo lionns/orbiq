@@ -2,7 +2,8 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { isAPIError } from "better-auth/api";
+import { auth, CUENTA_DE_BAJA } from "@/lib/auth";
 
 export type EstadoAcceso = { error: string | null };
 
@@ -24,7 +25,12 @@ export async function entrar(_estado: EstadoAcceso, datos: FormData): Promise<Es
       body: { email: correo, password: contrasena },
       headers: await headers(),
     });
-  } catch {
+  } catch (error) {
+    // Dado de baja (`D-013`): solo llega aquí quien escribió la contraseña correcta, así que decirlo
+    // no revela qué correos existen, y le ahorra probar otra vez.
+    if (isAPIError(error) && error.body?.code === CUENTA_DE_BAJA) {
+      return { error: "Ya no tienes acceso a esta tienda. Habla con el dueño." };
+    }
     return { error: RECHAZO };
   }
 

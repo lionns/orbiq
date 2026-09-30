@@ -14,7 +14,7 @@ import { buscarPorCodigo } from "../acciones";
  * Añadir uno segundo empujaba la lista 64 px hacia abajo y la sacaba del pliegue a 360 px — lo
  * detectó la prueba de `T-005`, no una revisión.
  */
-export function BuscadorPorCodigo() {
+export function BuscadorPorCodigo({ darDeAlta, dueno }: { darDeAlta: boolean; dueno: string }) {
   const router = useRouter();
   const [noEncontrado, setNoEncontrado] = useState<string | null>(null);
 
@@ -31,7 +31,12 @@ export function BuscadorPorCodigo() {
   return (
     <>
       <ObjetivoDeEscaneo onCodigo={alEscanear} conCampo={false} comoEscanear />
-      {noEncontrado ? (
+      {noEncontrado && !darDeAlta ? (
+        // Un empleado no añade ni da de alta (`D-013`): se le dice a quién avisar.
+        <p className="basis-full" role="alert" data-testid="codigo-no-encontrado">
+          Ningún producto tiene el código {noEncontrado}. Avísale {dueno}.
+        </p>
+      ) : noEncontrado ? (
         // Las mismas dos salidas que en la venta, en el mismo orden (`AC-025`): si el proveedor
         // cambió el código, lo que falta es añadirlo al producto, no darlo de alta otra vez.
         <p className="basis-full" role="alert" data-testid="codigo-no-encontrado">

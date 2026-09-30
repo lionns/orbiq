@@ -229,6 +229,37 @@
         "FR-018",
         "FR-016"
       ]
+    },
+    {
+      "id": "AC-032",
+      "criterion": "CUANDO el dueño da de alta a un empleado EL SISTEMA DEBE crear su usuario con rol staff y credencial de contraseña, y el empleado DEBE poder entrar con ellos.",
+      "verifies": [
+        "FR-019",
+        "FR-009"
+      ]
+    },
+    {
+      "id": "AC-033",
+      "criterion": "CUANDO un empleado llama directo a anular, editar, dar de alta, añadir código o corregir el conteo EL SISTEMA DEBE rechazarlo sin cambiar nada, aunque la pantalla no lo ofrezca.",
+      "verifies": [
+        "FR-019"
+      ]
+    },
+    {
+      "id": "AC-034",
+      "criterion": "CUANDO el dueño da de baja a un empleado EL SISTEMA DEBE cerrar sus sesiones abiertas y rechazar que vuelva a entrar; sus ventas DEBEN seguir con su nombre.",
+      "verifies": [
+        "FR-019",
+        "FR-009"
+      ]
+    },
+    {
+      "id": "AC-035",
+      "criterion": "CUANDO se abre el detalle de una venta EL SISTEMA DEBE decir quién la cobró.",
+      "verifies": [
+        "FR-019",
+        "FR-006"
+      ]
     }
   ],
   "crossCutting": [

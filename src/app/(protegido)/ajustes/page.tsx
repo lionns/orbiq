@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { elegirTema } from "@/app/acciones-tema";
 import { NEGOCIO } from "@/domain/negocio";
+import { NOMBRE_DEL_ROL, puede } from "@/domain/permisos";
 import { COOKIE_TEMA, ETIQUETA_TEMA, leerTema, TEMAS } from "@/domain/tema";
 import { Boton } from "@/ui/boton";
 import { Icono } from "@/ui/iconos";
@@ -57,11 +58,36 @@ export default async function Ajustes() {
         })}
       </form>
 
+      {/* `.diseno/personas/Ajustes`: una fila que lleva a la lista, para que Ajustes no crezca con
+          el número de empleados. Solo el dueño la ve (`D-013`). */}
+      {puede(sesion?.rol, "administrarPersonas") ? (
+        <>
+          <h2 className="mt-7 mb-2 text-lg font-bold">Tienda</h2>
+          <Link
+            href="/ajustes/personas"
+            className="flex min-h-16 items-center gap-3 rounded-card border border-border bg-surface px-4 py-2.5"
+            data-testid="ir-a-personas"
+          >
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              <Icono nombre="personas" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">Personas</span>
+              <span className="block text-text-muted">Quién puede entrar a la tienda</span>
+            </span>
+            <Icono nombre="siguiente" className="text-text-muted" />
+          </Link>
+        </>
+      ) : null}
+
       <h2 className="mt-7 mb-2 text-lg font-bold">Sesión</h2>
       <div className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
         <p>
           <span className="block font-semibold">{sesion?.nombre}</span>
-          <span className="block text-text-muted">{NEGOCIO.nombre}</span>
+          <span className="block text-text-muted">
+            {sesion ? `${NOMBRE_DEL_ROL[sesion.rol]} · ` : ""}
+            {NEGOCIO.nombre}
+          </span>
         </p>
         <form action={salir}>
           <Boton type="submit" className="w-full">
